@@ -4,7 +4,7 @@
 
 **AI-агент для автоматического подбора анкет в Twinby**
 
-[![CI](https://github.com/ssrjkk/twinby-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ssrjkk/twinby-bot/actions/workflows/ci.yml)
+[![CI](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -30,7 +30,7 @@
 ## 📁 Структура
 
 ```
-twinby-bot/
+twinby-swipe-bot/
 ├── .github/workflows/ci.yml   # GitHub Actions
 ├── agents/
 │   ├── base.py                # BaseAgent + Decision
@@ -54,8 +54,8 @@ twinby-bot/
 ## 🚀 Быстрый старт
 
 ```bash
-git clone https://github.com/ssrjkk/twinby-bot.git
-cd twinby-bot
+git clone https://github.com/ssrjkk/twinby-swipe-bot.git
+cd twinby-swipe-bot
 pip install -r requirements.txt
 cp .env.example .env          # заполни ключи
 ```

@@ -19,6 +19,7 @@ for mod in [
     "selenium.webdriver.support.ui",
     "selenium.webdriver.support.expected_conditions",
     "openai", "google", "google.genai", "google.genai.types",
+    "anthropic",
 ]:
     sys.modules.setdefault(mod, types.ModuleType(mod))
 
@@ -231,7 +232,7 @@ class TestSyntax:
 
         root = os.path.dirname(os.path.dirname(__file__))
         path = os.path.join(root, fname)
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             src = f.read()
         try:
             ast.parse(src)
