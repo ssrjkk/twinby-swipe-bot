@@ -2,6 +2,12 @@
 
 # 🤖 Twinby Bot
 
+[![CI](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
+
 **AI-агент для автоматического подбора анкет в Twinby**
 
 [![CI](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml)
@@ -181,3 +187,18 @@ QA Automation Engineer · Saint Petersburg
 <div align="center">
 <sub>Stack: Python · Playwright · Appium · uiautomator2 · Claude · pytest · GitHub Actions</sub>
 </div>
+
+
+## Installation
+
+```bash
+git clone https://github.com/ssrjkk/twinby-swipe-bot.git
+cd twinby-swipe-bot
+pip install -r requirements.txt
+```
+
+## Usage
+
+```bash
+python main.py
+```
