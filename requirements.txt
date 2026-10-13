@@ -3,7 +3,7 @@ anthropic>=1.13.0
 python-dotenv>=1.0.0
 
 # Android
-uiautomator2>=3.0.0
+uiautomator2>=3.7.0
 
 # iOS / Mac
 Appium-Python-Client>=6.0.7
