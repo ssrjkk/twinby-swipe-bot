@@ -1,5 +1,5 @@
 # Core
-anthropic>=1.15.0
+anthropic>=2.2.0
 python-dotenv>=1.2.4
 
 # Android
