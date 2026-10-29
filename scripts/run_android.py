@@ -15,13 +15,20 @@ from io import BytesIO
 import uiautomator2 as u2
 
 from agent_factory import create_agent
-from config import DELAY_MAX, DELAY_MIN, LIKE_THRESHOLD, MAX_SWIPES, TWINBY_ACTIVITY, TWINBY_PACKAGE
+from config import (
+    DELAY_MAX,
+    DELAY_MIN,
+    LIKE_THRESHOLD,
+    MAX_SWIPES,
+    TWINBY_ACTIVITY,
+    TWINBY_PACKAGE,
+)
 
-LIKE_IDS    = ["btn_like", "button_like", "iv_like", "like_button", "ic_like"]
-SKIP_IDS    = ["btn_dislike", "button_dislike", "iv_dislike", "nope_button", "ic_dislike"]
-CLOSE_IDS   = ["btn_close", "button_close", "iv_close", "close"]
+LIKE_IDS = ["btn_like", "button_like", "iv_like", "like_button", "ic_like"]
+SKIP_IDS = ["btn_dislike", "button_dislike", "iv_dislike", "nope_button", "ic_dislike"]
+CLOSE_IDS = ["btn_close", "button_close", "iv_close", "close"]
 CLOSE_TEXTS = ["Закрыть", "Позже", "Не сейчас", "Пропустить", "✕"]
-BIO_IDS     = ["tv_about", "tv_bio", "tv_description", "about_text", "tv_name"]
+BIO_IDS = ["tv_about", "tv_bio", "tv_description", "about_text", "tv_name"]
 
 
 def connect(serial=None) -> u2.Device:
@@ -117,7 +124,9 @@ def main():
             result.decision = "skip"
 
         icon = "💚" if result.decision == "like" else "❌"
-        print(f"[{i:02d}] {icon} {result.decision.upper():4s}  {result.confidence:3d}%  — {result.reason}")
+        print(
+            f"[{i:02d}] {icon} {result.decision.upper():4s}  {result.confidence:3d}%  — {result.reason}"
+        )
         swipe(d, result.decision)
         stats["likes" if result.decision == "like" else "skips"] += 1
         time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))

@@ -21,19 +21,26 @@ from appium.webdriver.common.appiumby import AppiumBy
 from selenium.common.exceptions import NoSuchElementException
 
 from agent_factory import create_agent
-from config import APPIUM_HOST, DELAY_MAX, DELAY_MIN, LIKE_THRESHOLD, MAX_SWIPES, TWINBY_BUNDLE
+from config import (
+    APPIUM_HOST,
+    DELAY_MAX,
+    DELAY_MIN,
+    LIKE_THRESHOLD,
+    MAX_SWIPES,
+    TWINBY_BUNDLE,
+)
 
-SIM_UDID             = os.getenv("SIM_UDID", "")
+SIM_UDID = os.getenv("SIM_UDID", "")
 SIM_PLATFORM_VERSION = os.getenv("SIM_PLATFORM_VERSION", "17.0")
 
 
 def create_driver():
     opts = XCUITestOptions()
-    opts.bundle_id        = TWINBY_BUNDLE
+    opts.bundle_id = TWINBY_BUNDLE
     opts.platform_version = SIM_PLATFORM_VERSION
-    opts.automation_name  = "XCUITest"
-    opts.is_simulator     = True
-    opts.no_reset         = True
+    opts.automation_name = "XCUITest"
+    opts.is_simulator = True
+    opts.no_reset = True
     if SIM_UDID:
         opts.udid = SIM_UDID
     driver = webdriver.Remote(APPIUM_HOST, options=opts)
@@ -56,8 +63,8 @@ def screenshot(driver) -> bytes:
 
 def get_data(driver) -> tuple[list[bytes], str]:
     shots = [screenshot(driver)]
-    size  = driver.get_window_size()
-    w, h  = size["width"], size["height"]
+    size = driver.get_window_size()
+    w, h = size["width"], size["height"]
     for _ in range(2):
         driver.tap([(int(w * 0.72), int(h * 0.38))])
         time.sleep(0.4)
@@ -76,7 +83,10 @@ def swipe_card(driver, decision: str):
     size = driver.get_window_size()
     w, h = size["width"], size["height"]
     cx, cy = w // 2, int(h * 0.45)
-    btn_ids = {"like": ["like", "Like", "heart"], "skip": ["dislike", "Dislike", "nope"]}
+    btn_ids = {
+        "like": ["like", "Like", "heart"],
+        "skip": ["dislike", "Dislike", "nope"],
+    }
     for acc_id in btn_ids[decision]:
         try:
             driver.find_element(AppiumBy.ACCESSIBILITY_ID, acc_id).click()
@@ -123,7 +133,9 @@ def main():
             result.decision = "skip"
 
         icon = "💚" if result.decision == "like" else "❌"
-        print(f"[{i:02d}] {icon} {result.decision.upper():4s}  {result.confidence:3d}%  — {result.reason}")
+        print(
+            f"[{i:02d}] {icon} {result.decision.upper():4s}  {result.confidence:3d}%  — {result.reason}"
+        )
         swipe_card(driver, result.decision)
         stats["likes" if result.decision == "like" else "skips"] += 1
         time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))

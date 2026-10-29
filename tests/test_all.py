@@ -12,13 +12,23 @@ import pytest
 
 # ── stub тяжёлых зависимостей до импорта ─────────────────────────────────────
 for mod in [
-    "uiautomator2", "appium", "appium.webdriver", "appium.options",
-    "appium.webdriver.common", "appium.webdriver.common.appiumby",
-    "selenium", "selenium.common", "selenium.common.exceptions",
-    "selenium.webdriver", "selenium.webdriver.support",
+    "uiautomator2",
+    "appium",
+    "appium.webdriver",
+    "appium.options",
+    "appium.webdriver.common",
+    "appium.webdriver.common.appiumby",
+    "selenium",
+    "selenium.common",
+    "selenium.common.exceptions",
+    "selenium.webdriver",
+    "selenium.webdriver.support",
     "selenium.webdriver.support.ui",
     "selenium.webdriver.support.expected_conditions",
-    "openai", "google", "google.genai", "google.genai.types",
+    "openai",
+    "google",
+    "google.genai",
+    "google.genai.types",
     "anthropic",
 ]:
     sys.modules.setdefault(mod, types.ModuleType(mod))
@@ -32,7 +42,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from agents.base import BaseAgent, Decision  # noqa: E402
 from agent_factory import create_agent, list_agents, REGISTRY  # noqa: E402
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. Decision dataclass
@@ -215,11 +224,11 @@ class TestSyntax:
     @pytest.mark.parametrize(
         "fname",
         [
-            "config.py",
-            "agent_factory.py",
-            "run_android.py",
-            "run_ios.py",
-            "run_mac.py",
+            "scripts/config.py",
+            "scripts/agent_factory.py",
+            "scripts/run_android.py",
+            "scripts/run_ios.py",
+            "scripts/run_mac.py",
             "agents/base.py",
             "agents/claude_agent.py",
             "agents/openai_agent.py",

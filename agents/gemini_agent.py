@@ -4,7 +4,6 @@ env: GEMINI_API_KEY
 pip install google-genai
 """
 
-import base64
 import os
 
 from agents.base import BaseAgent, Decision
@@ -15,7 +14,7 @@ class GeminiAgent(BaseAgent):
 
     def __init__(self, api_key: str | None = None, model: str = "gemini-2.0-flash"):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        self.model   = model
+        self.model = model
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY не задан")
 
@@ -24,7 +23,7 @@ class GeminiAgent(BaseAgent):
         from google.genai import types
 
         client = genai.Client(api_key=self.api_key)
-        parts  = []
+        parts = []
 
         for img in screenshots[:3]:
             parts.append(types.Part.from_bytes(data=img, mime_type="image/png"))

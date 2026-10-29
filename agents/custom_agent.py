@@ -12,7 +12,7 @@ from agents.base import BaseAgent, Decision
 
 
 class CustomAgent(BaseAgent):
-    name = "custom"   # <-- задай уникальное имя
+    name = "custom"  # <-- задай уникальное имя
 
     def __init__(self, api_key: str | None = None, **kwargs):
         self.api_key = api_key

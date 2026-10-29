@@ -9,13 +9,15 @@ from dataclasses import dataclass
 
 @dataclass
 class Decision:
-    decision: str     # "like" | "skip"
-    confidence: int   # 0–100
+    decision: str  # "like" | "skip"
+    confidence: int  # 0–100
     reason: str
 
     def __post_init__(self):
         if self.decision not in ("like", "skip"):
-            raise ValueError(f"decision must be 'like' or 'skip', got {self.decision!r}")
+            raise ValueError(
+                f"decision must be 'like' or 'skip', got {self.decision!r}"
+            )
         if not (0 <= self.confidence <= 100):
             raise ValueError(f"confidence must be 0–100, got {self.confidence}")
 
@@ -53,6 +55,7 @@ class BaseAgent(ABC):
     def _parse_json(self, raw: str) -> Decision:
         """Хелпер: парсит JSON-ответ агента в Decision."""
         import json
+
         clean = raw.strip().replace("```json", "").replace("```", "").strip()
         data = json.loads(clean)
         return Decision(

@@ -16,10 +16,10 @@ from agents.base import BaseAgent
 # ── Реестр агентов ────────────────────────────────────────────────────────────
 # name -> (module_path, class_name)
 REGISTRY: dict[str, tuple[str, str]] = {
-    "claude":  ("agents.claude_agent", "ClaudeAgent"),
-    "openai":  ("agents.openai_agent", "OpenAIAgent"),
-    "gemini":  ("agents.gemini_agent", "GeminiAgent"),
-    "custom":  ("agents.custom_agent", "CustomAgent"),
+    "claude": ("agents.claude_agent", "ClaudeAgent"),
+    "openai": ("agents.openai_agent", "OpenAIAgent"),
+    "gemini": ("agents.gemini_agent", "GeminiAgent"),
+    "custom": ("agents.custom_agent", "CustomAgent"),
     # пример добавления своего:
     # "mistral": ("agents.mistral_agent", "MistralAgent"),
 }
@@ -47,5 +47,5 @@ def create_agent(name: str | None = None, **kwargs) -> BaseAgent:
 
     module_path, class_name = REGISTRY[name]
     module = importlib.import_module(module_path)
-    cls    = getattr(module, class_name)
+    cls = getattr(module, class_name)
     return cls(**kwargs)
