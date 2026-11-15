@@ -2,619 +2,914 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Twinby Bot — ваши критерии. Осмысленный выбор.</title>
-<meta name="description" content="Twinby Bot — AI-агент осмысленного подбора анкет: снимок анкеты, Vision-анализ описания, порог уверенности и решение с объяснением. Python · Appium · Vision AI.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%2310B981'/%3E%3C/svg%3E">
+<meta name="description" content="Twinby Bot — AI-агент осмысленного подбора анкет: снимок анкеты, Vision-анализ описания, порог уверенности и решение с объяснением. Android, iOS, macOS. Python · Appium · Vision AI.">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --canvas:#F6F7F6;
-    --card:#FFFFFF;
-    --ink:#101913;
-    --muted:#55645C;
-    --accent:#10B981;
-    --accent-ink:#067A5B;
-    --accent-soft:#E7F6EF;
-    --accent-line:#BFE8D6;
-    --line:#E3E8E5;
-    --track:#E1E8E4;
-    --terminal:#0C1A14;
-    --terminal-ink:#D9E8E0;
-    --terminal-dim:#8FA79B;
-    --r-lg:18px;
-    --r-md:12px;
-    --r-sm:9px;
+    --bg:#FFFFFF;
+    --bg-soft:#FAFAF9;
+    --ink:#131311;
+    --ink-2:#3F3C38;
+    --muted:#57534E;
+    --faint:#6E6862;
+    --line:#E7E5E4;
+    --line-2:#D6D3D1;
+    --emerald:#10B981;
+    --emerald-deep:#047857;
+    --emerald-ink:#065F46;
+    --emerald-tint:#D1FAE5;
+    --emerald-tint-2:#ECFDF5;
+    --emerald-line:#A7F3D0;
+    --console:#161613;
+    --console-2:#211F1C;
+    --console-line:#2E2C28;
+    --console-text:#E7E5E4;
+    --console-dim:#A8A29E;
+    --console-accent:#34D399;
+    --ring:#047857;
+    --sans:'Manrope',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    --mono:'JetBrains Mono','Cascadia Mono',Consolas,monospace;
   }
-  *,*::before,*::after{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
   body{
-    margin:0;
-    font-family:'Onest',system-ui,sans-serif;
-    font-size:16px;
-    line-height:1.55;
+    font-family:var(--sans);
+    background:var(--bg);
     color:var(--ink);
-    background:var(--canvas);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
     overflow-x:clip;
   }
-  ::selection{background:var(--accent-soft);color:var(--ink)}
-  a{color:var(--accent-ink);text-decoration:none}
-  a:hover{text-decoration:underline;text-underline-offset:3px}
-  :where(a,button,input,summary,[tabindex]):focus-visible{
-    outline:2px solid var(--accent-ink);
-    outline-offset:3px;
-    border-radius:4px;
+  ::selection{background:var(--emerald-tint);color:var(--ink)}
+  img,svg{display:block}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--ring);outline-offset:3px;border-radius:4px}
+
+  .container{max-width:1180px;margin-inline:auto;padding-inline:clamp(16px,4vw,28px)}
+
+  /* ---------- mono micro-labels ---------- */
+  .mlabel{
+    font-family:var(--mono);font-size:11px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+    display:inline-flex;align-items:center;gap:10px;
   }
-  .skip{
-    position:absolute;left:16px;top:-48px;z-index:100;
-    background:var(--ink);color:#fff;
-    padding:9px 16px;border-radius:0 0 var(--r-sm) var(--r-sm);
-    font-size:14px;font-weight:600;
-    transition:top .15s ease;
-  }
-  .skip:focus-visible{top:0}
-  .container{max-width:1180px;margin:0 auto;padding:0 28px}
-  section{scroll-margin-top:88px}
+  .mlabel .idx{color:var(--emerald-deep);font-weight:600}
 
   /* ---------- topbar ---------- */
   .topbar{
-    position:sticky;top:0;z-index:20;
-    background:rgba(246,247,246,.9);
-    -webkit-backdrop-filter:blur(10px);
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,.86);
     backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
   }
-  .topbar-inner{display:flex;align-items:center;gap:32px;height:64px}
-  .brand{
-    display:flex;align-items:center;gap:9px;
-    font-weight:700;font-size:16.5px;letter-spacing:-.01em;color:var(--ink);
+  .topbar-in{display:flex;align-items:center;gap:28px;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em;text-decoration:none;cursor:pointer}
+  .brand-mark{
+    width:28px;height:28px;border-radius:8px;background:var(--ink);
+    display:grid;place-items:center;color:var(--console-accent);flex:none;
   }
-  .brand:hover{text-decoration:none}
-  .brand-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
-  .nav{display:flex;gap:26px;margin-left:8px}
-  .nav a{font-size:14.5px;color:var(--muted);font-weight:500}
-  .nav a:hover{color:var(--ink);text-decoration:none}
-  .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-  .btn-ghost{
+  .brand-mark svg{width:15px;height:15px}
+  .topnav{display:flex;gap:22px;margin-left:auto}
+  .topnav a{
+    font-size:14.5px;font-weight:600;color:var(--muted);text-decoration:none;
+    transition:color .2s ease;cursor:pointer;
+  }
+  .topnav a:hover{color:var(--ink)}
+  .topbar .btn{margin-left:20px}
+
+  /* ---------- buttons ---------- */
+  .btn{
     display:inline-flex;align-items:center;gap:8px;
-    border:1px solid var(--line);border-radius:999px;
-    padding:8px 16px;font-size:14px;font-weight:600;color:var(--ink);
-    background:var(--card);
-    transition:border-color .15s ease,background .15s ease;
+    padding:12px 20px;border-radius:10px;border:1px solid transparent;
+    font-family:var(--sans);font-size:15px;font-weight:700;line-height:1;
+    text-decoration:none;cursor:pointer;white-space:nowrap;
+    transition:background-color .2s ease,border-color .2s ease,color .2s ease;
   }
-  .btn-ghost:hover{border-color:var(--accent-ink);text-decoration:none;background:var(--accent-soft)}
-  .btn-ghost svg{width:15px;height:15px;flex:none}
+  .btn-sm{padding:9px 14px;font-size:13.5px;border-radius:8px}
+  .btn-primary{background:var(--emerald-deep);color:#fff}
+  .btn-primary:hover{background:var(--emerald-ink)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+  .btn-ghost:hover{border-color:var(--ink)}
+  .arrow{font-family:var(--mono);font-weight:400}
 
   /* ---------- hero ---------- */
-  .hero{padding:64px 0 30px}
+  .hero{padding:clamp(52px,7vw,96px) 0 clamp(44px,6vw,76px)}
+  .hero-copy{max-width:900px}
   .hero h1{
-    font-family:'Unbounded',sans-serif;font-weight:500;
-    font-size:clamp(27px,4.2vw + 10px,58px);
-    line-height:1.16;letter-spacing:-.015em;
-    margin:0 0 26px;max-width:20ch;
+    margin-top:20px;
+    font-size:clamp(2.5rem,6.4vw,4.9rem);
+    line-height:1.03;letter-spacing:-.03em;font-weight:800;
+    max-width:18ch;
   }
-  .h-dot{color:var(--accent-ink)}
-  .hero-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:start;margin-top:8px}
-  .hero-copy p.lead{font-size:18.5px;line-height:1.6;color:var(--ink);margin:0 0 14px;max-width:46ch}
-  .hero-copy p.sub{font-size:15.5px;color:var(--muted);margin:0 0 28px;max-width:52ch}
-  .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px}
-  .btn-primary{
-    display:inline-flex;align-items:center;gap:9px;
-    background:var(--accent-ink);color:#fff;
-    padding:13px 22px;border-radius:999px;
-    font-size:15px;font-weight:600;
-    transition:background .15s ease;
+  .hero h1 .dot-accent{color:var(--emerald)}
+  .hero-sub{
+    margin-top:22px;font-size:clamp(15.5px,1.4vw,17.5px);
+    color:var(--muted);max-width:56ch;line-height:1.66;
   }
-  .btn-primary:hover{background:#056449;text-decoration:none}
-  .btn-secondary{
-    display:inline-flex;align-items:center;gap:9px;
-    border:1px solid var(--line);background:var(--card);color:var(--ink);
-    padding:13px 22px;border-radius:999px;
-    font-size:15px;font-weight:600;
-    transition:border-color .15s ease;
-  }
-  .btn-secondary:hover{border-color:var(--accent-ink);text-decoration:none}
-  .stack-line{
-    font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);
+  .hero-cta{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
+  .chips{margin-top:22px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    font-family:var(--mono);font-size:12px;color:var(--ink-2);
+    background:var(--bg);border:1px solid var(--line);border-radius:999px;
+    padding:6px 12px;
   }
 
-  /* ---------- agent console (hero) ---------- */
+  /* ---------- agent console (dark, neutral ink) ---------- */
+  .console-wrap{margin-top:clamp(36px,5vw,56px);max-width:840px}
   .console{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--r-lg);
-    padding:22px 22px 24px;
-    box-shadow:0 12px 32px -20px rgba(16,25,19,.18);
+    background:var(--console);border:1px solid var(--console-2);border-radius:14px;
+    overflow:hidden;color:var(--console-text);
+    box-shadow:0 24px 48px -26px rgba(19,19,17,.45);
   }
   .console-head{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding-bottom:16px;margin-bottom:16px;
-    border-bottom:1px solid var(--line);
-  }
-  .console-title{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--ink)}
-  .live{
-    display:inline-flex;align-items:center;gap:9px;
-    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-ink);
-  }
-  .dots{display:inline-flex;gap:4px;align-items:center}
-  .dots i{width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.85}
-  .c-card{
-    border:1px solid var(--line);
-    border-left:3px solid var(--accent);
-    border-radius:var(--r-sm);
-    background:#FCFDFC;
-    padding:14px 16px;
-  }
-  .profile{display:flex;gap:14px;align-items:flex-start}
-  .avatar{
-    width:46px;height:46px;flex:none;border-radius:12px;
-    background:#E9EFEB;display:flex;align-items:center;justify-content:center;
-    color:var(--muted);
-  }
-  .avatar svg{width:24px;height:24px}
-  .profile-name{font-weight:600;font-size:15.5px}
-  .profile-meta{display:block;font-size:13px;color:var(--muted);margin-top:1px}
-  .profile-bio{font-size:13.5px;color:var(--ink);margin:7px 0 0;opacity:.85}
-  .c-thinking{
     display:flex;align-items:center;gap:10px;
-    font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--muted);
-    margin:16px 2px 12px;
+    padding:14px 20px;border-bottom:1px solid var(--console-line);
   }
-  .c-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 2px 16px}
-  .chip{
-    display:inline-flex;align-items:center;gap:6px;
-    font-family:'JetBrains Mono',monospace;font-size:11.5px;
-    background:#F1F5F3;border-radius:999px;padding:5px 11px;color:var(--ink);
+  .console-title{font-family:var(--mono);font-size:12.5px;font-weight:500}
+  .console-badge{
+    margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--console-dim);
+    border:1px solid var(--console-line);border-radius:999px;padding:4px 10px;
+    display:inline-flex;align-items:center;gap:7px;
   }
-  .chip b{color:var(--accent-ink);font-weight:600}
-  .c-conf{margin:0 2px 16px}
-  .conf-head{
-    display:flex;justify-content:space-between;align-items:baseline;
-    font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--muted);
-    margin-bottom:9px;
+  .console-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--console-accent);animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .c-row{
+    display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;
+    padding:18px 20px;border-bottom:1px solid var(--console-line);
   }
-  .conf-val{font-size:17px;font-weight:600;color:var(--accent-ink)}
-  .bar{position:relative;height:8px;border-radius:999px;background:var(--track)}
-  .bar-fill{
-    position:absolute;inset:0 auto 0 0;width:87%;
-    border-radius:999px;background:var(--accent);
+  .c-row:last-child{border-bottom:none}
+  .c-num{
+    font-family:var(--mono);font-size:11px;font-weight:600;color:var(--console-accent);
+    padding-top:3px;letter-spacing:.08em;
   }
-  .bar-mark{position:absolute;top:-4px;bottom:-4px;left:75%;width:2px;background:rgba(16,25,19,.35)}
-  .bar-mark span{
-    position:absolute;top:-20px;left:-32px;
-    font-family:'JetBrains Mono',monospace;font-size:10.5px;white-space:nowrap;color:var(--muted);
+  .c-kicker{
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.14em;
+    color:var(--console-dim);display:block;margin-bottom:10px;
   }
+  .c-snap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  .c-photo{
+    width:76px;height:96px;border-radius:10px;flex:none;
+    background:var(--console-2);border:1px solid var(--console-line);
+    display:grid;place-items:center;color:var(--console-dim);
+  }
+  .c-photo svg{width:22px;height:22px}
+  .c-meta{min-width:180px;flex:1;display:flex;flex-direction:column;gap:6px}
+  .c-meta-row{
+    display:flex;justify-content:space-between;gap:12px;
+    font-family:var(--mono);font-size:12px;color:var(--console-text);
+    border-bottom:1px dashed rgba(168,162,158,.25);padding-bottom:6px;
+  }
+  .c-meta-row span:last-child{color:var(--console-dim)}
+  .c-name{font-size:14.5px;font-weight:700;color:var(--console-text);font-family:var(--sans)}
+  .c-name small{font-weight:500;color:var(--console-dim)}
+  .c-analysis{display:flex;flex-direction:column;gap:7px}
+  .c-a-line{
+    display:flex;align-items:center;gap:9px;
+    font-family:var(--mono);font-size:12px;color:var(--console-text);
+  }
+  .c-a-line svg{width:13px;height:13px;color:var(--console-accent);flex:none}
+  .c-a-line b{color:var(--console-dim);font-weight:500;flex:none;width:88px}
+  .c-a-sum{
+    margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--console-accent);
+    background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);
+    border-radius:8px;padding:7px 11px;display:inline-flex;gap:8px;align-items:center;
+  }
+  .c-bar{
+    position:relative;height:12px;border-radius:999px;
+    background:var(--console-2);border:1px solid var(--console-line);
+    margin-top:6px;
+  }
+  .c-bar-fill{
+    position:absolute;inset:0 auto 0 0;width:78%;
+    background:var(--emerald);border-radius:999px;
+  }
+  .c-bar-thr{
+    position:absolute;top:-5px;bottom:-5px;width:2px;background:#fff;left:70%;
+  }
+  .c-bar-thr::after{
+    content:"порог 70%";position:absolute;top:calc(100% + 6px);left:-30px;
+    font-family:var(--mono);font-size:10px;color:var(--console-dim);white-space:nowrap;
+  }
+  .c-bar-legend{
+    display:flex;justify-content:space-between;margin-top:26px;
+    font-family:var(--mono);font-size:11.5px;color:var(--console-dim);
+  }
+  .c-bar-legend b{color:var(--console-accent);font-weight:600;font-size:13px}
   .c-decision{
-    background:var(--accent-soft);
-    border:1px solid var(--accent-line);
-    border-left:3px solid var(--accent);
-    border-radius:var(--r-sm);
-    padding:14px 16px;
+    display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;
+    background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.25);
+    border-radius:10px;padding:14px 16px;
   }
-  .c-decision strong{font-size:15px;font-weight:700;color:var(--accent-ink)}
-  .c-decision p{margin:5px 0 0;font-size:13.5px;color:var(--ink)}
+  .c-chip{
+    font-family:var(--mono);font-size:12px;font-weight:600;
+    background:var(--emerald);color:#04120c;border-radius:8px;padding:7px 14px;flex:none;
+  }
+  .c-explain{font-size:13.5px;line-height:1.6;color:var(--console-text);min-width:220px;flex:1}
+  .c-explain b{color:var(--console-accent)}
+  .console-caption{
+    margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--faint);
+  }
 
-  /* ---------- sections common ---------- */
-  .section{padding:78px 0 0}
-  .section h2{
-    font-family:'Unbounded',sans-serif;font-weight:500;
-    font-size:clamp(23px,1.8vw + 12px,33px);
-    line-height:1.25;letter-spacing:-.01em;
-    margin:0 0 10px;
+  /* ---------- metrics ---------- */
+  .metrics{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-soft)}
+  .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+  .metric{
+    padding:clamp(24px,3vw,36px) clamp(18px,2.4vw,30px);
+    border-left:1px solid var(--line);
   }
-  .section .section-lead{color:var(--muted);font-size:16.5px;margin:0 0 40px;max-width:60ch}
+  .metric:first-child{border-left:none}
+  .metric-k{
+    font-family:var(--mono);font-weight:700;font-size:clamp(24px,2.6vw,30px);
+    color:var(--emerald-deep);letter-spacing:-.03em;line-height:1;
+  }
+  .metric h3{margin-top:12px;font-size:15px;font-weight:800;letter-spacing:-.01em}
+  .metric p{margin-top:5px;font-size:13.5px;color:var(--muted);line-height:1.5}
 
-  /* ---------- features: context cards ---------- */
-  .ctx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-  .ctx{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-left:3px solid var(--accent);
-    border-radius:var(--r-md);
-    padding:20px 22px;
+  /* ---------- sections ---------- */
+  .section{padding:clamp(56px,7vw,92px) 0}
+  .section-head{max-width:660px}
+  .section-head h2{
+    margin-top:16px;font-size:clamp(1.85rem,3.2vw,2.6rem);
+    line-height:1.12;letter-spacing:-.025em;font-weight:800;
   }
-  .ctx-title{display:flex;align-items:center;gap:11px;font-weight:600;font-size:16.5px;margin:0 0 7px}
-  .ctx-title svg{width:21px;height:21px;flex:none;color:var(--accent-ink)}
-  .ctx p{margin:0;font-size:14.5px;color:var(--muted)}
+  .section-lead{margin-top:14px;font-size:16px;color:var(--muted);line-height:1.65}
 
-  /* ---------- process ---------- */
-  .steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px;position:relative}
-  .steps::before{
-    content:"";position:absolute;top:17px;left:11%;right:11%;
-    height:1px;background:var(--line);
+  /* ---------- features: swiss grid ---------- */
+  .features-grid{
+    margin-top:clamp(30px,4vw,48px);
+    display:grid;grid-template-columns:repeat(3,1fr);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:var(--bg);
   }
-  .step{position:relative}
-  .step-num{
-    position:relative;z-index:1;
-    width:34px;height:34px;border-radius:50%;
-    background:var(--card);border:1px solid var(--line);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent-ink);
-    margin-bottom:14px;
+  .feature{
+    padding:clamp(22px,2.6vw,30px);
+    border-left:1px solid var(--line);border-top:1px solid var(--line);
+    margin-left:-1px;margin-top:-1px;
+    transition:background-color .2s ease;
   }
-  .step h3{font-size:16.5px;font-weight:600;margin:0 0 6px}
-  .step p{font-size:14.5px;color:var(--muted);margin:0;max-width:30ch}
+  .feature:hover{background:var(--bg-soft)}
+  .feature-top{display:flex;align-items:center;justify-content:space-between}
+  .feature-idx{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--emerald-deep)}
+  .feature-ico{
+    width:40px;height:40px;border-radius:10px;
+    background:var(--emerald-tint-2);border:1px solid var(--emerald-line);
+    color:var(--emerald-ink);display:grid;place-items:center;
+  }
+  .feature-ico svg{width:19px;height:19px}
+  .feature h3{margin-top:16px;font-size:16.5px;font-weight:800;letter-spacing:-.01em}
+  .feature p{margin-top:8px;font-size:14.5px;color:var(--muted);line-height:1.6}
 
-  /* ---------- demo ---------- */
-  .demo-panel{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--r-lg);
-    padding:30px 32px 26px;
-    box-shadow:0 12px 32px -20px rgba(16,25,19,.14);
-    max-width:760px;
+  /* ---------- how it works ---------- */
+  .how{border-top:1px solid var(--line);background:var(--bg-soft)}
+  .how-grid{margin-top:clamp(30px,4vw,48px);display:grid;grid-template-columns:repeat(4,1fr)}
+  .hstep{border-left:1px solid var(--line-2);padding:4px 0 4px clamp(16px,2vw,26px)}
+  .hstep:first-child{border-left:none;padding-left:0}
+  .hstep-num{
+    font-family:var(--mono);font-weight:700;font-size:13px;color:var(--emerald-deep);
+    display:inline-flex;align-items:center;gap:10px;
   }
-  .demo-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:18px}
-  .demo-label{font-weight:600;font-size:16px}
-  .demo-val{
-    font-family:'JetBrains Mono',monospace;
-    font-size:30px;font-weight:600;color:var(--accent-ink);
-    font-variant-numeric:tabular-nums;
+  .hstep-num::after{content:"";width:26px;height:1px;background:var(--line-2)}
+  .hstep:last-child .hstep-num::after{display:none}
+  .hstep h3{margin-top:12px;font-size:16.5px;font-weight:800;letter-spacing:-.01em}
+  .hstep p{margin-top:7px;font-size:14px;color:var(--muted);line-height:1.58}
+
+  /* ---------- demo: threshold ---------- */
+  .demo{
+    border-top:1px solid var(--line);
+    background:
+      linear-gradient(0deg,rgba(16,185,129,.03),rgba(16,185,129,.03)),
+      var(--bg);
   }
-  input[type="range"]{
+  .demo-card{
+    margin-top:clamp(30px,4vw,44px);
+    background:var(--bg);border:1px solid var(--line);border-radius:16px;
+    padding:clamp(20px,3vw,34px);
+    box-shadow:0 20px 44px -30px rgba(19,19,17,.25);
+  }
+  .demo-head{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+  .demo-value{margin-left:auto;display:flex;align-items:baseline;gap:4px}
+  .demo-value b{
+    font-family:var(--mono);font-weight:700;font-size:clamp(30px,3.6vw,44px);
+    letter-spacing:-.04em;color:var(--ink);line-height:1;
+  }
+  .demo-value span{font-family:var(--mono);font-size:15px;color:var(--faint)}
+  .slider-row{margin-top:22px}
+  .slider-row input[type="range"]{
     -webkit-appearance:none;appearance:none;
-    width:100%;height:24px;margin:0;background:transparent;cursor:pointer;
+    width:100%;height:26px;background:transparent;cursor:pointer;display:block;
   }
-  input[type="range"]::-webkit-slider-runnable-track{
-    height:6px;border-radius:999px;
-    background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--track) var(--p,50%));
-  }
-  input[type="range"]::-webkit-slider-thumb{
+  .slider-row input[type="range"]::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:var(--line)}
+  .slider-row input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance:none;appearance:none;
-    width:24px;height:24px;border-radius:50%;margin-top:-9px;
-    background:#fff;border:3px solid var(--accent-ink);
-    box-shadow:0 1px 5px rgba(16,25,19,.22);
+    width:22px;height:22px;border-radius:50%;background:var(--emerald-deep);
+    border:3px solid #fff;box-shadow:0 1px 6px rgba(19,19,17,.35);
+    margin-top:-6px;
   }
-  input[type="range"]::-moz-range-track{
-    height:6px;border-radius:999px;
-    background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--track) var(--p,50%));
+  .slider-row input[type="range"]::-moz-range-track{height:10px;border-radius:999px;background:var(--line)}
+  .slider-row input[type="range"]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;background:var(--emerald-deep);
+    border:3px solid #fff;box-shadow:0 1px 6px rgba(19,19,17,.35);
   }
-  input[type="range"]::-moz-range-thumb{
-    width:18px;height:18px;border-radius:50%;
-    background:#fff;border:3px solid var(--accent-ink);
-    box-shadow:0 1px 5px rgba(16,25,19,.22);
-  }
-  input[type="range"]:focus-visible{outline:none}
-  input[type="range"]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--accent-ink);outline-offset:3px}
-  input[type="range"]:focus-visible::-moz-range-thumb{outline:2px solid var(--accent-ink);outline-offset:3px}
-  .demo-scale{
+  .slider-scale{
     display:flex;justify-content:space-between;
-    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);
-    margin:10px 2px 20px;
+    font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:8px;
   }
-  .demo-verdict{
-    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
-    padding-top:18px;border-top:1px solid var(--line);
+  .profiles{list-style:none;margin-top:26px;border-top:1px solid var(--line)}
+  .profile{
+    display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr) auto;
+    gap:clamp(12px,2vw,22px);align-items:center;
+    padding:16px 0;border-bottom:1px solid var(--line);
   }
-  .demo-conf{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)}
-  .demo-conf b{color:var(--ink);font-weight:600}
-  .verdict{
-    margin:0;
-    display:inline-flex;align-items:center;gap:8px;
-    font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;
-    border-radius:999px;padding:8px 14px;
-    background:#F1F4F2;border:1px solid var(--line);color:var(--muted);
-    transition:background .2s ease,color .2s ease,border-color .2s ease;
+  .p-name{font-size:14.5px;font-weight:800;letter-spacing:-.01em}
+  .p-name small{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:400;margin-top:2px}
+  .p-bar-wrap{min-width:0}
+  .p-bar{position:relative;height:10px;border-radius:999px;background:var(--line)}
+  .p-bar-fill{position:absolute;inset:0 auto 0 0;border-radius:999px;transition:width .25s ease,background-color .25s ease}
+  .p-bar-thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);transition:left .25s ease}
+  .p-conf{
+    font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:6px;
+    display:flex;justify-content:space-between;gap:10px;
   }
-  .verdict::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
-  .verdict.pass{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
+  .p-conf b{color:var(--ink);font-weight:600}
+  .p-chip{
+    font-family:var(--mono);font-size:12px;font-weight:600;border-radius:8px;
+    padding:6px 13px;white-space:nowrap;justify-self:end;
+    transition:background-color .25s ease,color .25s ease;
+  }
+  .p-chip-like{background:var(--emerald);color:#04120c}
+  .p-chip-skip{background:var(--bg-soft);color:var(--muted);border:1px solid var(--line-2)}
+  .p-expl{
+    grid-column:1 / -1;font-size:13px;color:var(--muted);line-height:1.55;
+    padding-top:2px;
+  }
+  .p-expl b{color:var(--emerald-ink);font-weight:700}
+  .demo-count{
+    margin-top:20px;font-family:var(--mono);font-size:13px;color:var(--faint);
+    display:flex;align-items:center;gap:8px;
+  }
+  .demo-count b{color:var(--ink);font-weight:700}
   .demo-note{
-    margin-top:18px;padding-top:16px;border-top:1px dashed var(--line);
-    font-size:13.5px;color:var(--muted);max-width:64ch;
+    display:flex;gap:10px;align-items:flex-start;
+    margin-top:18px;font-size:13px;color:var(--faint);line-height:1.55;max-width:72ch;
   }
-  .demo-note b{color:var(--ink);font-weight:600}
+  .demo-note svg{width:15px;height:15px;flex:none;margin-top:2px;color:var(--emerald-deep)}
 
-  /* ---------- launch ---------- */
-  .terminal{
-    background:var(--terminal);color:var(--terminal-ink);
-    border-radius:14px;padding:22px 24px;
-    font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.8;
-    max-width:760px;
-    overflow-wrap:anywhere;white-space:pre-wrap;
+  /* ---------- CTA ---------- */
+  .cta{border-top:1px solid var(--line);padding:clamp(60px,8vw,100px) 0}
+  .cta-in{display:flex;align-items:center;justify-content:space-between;gap:36px;flex-wrap:wrap}
+  .cta h2{
+    font-size:clamp(2rem,4.2vw,3.2rem);letter-spacing:-.03em;line-height:1.08;
+    font-weight:800;max-width:14ch;
   }
-  .terminal .t-prompt{color:var(--accent);user-select:none}
-  .terminal .t-dim{color:var(--terminal-dim)}
-  .launch-link{
-    display:inline-block;margin-top:16px;
-    font-family:'JetBrains Mono',monospace;font-size:13.5px;
+  .cta h2 .dot-accent{color:var(--emerald)}
+  .cta p{margin-top:16px;color:var(--muted);font-size:16px;max-width:44ch;line-height:1.65}
+  .cta-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .link-demo{
+    font-size:15px;font-weight:700;color:var(--emerald-deep);text-decoration:none;
+    display:inline-flex;gap:8px;align-items:center;cursor:pointer;
+    border-bottom:2px solid var(--emerald-line);padding-bottom:3px;
+    transition:border-color .2s ease,color .2s ease;
   }
+  .link-demo:hover{color:var(--emerald-ink);border-color:var(--emerald-deep)}
 
   /* ---------- footer ---------- */
-  footer{margin-top:88px;border-top:1px solid var(--line);padding:30px 0 38px}
-  .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-  .footer-brand{font-weight:700;font-size:15.5px}
-  .footer-links{display:flex;gap:24px;flex-wrap:wrap;font-size:14.5px;font-weight:500}
-
-  /* ---------- motion ---------- */
-  html{scroll-behavior:smooth}
-  @media (prefers-reduced-motion: no-preference){
-    .a-up{animation:rise .6s cubic-bezier(.2,.6,.2,1) both;animation-delay:var(--d,0s)}
-    @keyframes rise{from{opacity:0;transform:translateY(12px)}}
-    .dots i{animation:pulse 1.25s ease-in-out infinite}
-    .dots i:nth-child(2){animation-delay:.18s}
-    .dots i:nth-child(3){animation-delay:.36s}
-    @keyframes pulse{0%,62%,100%{opacity:.3}30%{opacity:1}}
-    .bar-fill{animation:grow .9s cubic-bezier(.2,.6,.2,1) .95s both}
-    @keyframes grow{from{width:0}}
-    .verdict{transition:background .25s ease,color .25s ease,border-color .25s ease}
+  .footer{border-top:1px solid var(--line);padding:44px 0 50px;background:var(--bg-soft)}
+  .footer-grid{
+    display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto;
+    gap:28px;align-items:start;
   }
-  @media (prefers-reduced-motion: reduce){
-    html{scroll-behavior:auto}
-    .bar-fill{width:87%}
+  .footer-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
+  .footer-desc{margin-top:10px;font-size:13.5px;color:var(--muted);max-width:38ch;line-height:1.6}
+  .footer-mid{font-size:13.5px;color:var(--muted);line-height:1.8}
+  .footer-mid b{color:var(--ink)}
+  .footer-stack{margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .footer-links{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+  .footer-links a{
+    font-size:14px;font-weight:700;text-decoration:none;color:var(--ink);
+    display:inline-flex;gap:6px;align-items:center;
+    border-bottom:1px solid var(--line-2);padding-bottom:2px;
+    transition:border-color .2s ease,color .2s ease;cursor:pointer;
   }
+  .footer-links a:hover{color:var(--emerald-ink);border-color:var(--emerald-deep)}
+  .footer-links .arrow{color:var(--emerald-deep)}
 
   /* ---------- responsive ---------- */
-  @media (max-width:1020px){
-    .hero-grid{grid-template-columns:1fr;gap:40px}
-    .hero{padding-top:52px}
-    .ctx-grid{grid-template-columns:1fr 1fr}
-    .steps{grid-template-columns:1fr 1fr;gap:32px 26px}
-    .steps::before{display:none}
+  @media (max-width:1024px){
+    .metrics-grid{grid-template-columns:repeat(2,1fr)}
+    .metric:nth-child(3){border-left:none}
+    .metric{border-top:1px solid var(--line);margin-top:-1px}
+    .metric:nth-child(-n+2){border-top:none}
+    .features-grid{grid-template-columns:repeat(2,1fr)}
+    .how-grid{grid-template-columns:repeat(2,1fr);row-gap:28px}
+    .hstep:nth-child(3){border-left:none;padding-left:0}
+    .footer-grid{grid-template-columns:1fr 1fr}
+    .footer-links{align-items:flex-end;text-align:right}
   }
-  @media (max-width:680px){
-    .container{padding:0 20px}
-    .nav{display:none}
-    .hero{padding:44px 0 26px}
-    .hero h1{margin-bottom:20px}
-    .hero-copy p.lead{font-size:17px}
-    .ctx-grid{grid-template-columns:1fr}
-    .steps{grid-template-columns:1fr;gap:26px}
-    .section{padding-top:62px}
-    .section .section-lead{margin-bottom:30px}
-    .demo-panel{padding:24px 20px 20px}
-    .demo-val{font-size:25px}
-    .console{padding:18px 16px 20px}
-    .terminal{font-size:12px;padding:18px 16px}
-    footer{margin-top:66px}
-    .footer-inner{flex-direction:column;align-items:flex-start;gap:10px}
+  @media (max-width:720px){
+    .topnav{display:none}
+    .topbar .btn{margin-left:auto}
+    .features-grid{grid-template-columns:1fr}
+    .feature{margin-left:0;margin-top:0;border-left:none;border-top:1px solid var(--line)}
+    .feature:nth-child(1){border-top:none}
+    .how-grid{grid-template-columns:1fr}
+    .hstep{
+      border-left:none;border-top:1px solid var(--line-2);
+      padding:18px 0 0 0;margin-top:-1px;
+    }
+    .hstep:nth-child(1){border-top:none;padding-top:0}
+    .hstep-num::after{width:18px}
+    .metrics-grid{grid-template-columns:1fr}
+    .metric{border-left:none;border-top:1px solid var(--line);margin-top:-1px}
+    .metric:first-child{border-top:none;margin-top:0}
+    .profile{grid-template-columns:1fr auto}
+    .p-bar-wrap{grid-column:1 / -1}
+    .cta-in{flex-direction:column;align-items:flex-start}
+    .footer-grid{grid-template-columns:1fr}
+    .footer-links{align-items:flex-start;text-align:left}
+    .console-head .console-badge{display:none}
   }
-  @media (min-width:1280px) and (max-width:1440px){
-    .hero h1{font-size:clamp(44px,4.6vw,56px)}
+  @media (max-width:390px){
+    .hero-cta .btn{width:100%;justify-content:center}
+    .demo-value{margin-left:0;width:100%}
+    .c-photo{width:64px;height:82px}
+    .c-a-line b{width:auto;margin-right:8px}
+    .p-name{grid-column:1}
+    .p-chip{grid-row:1}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .console-badge .dot{animation:none}
   }
 </style>
 </head>
-<body>
-<a class="skip" href="#main">К содержанию</a>
+<body id="top">
 
+<!-- ======================= TOPBAR ======================= -->
 <header class="topbar">
-  <div class="container topbar-inner">
-    <a class="brand" href="#top" aria-label="Twinby Bot, к началу страницы">
-      Twinby Bot<span class="brand-dot" aria-hidden="true"></span>
+  <div class="container topbar-in">
+    <a class="brand" href="#top" aria-label="Twinby Bot — на главную">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l2.5 2.5"/><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z" opacity=".4"/><path d="m19 19 2.5 2.5"/></svg>
+      </span>
+      <span>Twinby&nbsp;Bot</span>
     </a>
-    <nav class="nav" aria-label="Разделы страницы">
+    <nav class="topnav" aria-label="Разделы страницы">
       <a href="#features">Возможности</a>
-      <a href="#process">Процесс</a>
-      <a href="#demo">Демо</a>
-      <a href="#launch">Запуск</a>
+      <a href="#how">Как работает</a>
+      <a href="#demo">Порог вживую</a>
     </nav>
-    <div class="topbar-right">
-      <a class="btn-ghost" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">
-        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.65-.01 1.1.59 1.23.84.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-        GitHub
-      </a>
-    </div>
+    <a class="btn btn-primary btn-sm" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">GitHub <span class="arrow">↗</span></a>
   </div>
 </header>
 
-<main id="main">
-
-  <!-- ================= HERO ================= -->
-  <section class="hero container" id="top">
-    <h1 class="a-up" style="--d:.05s">Ваши критерии<span class="h-dot">.</span><br>Осмысленный выбор<span class="h-dot">.</span></h1>
-
-    <div class="hero-grid">
-      <div class="hero-copy a-up" style="--d:.2s">
-        <p class="lead">Twinby Bot — AI-агент, который смотрит снимок анкеты, читает описание и сверяет его с вашими критериями. Никаких случайных свайпов.</p>
-        <p class="sub">Решение принимает агент — и каждый раз объясняет его словами. Он сам управляет действиями на Android, iPhone и симуляторе macOS, не выходя за заданные вами границы.</p>
-        <div class="cta-row">
-          <a class="btn-primary" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Открыть репозиторий</a>
-          <a class="btn-secondary" href="#process">Как это работает</a>
+<main>
+  <!-- ======================= HERO ======================= -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-copy">
+        <span class="mlabel" data-hero><span class="idx">AI-агент</span> осмысленного подбора анкет</span>
+        <h1 data-hero>Ваши критерии. Осмысленный выбор<span class="dot-accent">.</span></h1>
+        <p class="hero-sub" data-hero>
+          Twinby Bot снимает анкету, читает описание через Vision AI, сверяет его
+          с вашими критериями — и действует только тогда, когда уверенность выше
+          порога. Каждое решение агент объясняет.
+        </p>
+        <div class="hero-cta" data-hero>
+          <a class="btn btn-primary" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Открыть репозиторий <span class="arrow">↗</span></a>
+          <a class="btn btn-ghost" href="#how">Как агент решает</a>
         </div>
-        <p class="stack-line">Python · Appium · Vision AI</p>
+        <div class="chips" data-hero>
+          <span class="chip">Python</span>
+          <span class="chip">Appium</span>
+          <span class="chip">Vision AI</span>
+        </div>
       </div>
 
-      <!-- живой момент: агент разбирает анкету -->
-      <div class="console" role="img" aria-label="Пример работы агента: снимок анкеты, сопоставление с критериями, уверенность 0.87 при пороге 0.75, решение — лайк с объяснением">
-        <div class="console-head">
-          <span class="console-title">twinby-agent</span>
-          <span class="live"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>анализирует анкету</span>
-        </div>
-
-        <div class="c-card profile a-up" style="--d:.35s">
-          <div class="avatar" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.6-3.2 4.2-4.8 7-4.8s5.4 1.6 7 4.8"/></svg>
+      <div class="console-wrap" data-hero>
+        <div class="console" role="img" aria-label="Схематичный вид: цикл решения агента — снимок анкеты, Vision-анализ, порог уверенности, решение с объяснением">
+          <div class="console-head">
+            <span class="console-title">twinby · агент</span>
+            <span class="console-badge"><span class="dot" aria-hidden="true"></span>порог 70%</span>
           </div>
-          <div>
-            <span class="profile-name">Анна, 23</span>
-            <span class="profile-meta">Москва · путешествия, спорт</span>
-            <p class="profile-bio">«Люблю горы, спонтанные поездки и кофе без спешки»</p>
+
+          <div class="c-row">
+            <span class="c-num" aria-hidden="true">01</span>
+            <div>
+              <span class="c-kicker">Снимок анкеты</span>
+              <div class="c-snap">
+                <div class="c-photo" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                </div>
+                <div class="c-meta">
+                  <span class="c-name">Анна, 23 <small>· анкета №41</small></span>
+                  <div class="c-meta-row"><span>описание</span><span>412 символов</span></div>
+                  <div class="c-meta-row"><span>фото</span><span>3</span></div>
+                  <div class="c-meta-row"><span>источник</span><span>снимок экрана</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="c-row">
+            <span class="c-num" aria-hidden="true">02</span>
+            <div>
+              <span class="c-kicker">Vision-анализ описания</span>
+              <div class="c-analysis">
+                <div class="c-a-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                  <b>интересы</b> походы, джаз, specialty-кофе
+                </div>
+                <div class="c-a-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                  <b>тон</b> спокойный, без клише
+                </div>
+                <div class="c-a-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                  <b>ожидания</b> долгие разговоры, встречи офлайн
+                </div>
+              </div>
+              <span class="c-a-sum">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                сверка с критериями: 3 совпадения
+              </span>
+            </div>
+          </div>
+
+          <div class="c-row">
+            <span class="c-num" aria-hidden="true">03</span>
+            <div>
+              <span class="c-kicker">Порог уверенности</span>
+              <div class="c-bar" aria-hidden="true">
+                <div class="c-bar-fill"></div>
+                <div class="c-bar-thr"></div>
+              </div>
+              <div class="c-bar-legend"><span>уверенность агента: <b>78%</b></span><span>ниже порога — действия нет</span></div>
+            </div>
+          </div>
+
+          <div class="c-row">
+            <span class="c-num" aria-hidden="true">04</span>
+            <div>
+              <span class="c-kicker">Решение агента</span>
+              <div class="c-decision">
+                <span class="c-chip">Лайк</span>
+                <p class="c-explain">
+                  <b>78% ≥ 70%</b> — порог пройден. Совпадения: интересы и тон.
+                  Объяснение приложено к действию, граница не превышена.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+        <p class="console-caption">Схематичный вид: один цикл решения агента</p>
+      </div>
+    </div>
+  </section>
 
-        <div class="c-thinking a-up" style="--d:.6s">
-          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-          сопоставляю с критериями: 20–26, Москва, активный отдых
-        </div>
+  <!-- ======================= METRICS ======================= -->
+  <section class="metrics" aria-label="Ключевые показатели">
+    <div class="container metrics-grid" data-stagger>
+      <div class="metric">
+        <span class="metric-k">3</span>
+        <h3>Платформы</h3>
+        <p>Android, iOS и macOS — под управлением одного агента на Appium</p>
+      </div>
+      <div class="metric">
+        <span class="metric-k">4</span>
+        <h3>Шага до решения</h3>
+        <p>Анкета → Vision-анализ → порог → действие с объяснением</p>
+      </div>
+      <div class="metric">
+        <span class="metric-k">1</span>
+        <h3>Порог — ваш</h3>
+        <p>Уверенность ниже порога — агент не действует. Никогда</p>
+      </div>
+      <div class="metric">
+        <span class="metric-k">каждое</span>
+        <h3>С объяснением</h3>
+        <p>Решение сопровождает разбор: какие критерии совпали, а какие нет</p>
+      </div>
+    </div>
+  </section>
 
-        <div class="c-chips a-up" style="--d:.85s" aria-hidden="true">
-          <span class="chip">возраст <b>✓</b></span>
-          <span class="chip">город <b>✓</b></span>
-          <span class="chip">интересы <b>✓</b></span>
-        </div>
-
-        <div class="c-conf a-up" style="--d:1.05s">
-          <div class="conf-head"><span>уверенность</span><span class="conf-val">0.87</span></div>
-          <div class="bar">
-            <div class="bar-fill"></div>
-            <div class="bar-mark" style="left:75%"><span>порог 0.75</span></div>
+  <!-- ======================= FEATURES ======================= -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="mlabel"><span class="idx">01</span> — возможности</span>
+        <h2>Агент, который действует по правилам, а не по прихоти</h2>
+        <p class="section-lead">Шесть способностей Twinby Bot — от первого снимка анкеты до действия в заданных границах.</p>
+      </div>
+      <div class="features-grid" data-stagger>
+        <article class="feature">
+          <div class="feature-top">
+            <span class="feature-idx">01</span>
+            <span class="feature-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            </span>
           </div>
-        </div>
+          <h3>Снимок анкеты</h3>
+          <p>Агент начинает со снимка экрана: анкета анализируется так, как её видит устройство, — без доступа к чужим данным.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-top">
+            <span class="feature-idx">02</span>
+            <span class="feature-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+          </div>
+          <h3>Vision-анализ описания</h3>
+          <p>Vision AI превращает текст анкеты в сопоставимые признаки: интересы, тон, ожидания — то, с чем можно сверять критерии.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-top">
+            <span class="feature-idx">03</span>
+            <span class="feature-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </span>
+          </div>
+          <h3>Порог уверенности</h3>
+          <p>Порог задаёте вы. Уверенность ниже порога — действия нет, даже если анкета выглядит привлекательно.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-top">
+            <span class="feature-idx">04</span>
+            <span class="feature-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 12h5"/></svg>
+            </span>
+          </div>
+          <h3>Решение с объяснением</h3>
+          <p>Лайк или пропуск — с разбором: какие критерии совпали и почему уверенность именно такая.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-top">
+            <span class="feature-idx">05</span>
+            <span class="feature-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+            </span>
+          </div>
+          <h3>Android · iOS · macOS</h3>
+          <p>Автоматизация на Appium: один агент управляет действиями на всех трёх платформах — вместо трёх отдельных инструментов.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-top">
+            <span class="feature-idx">06</span>
+            <span class="feature-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+            </span>
+          </div>
+          <h3>Действия в заданных границах</h3>
+          <p>Агент делает ровно то, что разрешено, и ничего сверх: границы действий заданы явно, выход за них исключён.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 
-        <div class="c-decision a-up" style="--d:1.25s">
-          <strong>Решение: лайк</strong>
-          <p>Общие темы — путешествия и спорт, тон описания совпадает с вашими. Порог пройден.</p>
+  <!-- ======================= HOW IT WORKS ======================= -->
+  <section class="section how" id="how">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="mlabel"><span class="idx">02</span> — как работает</span>
+        <h2>Четыре шага — от снимка до объяснённого действия</h2>
+        <p class="section-lead">Один и тот же конвейер для каждой анкеты: агент не пропускает ни шага.</p>
+      </div>
+      <div class="how-grid" data-stagger>
+        <div class="hstep">
+          <span class="hstep-num">01</span>
+          <h3>Анкета</h3>
+          <p>Снимок экрана и текст описания попадают в конвейер анализа.</p>
+        </div>
+        <div class="hstep">
+          <span class="hstep-num">02</span>
+          <h3>Vision-анализ</h3>
+          <p>Описание раскладывается на сопоставимые признаки: интересы, тон, ожидания.</p>
+        </div>
+        <div class="hstep">
+          <span class="hstep-num">03</span>
+          <h3>Порог уверенности</h3>
+          <p>Совпадения с вашими критериями превращаются в уверенность и сравниваются с порогом.</p>
+        </div>
+        <div class="hstep">
+          <span class="hstep-num">04</span>
+          <h3>Решение агента</h3>
+          <p>Выше порога — действие с объяснением. Ниже — спокойный пропуск без лишних жестов.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ================= FEATURES ================= -->
-  <section class="section container" id="features">
-    <h2>Что умеет агент<span class="h-dot">.</span></h2>
-    <p class="section-lead">Шесть способностей, из которых складывается осмысленный выбор вместо перебора.</p>
+  <!-- ======================= DEMO ======================= -->
+  <section class="section demo" id="demo">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <span class="mlabel"><span class="idx">03</span> — демо</span>
+        <h2>Порог вживую</h2>
+        <p class="section-lead">Подвиньте порог — и посмотрите, как меняются решения агента. Это логика Twinby Bot на учебных анкетах: уверенность фиксирована, решает ваша граница.</p>
+      </div>
 
-    <div class="ctx-grid">
-      <article class="ctx">
-        <h3 class="ctx-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M4 12h16"/></svg>
-          Снимок анкеты
-        </h3>
-        <p>Агент открывает анкету в приложении и снимает экран целиком: фото, имя, возраст — как человек, только быстрее.</p>
-      </article>
+      <div class="demo-card" data-reveal>
+        <div class="demo-head">
+          <span class="mlabel">Порог уверенности</span>
+          <div class="demo-value"><b id="thr-val">70</b><span>%</span></div>
+        </div>
 
-      <article class="ctx">
-        <h3 class="ctx-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-          Vision-анализ описания
-        </h3>
-        <p>Модель зрения читает текст и фото анкеты: интересы, тон, детали, которые не поймать никакими фильтрами.</p>
-      </article>
+        <div class="slider-row">
+          <input type="range" id="thr" min="40" max="95" step="1" value="70"
+                 aria-label="Порог уверенности агента в процентах">
+          <div class="slider-scale" aria-hidden="true"><span>40%</span><span>95%</span></div>
+        </div>
 
-      <article class="ctx">
-        <h3 class="ctx-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12l5-4"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
-          Порог уверенности
-        </h3>
-        <p>Вы задаёте порог. Действие происходит, только когда совпадение с критериями его преодолело.</p>
-      </article>
+        <ul class="profiles" id="profiles">
+          <li class="profile">
+            <div class="p-name">Анна, 23<small>походы, джаз, кофе</small></div>
+            <div class="p-bar-wrap">
+              <div class="p-bar">
+                <div class="p-bar-fill" data-c="86" style="width:83.6%;background:var(--emerald)"></div>
+                <div class="p-bar-thr" style="left:54.5%"></div>
+              </div>
+              <div class="p-conf"><span>уверенность</span><b>86%</b></div>
+            </div>
+            <span class="p-chip p-chip-like" data-chip>Лайк</span>
+            <p class="p-expl" data-expl></p>
+          </li>
+          <li class="profile">
+            <div class="p-name">Марина, 26<small>джаз, книги</small></div>
+            <div class="p-bar-wrap">
+              <div class="p-bar">
+                <div class="p-bar-fill" data-c="71" style="width:56.4%;background:var(--emerald)"></div>
+                <div class="p-bar-thr" style="left:54.5%"></div>
+              </div>
+              <div class="p-conf"><span>уверенность</span><b>71%</b></div>
+            </div>
+            <span class="p-chip p-chip-like" data-chip>Лайк</span>
+            <p class="p-expl" data-expl></p>
+          </li>
+          <li class="profile">
+            <div class="p-name">Ольга, 24<small>совпадение: тон</small></div>
+            <div class="p-bar-wrap">
+              <div class="p-bar">
+                <div class="p-bar-fill" data-c="64" style="width:43.6%;background:var(--line-2)"></div>
+                <div class="p-bar-thr" style="left:54.5%"></div>
+              </div>
+              <div class="p-conf"><span>уверенность</span><b>64%</b></div>
+            </div>
+            <span class="p-chip p-chip-skip" data-chip>Пропуск</span>
+            <p class="p-expl" data-expl></p>
+          </li>
+          <li class="profile" style="border-bottom:none">
+            <div class="p-name">Дарья, 25<small>совпадений нет</small></div>
+            <div class="p-bar-wrap">
+              <div class="p-bar">
+                <div class="p-bar-fill" data-c="52" style="width:21.8%;background:var(--line-2)"></div>
+                <div class="p-bar-thr" style="left:54.5%"></div>
+              </div>
+              <div class="p-conf"><span>уверенность</span><b>52%</b></div>
+            </div>
+            <span class="p-chip p-chip-skip" data-chip>Пропуск</span>
+            <p class="p-expl" data-expl></p>
+          </li>
+        </ul>
 
-      <article class="ctx">
-        <h3 class="ctx-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-5A8 8 0 1 1 21 12Z"/><path d="M8.5 11h7M8.5 14h4.5"/></svg>
-          Решение с объяснением
-        </h3>
-        <p>Каждый лайк и каждый пропуск агент объясняет словами. Никаких молчаливых свайпов вслепую.</p>
-      </article>
+        <p class="demo-count" aria-live="polite">Действий: <b id="thr-count">2</b> из 4 — уверенность анкет фиксирована, решает ваш порог.</p>
 
-      <article class="ctx">
-        <h3 class="ctx-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="12" height="14" rx="2"/><path d="M15 9h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"/></svg>
-          Android, iPhone и macOS
-        </h3>
-        <p>Один и тот же агент ведёт настоящий телефон или симулятор macOS через Appium — вы видите всё своими глазами.</p>
-      </article>
-
-      <article class="ctx">
-        <h3 class="ctx-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.4-2.9 8.1-7 9.5-4.1-1.4-7-5.1-7-9.5V6l7-3Z"/><path d="M9.2 12l2 2 3.6-4"/></svg>
-          Действия в заданных границах
-        </h3>
-        <p>Только те действия, что вы разрешили, и только в тех пределах. Агент не выходит за рамки правил.</p>
-      </article>
+        <p class="demo-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          Локальная иллюстрация: анкеты не анализируются, данные никуда не передаются. Порог меняете вы — всё считается прямо в браузере.
+        </p>
+      </div>
     </div>
   </section>
 
-  <!-- ================= PROCESS ================= -->
-  <section class="section container" id="process">
-    <h2>Как принимается решение<span class="h-dot">.</span></h2>
-    <p class="section-lead">От снимка анкеты до действия — четыре шага, и каждый остаётся на виду.</p>
-
-    <ol class="steps" style="list-style:none;margin:0;padding:0">
-      <li class="step">
-        <span class="step-num">1</span>
-        <h3>Анкета</h3>
-        <p>Снимок экрана и описание анкеты попадают к агенту.</p>
-      </li>
-      <li class="step">
-        <span class="step-num">2</span>
-        <h3>Vision-анализ</h3>
-        <p>Модель извлекает интересы, тон и детали из фото и текста.</p>
-      </li>
-      <li class="step">
-        <span class="step-num">3</span>
-        <h3>Порог уверенности</h3>
-        <p>Совпадение с вашими критериями превращается в оценку уверенности.</p>
-      </li>
-      <li class="step">
-        <span class="step-num">4</span>
-        <h3>Решение агента</h3>
-        <p>Выше порога — действие, ниже — пропуск. Всегда с объяснением.</p>
-      </li>
-    </ol>
-  </section>
-
-  <!-- ================= DEMO ================= -->
-  <section class="section container" id="demo">
-    <h2>Попробуйте порог<span class="h-dot">.</span></h2>
-    <p class="section-lead">Передвиньте порог — и посмотрите, как агент решит судьбу анкеты-примера.</p>
-
-    <div class="demo-panel">
-      <div class="demo-top">
-        <label class="demo-label" for="threshold">Ваш порог уверенности</label>
-        <output class="demo-val" id="tval" for="threshold">0.75</output>
+  <!-- ======================= CTA ======================= -->
+  <section class="cta" id="cta">
+    <div class="container cta-in">
+      <div data-reveal>
+        <h2>Ваши правила. Его действия<span class="dot-accent">.</span></h2>
+        <p>Код открыт: посмотрите, как агент снимает анкеты, считает уверенность и объясняет каждое решение.</p>
       </div>
-      <input type="range" id="threshold" min="0.50" max="0.95" step="0.01" value="0.75"
-             aria-label="Порог уверенности" aria-describedby="demo-honest">
-      <div class="demo-scale" aria-hidden="true"><span>0.50</span><span>0.95</span></div>
-
-      <div class="demo-verdict">
-        <p class="demo-conf">уверенность по примеру анкеты: <b>0.78</b></p>
-        <p class="verdict pass" id="verdict" role="status">0.78 ≥ 0.75 — лайк: анкета подходит</p>
+      <div class="cta-actions" data-reveal>
+        <a class="btn btn-primary" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Открыть репозиторий <span class="arrow">↗</span></a>
+        <a class="link-demo" href="#demo">Покрутить порог <span class="arrow">→</span></a>
       </div>
-
-      <p class="demo-note" id="demo-honest"><b>Честно:</b> это интерактивная заглушка — анкеты не анализируются, данные никуда не передаются. Слайдер показывает только логику порога.</p>
     </div>
   </section>
-
-  <!-- ================= LAUNCH ================= -->
-  <section class="section container" id="launch">
-    <h2>Запуск за две команды<span class="h-dot">.</span></h2>
-    <p class="section-lead">Код открыт: склонируйте репозиторий и настройте свои критерии.</p>
-
-    <pre class="terminal"><span class="t-prompt">$</span> git clone https://github.com/ssrjkk/twinby-swipe-bot.git
-<span class="t-prompt">$</span> cd twinby-swipe-bot
-<span class="t-dim"># далее — шаги установки из README репозитория</span></pre>
-    <a class="launch-link" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">github.com/ssrjkk/twinby-swipe-bot</a>
-  </section>
-
 </main>
 
-<footer>
-  <div class="container footer-inner">
-    <span class="footer-brand">Проект SSRJKK</span>
+<!-- ======================= FOOTER ======================= -->
+<footer class="footer">
+  <div class="container footer-grid">
+    <div>
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l2.5 2.5"/><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z" opacity=".4"/><path d="m19 19 2.5 2.5"/></svg>
+        </span>
+        Twinby&nbsp;Bot
+      </div>
+      <p class="footer-desc">AI-агент осмысленного подбора анкет: снимок → Vision-анализ → порог уверенности → решение с объяснением.</p>
+    </div>
+    <div class="footer-mid">
+      <b>Проект SSRJKK</b>
+      <div class="footer-stack">Python · Appium · Vision AI</div>
+    </div>
     <nav class="footer-links" aria-label="Ссылки">
-      <a href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Репозиторий twinby-swipe-bot</a>
-      <a href="https://ssrjkk.github.io/" target="_blank" rel="noopener">Все проекты ↗</a>
+      <a href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Репозиторий <span class="arrow">↗</span></a>
+      <a href="https://ssrjkk.github.io/" target="_blank" rel="noopener">Все проекты <span class="arrow">↗</span></a>
     </nav>
   </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
-  (function(){
-    var slider = document.getElementById('threshold');
-    var out = document.getElementById('tval');
-    var verdict = document.getElementById('verdict');
-    var CONF = 0.78;
+(function(){
+  'use strict';
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    function render(){
-      var t = parseFloat(slider.value);
-      var p = (t - 0.50) / (0.95 - 0.50) * 100;
-      slider.style.setProperty('--p', p + '%');
-      out.textContent = t.toFixed(2);
-      if (CONF >= t) {
-        verdict.className = 'verdict pass';
-        verdict.textContent = '0.78 ≥ ' + t.toFixed(2) + ' — лайк: анкета подходит';
+  /* ---------- демо «порог уверенности» ---------- */
+  var slider = document.getElementById('thr');
+  var valEl = document.getElementById('thr-val');
+  var countEl = document.getElementById('thr-count');
+  var profiles = Array.prototype.slice.call(document.querySelectorAll('#profiles .profile'));
+
+  // позиция маркера порога на шкале бара (шкала бара: 40–95)
+  function pos(v){ return Math.max(0, Math.min(100, (v - 40) / (95 - 40) * 100)) + '%'; }
+
+  function render(){
+    var t = parseInt(slider.value, 10);
+    var actions = 0;
+
+    valEl.textContent = t;
+
+    profiles.forEach(function(p){
+      var conf = parseInt(p.querySelector('[data-c]').getAttribute('data-c'), 10);
+      var fill = p.querySelector('.p-bar-fill');
+      var thr = p.querySelector('.p-bar-thr');
+      var chip = p.querySelector('[data-chip]');
+      var expl = p.querySelector('[data-expl]');
+      var pass = conf >= t;
+
+      fill.style.width = pos(conf);
+      fill.style.background = pass ? 'var(--emerald)' : 'var(--line-2)';
+      thr.style.left = pos(t);
+
+      if (pass){
+        actions++;
+        chip.textContent = 'Лайк';
+        chip.className = 'p-chip p-chip-like';
+        expl.innerHTML = '<b>' + conf + '% ≥ ' + t + '%</b> — порог пройден. Совпадения по критериям есть: агент действует с объяснением.';
       } else {
-        verdict.className = 'verdict';
-        verdict.textContent = '0.78 < ' + t.toFixed(2) + ' — пропуск: ниже порога';
+        chip.textContent = 'Пропуск';
+        chip.className = 'p-chip p-chip-skip';
+        expl.innerHTML = '<b>' + conf + '% &lt; ' + t + '%</b> — ниже порога. Агент не действует: правило важнее привлекательности анкеты.';
       }
-    }
-    slider.addEventListener('input', render);
-    render();
-  })();
+    });
+
+    countEl.textContent = actions;
+    slider.setAttribute('aria-valuetext', t + '% — действий: ' + actions + ' из 4');
+  }
+
+  slider.addEventListener('input', render);
+  render();
+
+  /* ---------- GSAP: каскад хиро + scroll-ревилы ---------- */
+  if (!reduced && window.gsap && window.ScrollTrigger){
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.from('[data-hero]', {
+      y: 26, opacity: 0, duration: 0.75, ease: 'power2.out',
+      stagger: 0.09, delay: 0.12, clearProps: 'all'
+    });
+
+    // заполнение шкалы уверенности в консоли
+    gsap.fromTo('.c-bar-fill',
+      { width: '0%' },
+      { width: '78%', duration: 1, delay: 0.7, ease: 'power2.out' }
+    );
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-reveal]'), function(el){
+      gsap.from(el, {
+        y: 30, opacity: 0, duration: 0.7, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 86%', once: true },
+        clearProps: 'all'
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-stagger]'), function(group){
+      gsap.from(group.children, {
+        y: 24, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08,
+        scrollTrigger: { trigger: group, start: 'top 86%', once: true },
+        clearProps: 'all'
+      });
+    });
+  }
+})();
 </script>
 </body>
 </html>
