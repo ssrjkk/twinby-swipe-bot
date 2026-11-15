@@ -3,16 +3,12 @@
 # 🤖 Twinby Bot
 
 [![CI](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 
 **AI-агент для автоматического подбора анкет в Twinby**
-
-[![CI](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 Анализирует фото и bio через Claude / GPT-4o / Gemini,  
 ставит лайк только при совпадении выше 75%.  
@@ -28,7 +24,7 @@
 - 📱 **Три платформы** — Android (uiautomator2), iPhone и Mac (Appium)
 - 👁️ **Vision-анализ** — скрины анкеты + bio отправляются в AI
 - 🎯 **Умный отбор** — лайк только при уверенности > 75%
-- 🔄 **CI/CD** — GitHub Actions на Python 3.10 / 3.11 / 3.12
+- 🔄 **CI/CD** — GitHub Actions на Python 3.11 / 3.12
 - 🧩 **Расширяемость** — добавь своего агента за 3 шага
 
 ---
@@ -45,7 +41,7 @@ twinby-swipe-bot/
 │   ├── gemini_agent.py        # Google Gemini
 │   └── custom_agent.py        # шаблон для своего
 ├── tests/
-│   └── test_all.py            # 35 тестов
+│   └── test_all.py            # 23 теста
 ├── agent_factory.py           # фабрика агентов
 ├── config.py                  # настройки из .env
 ├── run_android.py             # запуск на Android
