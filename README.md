@@ -41,7 +41,7 @@ twinby-swipe-bot/
 │   ├── gemini_agent.py        # Google Gemini
 │   └── custom_agent.py        # шаблон для своего
 ├── tests/
-│   └── test_all.py            # 23 теста
+│   └── test_all.py            # 35 тестов
 ├── agent_factory.py           # фабрика агентов
 ├── config.py                  # настройки из .env
 ├── run_android.py             # запуск на Android
