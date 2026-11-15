@@ -149,8 +149,9 @@ AGENT=openai python run_android.py
 ## 🧪 Тесты
 
 ```bash
+pip install -r requirements-dev.txt   # guard-плагин для pytest.ini обязателен
 pytest tests/ -v
-# 35 passed
+# 39 passed
 ```
 
 CI запускается автоматически на каждый push в main.
