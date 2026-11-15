@@ -1,931 +1,325 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Twinby Bot — ваши критерии. Осмысленный выбор.</title>
-<meta name="description" content="Twinby Bot — AI-агент осмысленного подбора анкет: снимок анкеты, Vision-анализ описания, порог уверенности и решение с объяснением. Android, iOS, macOS. Python · Appium · Vision AI."
+<meta name="description" content="Twinby Bot — AI-агент осмысленного подбора анкет: скриншот и bio уходят в Claude, OpenAI, Gemini или свой агент; лайк только при совпадении выше 75%. Android, iPhone, Mac.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SSRJKK">
 <meta property="og:title" content="Twinby Bot — ваши критерии. Осмысленный выбор.">
-<meta property="og:description" content="Twinby Bot — AI-агент осмысленного подбора анкет: снимок анкеты, Vision-анализ описания, порог уверенности и решение с объяснением. Android, iOS, macOS. Python · Appium · Vision AI.">
+<meta property="og:description" content="Twinby Bot — AI-агент осмысленного подбора анкет: скриншот и bio уходят в Claude, OpenAI, Gemini или свой агент; лайк только при совпадении выше 75%. Android, iPhone, Mac.">
 <meta property="og:url" content="https://ssrjkk.github.io/twinby-swipe-bot/">
 <meta property="og:locale" content="ru_RU">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Twinby Bot — ваши критерии. Осмысленный выбор.">
-<meta name="twitter:description" content="Twinby Bot — AI-агент осмысленного подбора анкет: снимок анкеты, Vision-анализ описания, порог уверенности и решение с объяснением. Android, iOS, macOS. Python · Appium · Vision AI.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='#ffffff'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='34' font-weight='bold' fill='#111111' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
-<link rel="canonical" href="https://ssrjkk.github.io/twinby-swipe-bot/">
+<meta name="twitter:description" content="Twinby Bot — AI-агент осмысленного подбора анкет: скриншот и bio уходят в Claude, OpenAI, Gemini или свой агент; лайк только при совпадении выше 75%. Android, iPhone, Mac.">
+<meta name="twitter:image" content="https://ssrjkk.github.io/twinby-swipe-bot/og-card.png">
 <meta property="og:image" content="https://ssrjkk.github.io/twinby-swipe-bot/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta name="twitter:image" content="https://ssrjkk.github.io/twinby-swipe-bot/og-card.png">
-
->
-<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23ffffff'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='34' font-weight='bold' fill='%23111111' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="canonical" href="https://ssrjkk.github.io/twinby-swipe-bot/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#FFFFFF;
-    --bg-soft:#FAFAF9;
-    --ink:#131311;
-    --ink-2:#3F3C38;
-    --muted:#57534E;
-    --faint:#6E6862;
-    --line:#E7E5E4;
-    --line-2:#D6D3D1;
-    --emerald:#10B981;
-    --emerald-deep:#047857;
-    --emerald-ink:#065F46;
-    --emerald-tint:#D1FAE5;
-    --emerald-tint-2:#ECFDF5;
-    --emerald-line:#A7F3D0;
-    --console:#161613;
-    --console-2:#211F1C;
-    --console-line:#2E2C28;
-    --console-text:#E7E5E4;
-    --console-dim:#A8A29E;
-    --console-accent:#34D399;
-    --ring:#047857;
-    --sans:'Manrope',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
-    --mono:'JetBrains Mono','Cascadia Mono',Consolas,monospace;
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{
-    font-family:var(--sans);
-    background:var(--bg);
-    color:var(--ink);
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-    overflow-x:clip;
-  }
-  ::selection{background:var(--emerald-tint);color:var(--ink)}
-  img,svg{display:block}
-  a{color:inherit}
-  :focus-visible{outline:2px solid var(--ring);outline-offset:3px;border-radius:4px}
-
-  .container{max-width:1180px;margin-inline:auto;padding-inline:clamp(16px,4vw,28px)}
-
-  /* ---------- mono micro-labels ---------- */
-  .mlabel{
-    font-family:var(--mono);font-size:11px;font-weight:500;
-    letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
-    display:inline-flex;align-items:center;gap:10px;
-  }
-  .mlabel .idx{color:var(--emerald-deep);font-weight:600}
-
-  /* ---------- topbar ---------- */
-  .topbar{
-    position:sticky;top:0;z-index:50;
-    background:rgba(255,255,255,.86);
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);
-  }
-  .topbar-in{display:flex;align-items:center;gap:28px;height:64px}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em;text-decoration:none;cursor:pointer}
-  .brand-mark{
-    width:28px;height:28px;border-radius:8px;background:var(--ink);
-    display:grid;place-items:center;color:var(--console-accent);flex:none;
-  }
-  .brand-mark svg{width:15px;height:15px}
-  .topnav{display:flex;gap:22px;margin-left:auto}
-  .topnav a{
-    font-size:14.5px;font-weight:600;color:var(--muted);text-decoration:none;
-    transition:color .2s ease;cursor:pointer;
-  }
-  .topnav a:hover{color:var(--ink)}
-  .topbar .btn{margin-left:20px}
-
-  /* ---------- buttons ---------- */
-  .btn{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:12px 20px;border-radius:10px;border:1px solid transparent;
-    font-family:var(--sans);font-size:15px;font-weight:700;line-height:1;
-    text-decoration:none;cursor:pointer;white-space:nowrap;
-    transition:background-color .2s ease,border-color .2s ease,color .2s ease;
-  }
-  .btn-sm{padding:9px 14px;font-size:13.5px;border-radius:8px}
-  .btn-primary{background:var(--emerald-deep);color:#fff}
-  .btn-primary:hover{background:var(--emerald-ink)}
-  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
-  .btn-ghost:hover{border-color:var(--ink)}
-  .arrow{font-family:var(--mono);font-weight:400}
-
-  /* ---------- hero ---------- */
-  .hero{padding:clamp(52px,7vw,96px) 0 clamp(44px,6vw,76px)}
-  .hero-copy{max-width:900px}
-  .hero h1{
-    margin-top:20px;
-    font-size:clamp(2.5rem,6.4vw,4.9rem);
-    line-height:1.03;letter-spacing:-.03em;font-weight:800;
-    max-width:18ch;
-  }
-  .hero h1 .dot-accent{color:var(--emerald)}
-  .hero-sub{
-    margin-top:22px;font-size:clamp(15.5px,1.4vw,17.5px);
-    color:var(--muted);max-width:56ch;line-height:1.66;
-  }
-  .hero-cta{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
-  .chips{margin-top:22px;display:flex;gap:8px;flex-wrap:wrap}
-  .chip{
-    font-family:var(--mono);font-size:12px;color:var(--ink-2);
-    background:var(--bg);border:1px solid var(--line);border-radius:999px;
-    padding:6px 12px;
-  }
-
-  /* ---------- agent console (dark, neutral ink) ---------- */
-  .console-wrap{margin-top:clamp(36px,5vw,56px);max-width:840px}
-  .console{
-    background:var(--console);border:1px solid var(--console-2);border-radius:14px;
-    overflow:hidden;color:var(--console-text);
-    box-shadow:0 24px 48px -26px rgba(19,19,17,.45);
-  }
-  .console-head{
-    display:flex;align-items:center;gap:10px;
-    padding:14px 20px;border-bottom:1px solid var(--console-line);
-  }
-  .console-title{font-family:var(--mono);font-size:12.5px;font-weight:500}
-  .console-badge{
-    margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--console-dim);
-    border:1px solid var(--console-line);border-radius:999px;padding:4px 10px;
-    display:inline-flex;align-items:center;gap:7px;
-  }
-  .console-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--console-accent);animation:pulse 2.2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  .c-row{
-    display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;
-    padding:18px 20px;border-bottom:1px solid var(--console-line);
-  }
-  .c-row:last-child{border-bottom:none}
-  .c-num{
-    font-family:var(--mono);font-size:11px;font-weight:600;color:var(--console-accent);
-    padding-top:3px;letter-spacing:.08em;
-  }
-  .c-kicker{
-    font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.14em;
-    color:var(--console-dim);display:block;margin-bottom:10px;
-  }
-  .c-snap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
-  .c-photo{
-    width:76px;height:96px;border-radius:10px;flex:none;
-    background:var(--console-2);border:1px solid var(--console-line);
-    display:grid;place-items:center;color:var(--console-dim);
-  }
-  .c-photo svg{width:22px;height:22px}
-  .c-meta{min-width:180px;flex:1;display:flex;flex-direction:column;gap:6px}
-  .c-meta-row{
-    display:flex;justify-content:space-between;gap:12px;
-    font-family:var(--mono);font-size:12px;color:var(--console-text);
-    border-bottom:1px dashed rgba(168,162,158,.25);padding-bottom:6px;
-  }
-  .c-meta-row span:last-child{color:var(--console-dim)}
-  .c-name{font-size:14.5px;font-weight:700;color:var(--console-text);font-family:var(--sans)}
-  .c-name small{font-weight:500;color:var(--console-dim)}
-  .c-analysis{display:flex;flex-direction:column;gap:7px}
-  .c-a-line{
-    display:flex;align-items:center;gap:9px;
-    font-family:var(--mono);font-size:12px;color:var(--console-text);
-  }
-  .c-a-line svg{width:13px;height:13px;color:var(--console-accent);flex:none}
-  .c-a-line b{color:var(--console-dim);font-weight:500;flex:none;width:88px}
-  .c-a-sum{
-    margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--console-accent);
-    background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);
-    border-radius:8px;padding:7px 11px;display:inline-flex;gap:8px;align-items:center;
-  }
-  .c-bar{
-    position:relative;height:12px;border-radius:999px;
-    background:var(--console-2);border:1px solid var(--console-line);
-    margin-top:6px;
-  }
-  .c-bar-fill{
-    position:absolute;inset:0 auto 0 0;width:78%;
-    background:var(--emerald);border-radius:999px;
-  }
-  .c-bar-thr{
-    position:absolute;top:-5px;bottom:-5px;width:2px;background:#fff;left:70%;
-  }
-  .c-bar-thr::after{
-    content:"порог 70%";position:absolute;top:calc(100% + 6px);left:-30px;
-    font-family:var(--mono);font-size:10px;color:var(--console-dim);white-space:nowrap;
-  }
-  .c-bar-legend{
-    display:flex;justify-content:space-between;margin-top:26px;
-    font-family:var(--mono);font-size:11.5px;color:var(--console-dim);
-  }
-  .c-bar-legend b{color:var(--console-accent);font-weight:600;font-size:13px}
-  .c-decision{
-    display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;
-    background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.25);
-    border-radius:10px;padding:14px 16px;
-  }
-  .c-chip{
-    font-family:var(--mono);font-size:12px;font-weight:600;
-    background:var(--emerald);color:#04120c;border-radius:8px;padding:7px 14px;flex:none;
-  }
-  .c-explain{font-size:13.5px;line-height:1.6;color:var(--console-text);min-width:220px;flex:1}
-  .c-explain b{color:var(--console-accent)}
-  .console-caption{
-    margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--faint);
-  }
-
-  /* ---------- metrics ---------- */
-  .metrics{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-soft)}
-  .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr)}
-  .metric{
-    padding:clamp(24px,3vw,36px) clamp(18px,2.4vw,30px);
-    border-left:1px solid var(--line);
-  }
-  .metric:first-child{border-left:none}
-  .metric-k{
-    font-family:var(--mono);font-weight:700;font-size:clamp(24px,2.6vw,30px);
-    color:var(--emerald-deep);letter-spacing:-.03em;line-height:1;
-  }
-  .metric h3{margin-top:12px;font-size:15px;font-weight:800;letter-spacing:-.01em}
-  .metric p{margin-top:5px;font-size:13.5px;color:var(--muted);line-height:1.5}
-
-  /* ---------- sections ---------- */
-  .section{padding:clamp(56px,7vw,92px) 0}
-  .section-head{max-width:660px}
-  .section-head h2{
-    margin-top:16px;font-size:clamp(1.85rem,3.2vw,2.6rem);
-    line-height:1.12;letter-spacing:-.025em;font-weight:800;
-  }
-  .section-lead{margin-top:14px;font-size:16px;color:var(--muted);line-height:1.65}
-
-  /* ---------- features: swiss grid ---------- */
-  .features-grid{
-    margin-top:clamp(30px,4vw,48px);
-    display:grid;grid-template-columns:repeat(3,1fr);
-    border:1px solid var(--line);border-radius:14px;overflow:hidden;
-    background:var(--bg);
-  }
-  .feature{
-    padding:clamp(22px,2.6vw,30px);
-    border-left:1px solid var(--line);border-top:1px solid var(--line);
-    margin-left:-1px;margin-top:-1px;
-    transition:background-color .2s ease;
-  }
-  .feature:hover{background:var(--bg-soft)}
-  .feature-top{display:flex;align-items:center;justify-content:space-between}
-  .feature-idx{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--emerald-deep)}
-  .feature-ico{
-    width:40px;height:40px;border-radius:10px;
-    background:var(--emerald-tint-2);border:1px solid var(--emerald-line);
-    color:var(--emerald-ink);display:grid;place-items:center;
-  }
-  .feature-ico svg{width:19px;height:19px}
-  .feature h3{margin-top:16px;font-size:16.5px;font-weight:800;letter-spacing:-.01em}
-  .feature p{margin-top:8px;font-size:14.5px;color:var(--muted);line-height:1.6}
-
-  /* ---------- how it works ---------- */
-  .how{border-top:1px solid var(--line);background:var(--bg-soft)}
-  .how-grid{margin-top:clamp(30px,4vw,48px);display:grid;grid-template-columns:repeat(4,1fr)}
-  .hstep{border-left:1px solid var(--line-2);padding:4px 0 4px clamp(16px,2vw,26px)}
-  .hstep:first-child{border-left:none;padding-left:0}
-  .hstep-num{
-    font-family:var(--mono);font-weight:700;font-size:13px;color:var(--emerald-deep);
-    display:inline-flex;align-items:center;gap:10px;
-  }
-  .hstep-num::after{content:"";width:26px;height:1px;background:var(--line-2)}
-  .hstep:last-child .hstep-num::after{display:none}
-  .hstep h3{margin-top:12px;font-size:16.5px;font-weight:800;letter-spacing:-.01em}
-  .hstep p{margin-top:7px;font-size:14px;color:var(--muted);line-height:1.58}
-
-  /* ---------- demo: threshold ---------- */
-  .demo{
-    border-top:1px solid var(--line);
-    background:
-      linear-gradient(0deg,rgba(16,185,129,.03),rgba(16,185,129,.03)),
-      var(--bg);
-  }
-  .demo-card{
-    margin-top:clamp(30px,4vw,44px);
-    background:var(--bg);border:1px solid var(--line);border-radius:16px;
-    padding:clamp(20px,3vw,34px);
-    box-shadow:0 20px 44px -30px rgba(19,19,17,.25);
-  }
-  .demo-head{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
-  .demo-value{margin-left:auto;display:flex;align-items:baseline;gap:4px}
-  .demo-value b{
-    font-family:var(--mono);font-weight:700;font-size:clamp(30px,3.6vw,44px);
-    letter-spacing:-.04em;color:var(--ink);line-height:1;
-  }
-  .demo-value span{font-family:var(--mono);font-size:15px;color:var(--faint)}
-  .slider-row{margin-top:22px}
-  .slider-row input[type="range"]{
-    -webkit-appearance:none;appearance:none;
-    width:100%;height:26px;background:transparent;cursor:pointer;display:block;
-  }
-  .slider-row input[type="range"]::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:var(--line)}
-  .slider-row input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none;appearance:none;
-    width:22px;height:22px;border-radius:50%;background:var(--emerald-deep);
-    border:3px solid #fff;box-shadow:0 1px 6px rgba(19,19,17,.35);
-    margin-top:-6px;
-  }
-  .slider-row input[type="range"]::-moz-range-track{height:10px;border-radius:999px;background:var(--line)}
-  .slider-row input[type="range"]::-moz-range-thumb{
-    width:16px;height:16px;border-radius:50%;background:var(--emerald-deep);
-    border:3px solid #fff;box-shadow:0 1px 6px rgba(19,19,17,.35);
-  }
-  .slider-scale{
-    display:flex;justify-content:space-between;
-    font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:8px;
-  }
-  .profiles{list-style:none;margin-top:26px;border-top:1px solid var(--line)}
-  .profile{
-    display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr) auto;
-    gap:clamp(12px,2vw,22px);align-items:center;
-    padding:16px 0;border-bottom:1px solid var(--line);
-  }
-  .p-name{font-size:14.5px;font-weight:800;letter-spacing:-.01em}
-  .p-name small{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:400;margin-top:2px}
-  .p-bar-wrap{min-width:0}
-  .p-bar{position:relative;height:10px;border-radius:999px;background:var(--line)}
-  .p-bar-fill{position:absolute;inset:0 auto 0 0;border-radius:999px;transition:width .25s ease,background-color .25s ease}
-  .p-bar-thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);transition:left .25s ease}
-  .p-conf{
-    font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:6px;
-    display:flex;justify-content:space-between;gap:10px;
-  }
-  .p-conf b{color:var(--ink);font-weight:600}
-  .p-chip{
-    font-family:var(--mono);font-size:12px;font-weight:600;border-radius:8px;
-    padding:6px 13px;white-space:nowrap;justify-self:end;
-    transition:background-color .25s ease,color .25s ease;
-  }
-  .p-chip-like{background:var(--emerald);color:#04120c}
-  .p-chip-skip{background:var(--bg-soft);color:var(--muted);border:1px solid var(--line-2)}
-  .p-expl{
-    grid-column:1 / -1;font-size:13px;color:var(--muted);line-height:1.55;
-    padding-top:2px;
-  }
-  .p-expl b{color:var(--emerald-ink);font-weight:700}
-  .demo-count{
-    margin-top:20px;font-family:var(--mono);font-size:13px;color:var(--faint);
-    display:flex;align-items:center;gap:8px;
-  }
-  .demo-count b{color:var(--ink);font-weight:700}
-  .demo-note{
-    display:flex;gap:10px;align-items:flex-start;
-    margin-top:18px;font-size:13px;color:var(--faint);line-height:1.55;max-width:72ch;
-  }
-  .demo-note svg{width:15px;height:15px;flex:none;margin-top:2px;color:var(--emerald-deep)}
-
-  /* ---------- CTA ---------- */
-  .cta{border-top:1px solid var(--line);padding:clamp(60px,8vw,100px) 0}
-  .cta-in{display:flex;align-items:center;justify-content:space-between;gap:36px;flex-wrap:wrap}
-  .cta h2{
-    font-size:clamp(2rem,4.2vw,3.2rem);letter-spacing:-.03em;line-height:1.08;
-    font-weight:800;max-width:14ch;
-  }
-  .cta h2 .dot-accent{color:var(--emerald)}
-  .cta p{margin-top:16px;color:var(--muted);font-size:16px;max-width:44ch;line-height:1.65}
-  .cta-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  .link-demo{
-    font-size:15px;font-weight:700;color:var(--emerald-deep);text-decoration:none;
-    display:inline-flex;gap:8px;align-items:center;cursor:pointer;
-    border-bottom:2px solid var(--emerald-line);padding-bottom:3px;
-    transition:border-color .2s ease,color .2s ease;
-  }
-  .link-demo:hover{color:var(--emerald-ink);border-color:var(--emerald-deep)}
-
-  /* ---------- footer ---------- */
-  .footer{border-top:1px solid var(--line);padding:44px 0 50px;background:var(--bg-soft)}
-  .footer-grid{
-    display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto;
-    gap:28px;align-items:start;
-  }
-  .footer-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
-  .footer-desc{margin-top:10px;font-size:13.5px;color:var(--muted);max-width:38ch;line-height:1.6}
-  .footer-mid{font-size:13.5px;color:var(--muted);line-height:1.8}
-  .footer-mid b{color:var(--ink)}
-  .footer-stack{margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--faint)}
-  .footer-links{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
-  .footer-links a{
-    font-size:14px;font-weight:700;text-decoration:none;color:var(--ink);
-    display:inline-flex;gap:6px;align-items:center;
-    border-bottom:1px solid var(--line-2);padding-bottom:2px;
-    transition:border-color .2s ease,color .2s ease;cursor:pointer;
-  }
-  .footer-links a:hover{color:var(--emerald-ink);border-color:var(--emerald-deep)}
-  .footer-links .arrow{color:var(--emerald-deep)}
-
-  /* ---------- responsive ---------- */
-  @media (max-width:1024px){
-    .metrics-grid{grid-template-columns:repeat(2,1fr)}
-    .metric:nth-child(3){border-left:none}
-    .metric{border-top:1px solid var(--line);margin-top:-1px}
-    .metric:nth-child(-n+2){border-top:none}
-    .features-grid{grid-template-columns:repeat(2,1fr)}
-    .how-grid{grid-template-columns:repeat(2,1fr);row-gap:28px}
-    .hstep:nth-child(3){border-left:none;padding-left:0}
-    .footer-grid{grid-template-columns:1fr 1fr}
-    .footer-links{align-items:flex-end;text-align:right}
-  }
-  @media (max-width:720px){
-    .topnav{display:none}
-    .topbar .btn{margin-left:auto}
-    .features-grid{grid-template-columns:1fr}
-    .feature{margin-left:0;margin-top:0;border-left:none;border-top:1px solid var(--line)}
-    .feature:nth-child(1){border-top:none}
-    .how-grid{grid-template-columns:1fr}
-    .hstep{
-      border-left:none;border-top:1px solid var(--line-2);
-      padding:18px 0 0 0;margin-top:-1px;
-    }
-    .hstep:nth-child(1){border-top:none;padding-top:0}
-    .hstep-num::after{width:18px}
-    .metrics-grid{grid-template-columns:1fr}
-    .metric{border-left:none;border-top:1px solid var(--line);margin-top:-1px}
-    .metric:first-child{border-top:none;margin-top:0}
-    .profile{grid-template-columns:1fr auto}
-    .p-bar-wrap{grid-column:1 / -1}
-    .cta-in{flex-direction:column;align-items:flex-start}
-    .footer-grid{grid-template-columns:1fr}
-    .footer-links{align-items:flex-start;text-align:left}
-    .console-head .console-badge{display:none}
-  }
-  @media (max-width:390px){
-    .hero-cta .btn{width:100%;justify-content:center}
-    .demo-value{margin-left:0;width:100%}
-    .c-photo{width:64px;height:82px}
-    .c-a-line b{width:auto;margin-right:8px}
-    .p-name{grid-column:1}
-    .p-chip{grid-row:1}
-  }
-  @media (prefers-reduced-motion:reduce){
-    html{scroll-behavior:auto}
-    *,*::before,*::after{animation:none!important;transition:none!important}
-    .console-badge .dot{animation:none}
-  }
+:root{
+  --berry:#e0507f; --berry-deep:#c23a68; --plum:#7c5cbf;
+  --ink:#5a2340; --ink-soft:#96648a;
+  --b1:rgba(255,255,255,.55); --b2:rgba(255,240,248,.65);
+  --round:'Comfortaa',cursive; --display:'Unbounded',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:linear-gradient(160deg,#ffe1ee 0%, #f3e2ff 48%, #ffe7f3 100%);
+  color:var(--ink); font:15px/1.7 var(--round);
+  min-height:100vh; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* ── пузыри фона ─────────────────────────────── */
+.bubble{
+  position:fixed; border-radius:50%; pointer-events:none; z-index:0;
+  background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.35) 30%, var(--b2) 68%);
+  border:1.5px solid rgba(255,255,255,.85);
+  box-shadow:inset -8px -12px 24px rgba(224,80,127,.12), 0 14px 34px rgba(224,80,127,.14);
+}
+.bubble::after{content:"";position:absolute;top:12%;left:16%;width:26%;height:16%;
+  background:rgba(255,255,255,.95);border-radius:50%;filter:blur(2px);transform:rotate(-28deg)}
+.heart{position:fixed;z-index:0;pointer-events:none;opacity:.9}
+/* ── шапка ───────────────────────────────────── */
+header{
+  position:relative;z-index:2;max-width:1080px;margin:0 auto;
+  padding:34px 26px 0;display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.logo{font:700 19px var(--display);color:var(--berry-deep);text-decoration:none}
+.logo i{display:inline-block;font-style:normal;transform:translateY(2px)}
+nav{display:flex;gap:24px;font-size:14px}
+nav a{color:var(--ink-soft);text-decoration:none}
+nav a:hover{color:var(--berry-deep)}
+.gh{padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.6);
+  border:1.5px solid rgba(224,80,127,.35);color:var(--berry-deep);font-weight:600}
+.gh:hover{background:#fff}
+/* ── хиро ────────────────────────────────────── */
+.hero{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:86px 26px 40px;text-align:center}
+.hero .tag{
+  display:inline-block;padding:9px 22px;border-radius:999px;
+  background:rgba(255,255,255,.65);border:1.5px solid rgba(224,80,127,.3);
+  font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--berry-deep);
+}
+h1{
+  font:700 clamp(40px,6.4vw,74px)/1.14 var(--display);
+  margin:26px auto 18px;max-width:21ch;color:var(--ink);
+}
+h1 em{font-style:normal;color:var(--berry)}
+.hero p{font-size:17px;color:var(--ink-soft);max-width:58ch;margin:0 auto 34px}
+.cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn{
+  display:inline-block;padding:17px 34px;border-radius:999px;
+  font:600 15px var(--round);text-decoration:none;color:var(--berry-deep);
+  background:radial-gradient(circle at 30% 25%, #fff 0%, #fff2f7 55%, #ffd7e7 100%);
+  border:1.5px solid rgba(224,80,127,.4);
+  box-shadow:inset -6px -10px 20px rgba(224,80,127,.15), 0 16px 36px rgba(224,80,127,.28);
+}
+.btn.solid{
+  color:#fff;background:linear-gradient(160deg,var(--berry) 0%,var(--berry-deep) 100%);
+  border-color:transparent;box-shadow:0 16px 36px rgba(194,58,104,.4);
+}
+.btn:hover{transform:translateY(-3px) scale(1.02);transition:.2s}
+/* ── конфетная статистика ────────────────────── */
+.candy{position:relative;z-index:2;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:44px auto 0;max-width:1080px;padding:0 26px}
+.candy .pill{
+  padding:20px 30px;border-radius:999px;text-align:center;
+  background:radial-gradient(circle at 32% 24%, rgba(255,255,255,.95), var(--b2) 70%);
+  border:1.5px solid rgba(255,255,255,.9);
+  box-shadow:inset -6px -10px 18px rgba(224,80,127,.1), 0 12px 28px rgba(224,80,127,.16);
+}
+.candy b{display:block;font:700 30px var(--display);color:var(--berry-deep)}
+.candy span{font-size:12.5px;color:var(--ink-soft)}
+/* ── секции ──────────────────────────────────── */
+section{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:96px 26px 0}
+.kicker{font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--berry);text-align:center}
+h2{font:700 clamp(30px,4.4vw,46px)/1.2 var(--display);text-align:center;margin:12px 0 14px}
+section > p.intro{text-align:center;color:var(--ink-soft);max-width:62ch;margin:0 auto 44px}
+/* шаги */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.step{
+  padding:30px 26px;border-radius:36px;
+  background:radial-gradient(circle at 30% 22%, rgba(255,255,255,.96), var(--b1) 72%);
+  border:1.5px solid rgba(255,255,255,.9);
+  box-shadow:inset -8px -12px 26px rgba(124,92,191,.1), 0 16px 34px rgba(224,80,127,.15);
+  position:relative;
+}
+.step b.n{
+  position:absolute;top:-19px;left:26px;width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(160deg,var(--berry),var(--berry-deep));color:#fff;
+  display:flex;align-items:center;justify-content:center;font:700 16px var(--display);
+  box-shadow:0 8px 18px rgba(194,58,104,.35);
+}
+.step h3{font:700 17px var(--round);margin:8px 0 8px;color:var(--ink)}
+.step p{font-size:13.5px;color:var(--ink-soft)}
+/* агенты */
+.agents{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.agent{
+  padding:26px 20px;border-radius:50% 50% 42% 42%/38% 38% 30% 30%;
+  text-align:center;
+  background:radial-gradient(circle at 34% 20%, rgba(255,255,255,.96), var(--b2) 75%);
+  border:1.5px solid rgba(255,255,255,.9);
+  box-shadow:inset -6px -12px 22px rgba(124,92,191,.12), 0 14px 30px rgba(224,80,127,.16);
+  transition:.25s;
+}
+.agent:hover{transform:translateY(-6px) scale(1.03)}
+.agent i{font-style:normal;font-size:30px;display:block;margin-bottom:10px}
+.agent b{display:block;font-size:14.5px;color:var(--ink)}
+.agent span{font-size:12px;color:var(--ink-soft)}
+/* платформы */
+.platforms{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.plat{
+  padding:14px 26px;border-radius:999px;font-size:14px;
+  background:rgba(255,255,255,.6);border:1.5px solid rgba(124,92,191,.3);color:var(--plum);
+}
+/* ── финальная CTA-пузырь ────────────────────── */
+.final{text-align:center;padding:40px 26px 0}
+.final .big{
+  display:inline-block;padding:58px 74px;border-radius:50%;
+  background:radial-gradient(circle at 32% 26%, #fff 0%, #ffeef6 45%, #ffd2e4 100%);
+  border:2px solid rgba(255,255,255,.95);
+  box-shadow:inset -14px -20px 44px rgba(224,80,127,.18), 0 30px 70px rgba(224,80,127,.3);
+}
+.final .big p{font:600 15px var(--round);color:var(--ink-soft);margin:0 0 16px}
+/* ── подвал ──────────────────────────────────── */
+footer{
+  position:relative;z-index:2;max-width:1080px;margin:80px auto 0;padding:30px 26px 44px;
+  border-top:1.5px solid rgba(224,80,127,.2);
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  font-size:13px;color:var(--ink-soft);
+}
+footer a{color:var(--berry-deep);text-decoration:none}
+@media(max-width:900px){
+  .steps{grid-template-columns:1fr}
+  .agents{grid-template-columns:repeat(2,1fr)}
+  nav{display:none}
+}
+@media(max-width:560px){
+  .agents{grid-template-columns:1fr}
+  .final .big{padding:40px 26px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
 </style>
 </head>
-<body id="top">
+<body>
 
-<!-- ======================= TOPBAR ======================= -->
-<header class="topbar">
-  <div class="container topbar-in">
-    <a class="brand" href="#top" aria-label="Twinby Bot — на главную">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l2.5 2.5"/><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z" opacity=".4"/><path d="m19 19 2.5 2.5"/></svg>
-      </span>
-      <span>Twinby&nbsp;Bot</span>
-    </a>
-    <nav class="topnav" aria-label="Разделы страницы">
-      <a href="#features">Возможности</a>
-      <a href="#how">Как работает</a>
-      <a href="#demo">Порог вживую</a>
-    </nav>
-    <a class="btn btn-primary btn-sm" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">GitHub <span class="arrow">↗</span></a>
-  </div>
+<header>
+  <a class="logo" href="#"><i>💌</i> twinby bot</a>
+  <nav>
+    <a href="#how">как работает</a>
+    <a href="#agents">агенты</a>
+    <a href="#platforms">платформы</a>
+  </nav>
+  <a class="gh" href="https://github.com/ssrjkk/twinby-swipe-bot">GitHub ↗</a>
 </header>
 
-<main>
-  <!-- ======================= HERO ======================= -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-copy">
-        <span class="mlabel" data-hero><span class="idx">AI-агент</span> осмысленного подбора анкет</span>
-        <h1 data-hero>Ваши критерии. Осмысленный выбор<span class="dot-accent">.</span></h1>
-        <p class="hero-sub" data-hero>
-          Twinby Bot снимает анкету, читает описание через Vision AI, сверяет его
-          с вашими критериями — и действует только тогда, когда уверенность выше
-          порога. Каждое решение агент объясняет.
-        </p>
-        <div class="hero-cta" data-hero>
-          <a class="btn btn-primary" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Открыть репозиторий <span class="arrow">↗</span></a>
-          <a class="btn btn-ghost" href="#how">Как агент решает</a>
-        </div>
-        <div class="chips" data-hero>
-          <span class="chip">Python</span>
-          <span class="chip">Appium</span>
-          <span class="chip">Vision AI</span>
-        </div>
-      </div>
-
-      <div class="console-wrap" data-hero>
-        <div class="console" role="img" aria-label="Схематичный вид: цикл решения агента — снимок анкеты, Vision-анализ, порог уверенности, решение с объяснением">
-          <div class="console-head">
-            <span class="console-title">twinby · агент</span>
-            <span class="console-badge"><span class="dot" aria-hidden="true"></span>порог 70%</span>
-          </div>
-
-          <div class="c-row">
-            <span class="c-num" aria-hidden="true">01</span>
-            <div>
-              <span class="c-kicker">Снимок анкеты</span>
-              <div class="c-snap">
-                <div class="c-photo" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-                </div>
-                <div class="c-meta">
-                  <span class="c-name">Анна, 23 <small>· анкета №41</small></span>
-                  <div class="c-meta-row"><span>описание</span><span>412 символов</span></div>
-                  <div class="c-meta-row"><span>фото</span><span>3</span></div>
-                  <div class="c-meta-row"><span>источник</span><span>снимок экрана</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="c-row">
-            <span class="c-num" aria-hidden="true">02</span>
-            <div>
-              <span class="c-kicker">Vision-анализ описания</span>
-              <div class="c-analysis">
-                <div class="c-a-line">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  <b>интересы</b> походы, джаз, specialty-кофе
-                </div>
-                <div class="c-a-line">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  <b>тон</b> спокойный, без клише
-                </div>
-                <div class="c-a-line">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                  <b>ожидания</b> долгие разговоры, встречи офлайн
-                </div>
-              </div>
-              <span class="c-a-sum">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                сверка с критериями: 3 совпадения
-              </span>
-            </div>
-          </div>
-
-          <div class="c-row">
-            <span class="c-num" aria-hidden="true">03</span>
-            <div>
-              <span class="c-kicker">Порог уверенности</span>
-              <div class="c-bar" aria-hidden="true">
-                <div class="c-bar-fill"></div>
-                <div class="c-bar-thr"></div>
-              </div>
-              <div class="c-bar-legend"><span>уверенность агента: <b>78%</b></span><span>ниже порога — действия нет</span></div>
-            </div>
-          </div>
-
-          <div class="c-row">
-            <span class="c-num" aria-hidden="true">04</span>
-            <div>
-              <span class="c-kicker">Решение агента</span>
-              <div class="c-decision">
-                <span class="c-chip">Лайк</span>
-                <p class="c-explain">
-                  <b>78% ≥ 70%</b> — порог пройден. Совпадения: интересы и тон.
-                  Объяснение приложено к действию, граница не превышена.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <p class="console-caption">Схематичный вид: один цикл решения агента</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= METRICS ======================= -->
-  <section class="metrics" aria-label="Ключевые показатели">
-    <div class="container metrics-grid" data-stagger>
-      <div class="metric">
-        <span class="metric-k">3</span>
-        <h3>Платформы</h3>
-        <p>Android, iOS и macOS — под управлением одного агента на Appium</p>
-      </div>
-      <div class="metric">
-        <span class="metric-k">4</span>
-        <h3>Шага до решения</h3>
-        <p>Анкета → Vision-анализ → порог → действие с объяснением</p>
-      </div>
-      <div class="metric">
-        <span class="metric-k">1</span>
-        <h3>Порог — ваш</h3>
-        <p>Уверенность ниже порога — агент не действует. Никогда</p>
-      </div>
-      <div class="metric">
-        <span class="metric-k">каждое</span>
-        <h3>С объяснением</h3>
-        <p>Решение сопровождает разбор: какие критерии совпали, а какие нет</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= FEATURES ======================= -->
-  <section class="section" id="features">
-    <div class="container">
-      <div class="section-head" data-reveal>
-        <span class="mlabel"><span class="idx">01</span> — возможности</span>
-        <h2>Агент, который действует по правилам, а не по прихоти</h2>
-        <p class="section-lead">Шесть способностей Twinby Bot — от первого снимка анкеты до действия в заданных границах.</p>
-      </div>
-      <div class="features-grid" data-stagger>
-        <article class="feature">
-          <div class="feature-top">
-            <span class="feature-idx">01</span>
-            <span class="feature-ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-            </span>
-          </div>
-          <h3>Снимок анкеты</h3>
-          <p>Агент начинает со снимка экрана: анкета анализируется так, как её видит устройство, — без доступа к чужим данным.</p>
-        </article>
-        <article class="feature">
-          <div class="feature-top">
-            <span class="feature-idx">02</span>
-            <span class="feature-ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-            </span>
-          </div>
-          <h3>Vision-анализ описания</h3>
-          <p>Vision AI превращает текст анкеты в сопоставимые признаки: интересы, тон, ожидания — то, с чем можно сверять критерии.</p>
-        </article>
-        <article class="feature">
-          <div class="feature-top">
-            <span class="feature-idx">03</span>
-            <span class="feature-ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-            </span>
-          </div>
-          <h3>Порог уверенности</h3>
-          <p>Порог задаёте вы. Уверенность ниже порога — действия нет, даже если анкета выглядит привлекательно.</p>
-        </article>
-        <article class="feature">
-          <div class="feature-top">
-            <span class="feature-idx">04</span>
-            <span class="feature-ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 12h5"/></svg>
-            </span>
-          </div>
-          <h3>Решение с объяснением</h3>
-          <p>Лайк или пропуск — с разбором: какие критерии совпали и почему уверенность именно такая.</p>
-        </article>
-        <article class="feature">
-          <div class="feature-top">
-            <span class="feature-idx">05</span>
-            <span class="feature-ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
-            </span>
-          </div>
-          <h3>Android · iOS · macOS</h3>
-          <p>Автоматизация на Appium: один агент управляет действиями на всех трёх платформах — вместо трёх отдельных инструментов.</p>
-        </article>
-        <article class="feature">
-          <div class="feature-top">
-            <span class="feature-idx">06</span>
-            <span class="feature-ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
-            </span>
-          </div>
-          <h3>Действия в заданных границах</h3>
-          <p>Агент делает ровно то, что разрешено, и ничего сверх: границы действий заданы явно, выход за них исключён.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= HOW IT WORKS ======================= -->
-  <section class="section how" id="how">
-    <div class="container">
-      <div class="section-head" data-reveal>
-        <span class="mlabel"><span class="idx">02</span> — как работает</span>
-        <h2>Четыре шага — от снимка до объяснённого действия</h2>
-        <p class="section-lead">Один и тот же конвейер для каждой анкеты: агент не пропускает ни шага.</p>
-      </div>
-      <div class="how-grid" data-stagger>
-        <div class="hstep">
-          <span class="hstep-num">01</span>
-          <h3>Анкета</h3>
-          <p>Снимок экрана и текст описания попадают в конвейер анализа.</p>
-        </div>
-        <div class="hstep">
-          <span class="hstep-num">02</span>
-          <h3>Vision-анализ</h3>
-          <p>Описание раскладывается на сопоставимые признаки: интересы, тон, ожидания.</p>
-        </div>
-        <div class="hstep">
-          <span class="hstep-num">03</span>
-          <h3>Порог уверенности</h3>
-          <p>Совпадения с вашими критериями превращаются в уверенность и сравниваются с порогом.</p>
-        </div>
-        <div class="hstep">
-          <span class="hstep-num">04</span>
-          <h3>Решение агента</h3>
-          <p>Выше порога — действие с объяснением. Ниже — спокойный пропуск без лишних жестов.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= DEMO ======================= -->
-  <section class="section demo" id="demo">
-    <div class="container">
-      <div class="section-head" data-reveal>
-        <span class="mlabel"><span class="idx">03</span> — демо</span>
-        <h2>Порог вживую</h2>
-        <p class="section-lead">Подвиньте порог — и посмотрите, как меняются решения агента. Это логика Twinby Bot на учебных анкетах: уверенность фиксирована, решает ваша граница.</p>
-      </div>
-
-      <div class="demo-card" data-reveal>
-        <div class="demo-head">
-          <span class="mlabel">Порог уверенности</span>
-          <div class="demo-value"><b id="thr-val">70</b><span>%</span></div>
-        </div>
-
-        <div class="slider-row">
-          <input type="range" id="thr" min="40" max="95" step="1" value="70"
-                 aria-label="Порог уверенности агента в процентах">
-          <div class="slider-scale" aria-hidden="true"><span>40%</span><span>95%</span></div>
-        </div>
-
-        <ul class="profiles" id="profiles">
-          <li class="profile">
-            <div class="p-name">Анна, 23<small>походы, джаз, кофе</small></div>
-            <div class="p-bar-wrap">
-              <div class="p-bar">
-                <div class="p-bar-fill" data-c="86" style="width:83.6%;background:var(--emerald)"></div>
-                <div class="p-bar-thr" style="left:54.5%"></div>
-              </div>
-              <div class="p-conf"><span>уверенность</span><b>86%</b></div>
-            </div>
-            <span class="p-chip p-chip-like" data-chip>Лайк</span>
-            <p class="p-expl" data-expl></p>
-          </li>
-          <li class="profile">
-            <div class="p-name">Марина, 26<small>джаз, книги</small></div>
-            <div class="p-bar-wrap">
-              <div class="p-bar">
-                <div class="p-bar-fill" data-c="71" style="width:56.4%;background:var(--emerald)"></div>
-                <div class="p-bar-thr" style="left:54.5%"></div>
-              </div>
-              <div class="p-conf"><span>уверенность</span><b>71%</b></div>
-            </div>
-            <span class="p-chip p-chip-like" data-chip>Лайк</span>
-            <p class="p-expl" data-expl></p>
-          </li>
-          <li class="profile">
-            <div class="p-name">Ольга, 24<small>совпадение: тон</small></div>
-            <div class="p-bar-wrap">
-              <div class="p-bar">
-                <div class="p-bar-fill" data-c="64" style="width:43.6%;background:var(--line-2)"></div>
-                <div class="p-bar-thr" style="left:54.5%"></div>
-              </div>
-              <div class="p-conf"><span>уверенность</span><b>64%</b></div>
-            </div>
-            <span class="p-chip p-chip-skip" data-chip>Пропуск</span>
-            <p class="p-expl" data-expl></p>
-          </li>
-          <li class="profile" style="border-bottom:none">
-            <div class="p-name">Дарья, 25<small>совпадений нет</small></div>
-            <div class="p-bar-wrap">
-              <div class="p-bar">
-                <div class="p-bar-fill" data-c="52" style="width:21.8%;background:var(--line-2)"></div>
-                <div class="p-bar-thr" style="left:54.5%"></div>
-              </div>
-              <div class="p-conf"><span>уверенность</span><b>52%</b></div>
-            </div>
-            <span class="p-chip p-chip-skip" data-chip>Пропуск</span>
-            <p class="p-expl" data-expl></p>
-          </li>
-        </ul>
-
-        <p class="demo-count" aria-live="polite">Действий: <b id="thr-count">2</b> из 4 — уверенность анкет фиксирована, решает ваш порог.</p>
-
-        <p class="demo-note">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          Локальная иллюстрация: анкеты не анализируются, данные никуда не передаются. Порог меняете вы — всё считается прямо в браузере.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= CTA ======================= -->
-  <section class="cta" id="cta">
-    <div class="container cta-in">
-      <div data-reveal>
-        <h2>Ваши правила. Его действия<span class="dot-accent">.</span></h2>
-        <p>Код открыт: посмотрите, как агент снимает анкеты, считает уверенность и объясняет каждое решение.</p>
-      </div>
-      <div class="cta-actions" data-reveal>
-        <a class="btn btn-primary" href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Открыть репозиторий <span class="arrow">↗</span></a>
-        <a class="link-demo" href="#demo">Покрутить порог <span class="arrow">→</span></a>
-      </div>
-    </div>
-  </section>
-</main>
-
-<!-- ======================= FOOTER ======================= -->
-<footer class="footer">
-  <div class="container footer-grid">
-    <div>
-      <div class="footer-brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l2.5 2.5"/><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z" opacity=".4"/><path d="m19 19 2.5 2.5"/></svg>
-        </span>
-        Twinby&nbsp;Bot
-      </div>
-      <p class="footer-desc">AI-агент осмысленного подбора анкет: снимок → Vision-анализ → порог уверенности → решение с объяснением.</p>
-    </div>
-    <div class="footer-mid">
-      <b>Проект SSRJKK</b>
-      <div class="footer-stack">Python · Appium · Vision AI</div>
-    </div>
-    <nav class="footer-links" aria-label="Ссылки">
-      <a href="https://github.com/ssrjkk/twinby-swipe-bot" target="_blank" rel="noopener">Репозиторий <span class="arrow">↗</span></a>
-      <a href="https://ssrjkk.github.io/" target="_blank" rel="noopener">Все проекты <span class="arrow">↗</span></a>
-    </nav>
+<div class="hero">
+  <span class="tag">ai matchmaking agent</span>
+  <h1>Ваши критерии.<br><em>Осмысленный</em> выбор.</h1>
+  <p>Twinby Bot смотрит на анкету вашими глазами: скриншот и bio уходят в LLM,
+  лайк ставится только при совпадении выше порога — и агент объясняет, почему.</p>
+  <div class="cta">
+    <a class="btn solid" href="https://github.com/ssrjkk/twinby-swipe-bot">Попробовать агент</a>
+    <a class="btn" href="https://github.com/ssrjkk/twinby-swipe-bot#readme">Как это устроено</a>
   </div>
+</div>
+
+<div class="candy">
+  <div class="pill"><b>75%</b><span>порог уверенности по умолчанию</span></div>
+  <div class="pill"><b>4</b><span>LLM-бэкенда: Claude · OpenAI · Gemini · свой</span></div>
+  <div class="pill"><b>3</b><span>платформы: Android · iPhone · Mac</span></div>
+  <div class="pill"><b>35</b><span>тестов, сетевой-guard в CI</span></div>
+</div>
+
+<section id="how">
+  <div class="kicker">как это работает</div>
+  <h2>Три шага до осмысленного лайка</h2>
+  <p class="intro">Агент видит анкету как человек: скриншот, bio, ваши критерии —
+  и возвращает решение с объяснением. Сомневается — пропускает.</p>
+  <div class="steps">
+    <div class="step"><b class="n">1</b><h3>Смотрит</h3><p>Драйвер открывает анкету в Twinby и делает скриншот: фото, bio, всё как видите вы.</p></div>
+    <div class="step"><b class="n">2</b><h3>Решает</h3><p>LLM сравнивает анкету с вашими критериями. Уверенность выше порога — лайк, сомнение — пропуск.</p></div>
+    <div class="step"><b class="n">3</b><h3>Действует</h3><p>Свайп с человеческим темпом (DELAY 3–7 с) — агент не банит аккаунт нервным ритмом.</p></div>
+  </div>
+</section>
+
+<section id="agents">
+  <div class="kicker">LLM-бэкенды</div>
+  <h2>Четыре сердца одного агента</h2>
+  <p class="intro">Бэкенд переключается переменной AGENT — цикл не меняется, правила порога одни.</p>
+  <div class="agents">
+    <div class="agent"><i>🧠</i><b>Claude</b><span>по умолчанию</span></div>
+    <div class="agent"><i>⚡</i><b>OpenAI</b><span>pip install openai</span></div>
+    <div class="agent"><i>✨</i><b>Gemini</b><span>pip install google-genai</span></div>
+    <div class="agent"><i>🛠️</i><b>Custom</b><span>свой агент за 3 шага</span></div>
+  </div>
+</section>
+
+<section id="platforms">
+  <div class="kicker">платформы</div>
+  <h2>Работает там, где Twinby</h2>
+  <p class="intro">Android через uiautomator2, iPhone и Mac через Appium — три run-скрипта, один агент.</p>
+  <div class="platforms">
+    <span class="plat">🤖 Android · uiautomator2</span>
+    <span class="plat">📱 iPhone · Appium</span>
+    <span class="plat">💻 Mac · Appium</span>
+  </div>
+</section>
+
+<section class="final">
+  <div class="big">
+    <p>перестаньте свайпать вслепую</p>
+    <a class="btn solid" href="https://github.com/ssrjkk/twinby-swipe-bot">Открыть репозиторий →</a>
+  </div>
+</section>
+
+<footer>
+  <span>twinby bot · ваши критерии. осмысленный выбор.</span>
+  <span><a href="https://github.com/ssrjkk/twinby-swipe-bot">GitHub ↗</a> · <a href="https://ssrjkk.github.io/">все проекты ↗</a></span>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script>
 (function(){
-  'use strict';
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- демо «порог уверенности» ---------- */
-  var slider = document.getElementById('thr');
-  var valEl = document.getElementById('thr-val');
-  var countEl = document.getElementById('thr-count');
-  var profiles = Array.prototype.slice.call(document.querySelectorAll('#profiles .profile'));
+  /* пузыри фона */
+  var spots = [[8,14,120],[86,10,150],[4,64,90],[92,58,110],[70,82,70],[22,86,86],[55,6,66],[40,92,60]];
+  spots.forEach(function(s, i){
+    var b = document.createElement("div");
+    b.className = "bubble";
+    b.style.left = s[0] + "vw"; b.style.top = s[1] + "vh"; b.style.width = b.style.height = s[2] + "px";
+    document.body.appendChild(b);
+    if (!reduced && window.gsap){
+      gsap.to(b, {y:"+=" + (24 + i*7), x:"+=" + (i%2? 18 : -18), duration:5 + i*1.3, repeat:-1, yoyo:true, ease:"sine.inOut"});
+    }
+  });
 
-  // позиция маркера порога на шкале бара (шкала бара: 40–95)
-  function pos(v){ return Math.max(0, Math.min(100, (v - 40) / (95 - 40) * 100)) + '%'; }
+  /* сердечки-акценты */
+  var hearts = [[14,30],[78,38],[30,70],[66,74]];
+  hearts.forEach(function(h, i){
+    var el = document.createElement("div");
+    el.className = "heart"; el.textContent = "💗";
+    el.style.left = h[0] + "vw"; el.style.top = h[1] + "vh"; el.style.fontSize = (14 + i*6) + "px";
+    document.body.appendChild(el);
+    if (!reduced && window.gsap){
+      gsap.to(el, {y:"-=30", scale:1.25, duration:3 + i*.7, repeat:-1, yoyo:true, ease:"sine.inOut", opacity:.75});
+    }
+  });
 
-  function render(){
-    var t = parseInt(slider.value, 10);
-    var actions = 0;
+  /* лопающиеся сердечки по клику */
+  document.addEventListener("click", function(e){
+    if (reduced || !window.gsap) return;
+    for (var i = 0; i < 6; i++){
+      var h = document.createElement("div");
+      h.className = "heart"; h.textContent = ["💗","💕","💖"][i%3];
+      h.style.left = e.clientX + "px"; h.style.top = e.clientY + "px";
+      h.style.fontSize = (12 + Math.random()*10) + "px"; h.style.zIndex = 9;
+      document.body.appendChild(h);
+      (function(node){
+        gsap.to(node, {x:(Math.random()-0.5)*140, y:(Math.random()-0.5)*140 - 40,
+          opacity:0, scale:1.6, duration:.9 + Math.random()*.4, ease:"power2.out",
+          onComplete:function(){ node.remove(); }});
+      })(h);
+    }
+  });
 
-    valEl.textContent = t;
+  if (!window.gsap || !window.ScrollTrigger || reduced) return;
+  gsap.registerPlugin(ScrollTrigger);
 
-    profiles.forEach(function(p){
-      var conf = parseInt(p.querySelector('[data-c]').getAttribute('data-c'), 10);
-      var fill = p.querySelector('.p-bar-fill');
-      var thr = p.querySelector('.p-bar-thr');
-      var chip = p.querySelector('[data-chip]');
-      var expl = p.querySelector('[data-expl]');
-      var pass = conf >= t;
-
-      fill.style.width = pos(conf);
-      fill.style.background = pass ? 'var(--emerald)' : 'var(--line-2)';
-      thr.style.left = pos(t);
-
-      if (pass){
-        actions++;
-        chip.textContent = 'Лайк';
-        chip.className = 'p-chip p-chip-like';
-        expl.innerHTML = '<b>' + conf + '% ≥ ' + t + '%</b> — порог пройден. Совпадения по критериям есть: агент действует с объяснением.';
-      } else {
-        chip.textContent = 'Пропуск';
-        chip.className = 'p-chip p-chip-skip';
-        expl.innerHTML = '<b>' + conf + '% &lt; ' + t + '%</b> — ниже порога. Агент не действует: правило важнее привлекательности анкеты.';
-      }
+  gsap.from("header, .hero .tag, .hero h1, .hero p, .cta", {
+    duration:.9, y:26, opacity:0, stagger:.1, ease:"power2.out"
+  });
+  gsap.from(".candy .pill", {
+    duration:.8, scale:.5, opacity:0, stagger:.12, ease:"elastic.out(1,.6)",
+    scrollTrigger:{trigger:".candy", start:"top 80%", once:true}
+  });
+  gsap.utils.toArray("section").forEach(function(sec){
+    gsap.from(sec.querySelectorAll(".kicker, h2, p.intro"), {
+      duration:.8, y:24, opacity:0, stagger:.1, ease:"power2.out",
+      scrollTrigger:{trigger:sec, start:"top 72%", once:true}
     });
-
-    countEl.textContent = actions;
-    slider.setAttribute('aria-valuetext', t + '% — действий: ' + actions + ' из 4');
-  }
-
-  slider.addEventListener('input', render);
-  render();
-
-  /* ---------- GSAP: каскад хиро + scroll-ревилы ---------- */
-  if (!reduced && window.gsap && window.ScrollTrigger){
-    gsap.registerPlugin(ScrollTrigger);
-
-    gsap.from('[data-hero]', {
-      y: 26, opacity: 0, duration: 0.75, ease: 'power2.out',
-      stagger: 0.09, delay: 0.12, clearProps: 'all'
+    var cards = sec.querySelectorAll(".step, .agent, .plat");
+    if (cards.length) gsap.from(cards, {
+      duration:.85, y:30, opacity:0, stagger:.11, ease:"back.out(1.5)",
+      scrollTrigger:{trigger:sec, start:"top 66%", once:true}
     });
-
-    // заполнение шкалы уверенности в консоли
-    gsap.fromTo('.c-bar-fill',
-      { width: '0%' },
-      { width: '78%', duration: 1, delay: 0.7, ease: 'power2.out' }
-    );
-
-    Array.prototype.forEach.call(document.querySelectorAll('[data-reveal]'), function(el){
-      gsap.from(el, {
-        y: 30, opacity: 0, duration: 0.7, ease: 'power2.out',
-        scrollTrigger: { trigger: el, start: 'top 86%', once: true },
-        clearProps: 'all'
-      });
-    });
-
-    Array.prototype.forEach.call(document.querySelectorAll('[data-stagger]'), function(group){
-      gsap.from(group.children, {
-        y: 24, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08,
-        scrollTrigger: { trigger: group, start: 'top 86%', once: true },
-        clearProps: 'all'
-      });
-    });
-  }
+  });
+  gsap.from(".final .big", {
+    duration:1, scale:.6, opacity:0, ease:"elastic.out(1,.5)",
+    scrollTrigger:{trigger:".final", start:"top 70%", once:true}
+  });
 })();
 </script>
 </body>
