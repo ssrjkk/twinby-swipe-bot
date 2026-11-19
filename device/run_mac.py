@@ -1,14 +1,14 @@
 """
-iPhone Bot — Appium + XCUITest
-==============================
-npm install -g appium && appium driver install xcuitest
+Mac Bot — iOS Simulator + Appium (Apple Silicon M1/M2/M3)
+==========================================================
+xcrun simctl list devices | grep -i booted
 appium &
-python run_ios.py
+python -m device.run_mac
 
 .env:
   AGENT=claude
-  IOS_UDID=auto
-  IOS_PLATFORM_VERSION=17.0
+  SIM_UDID=XXXX-XXXX-...
+  SIM_PLATFORM_VERSION=17.0
 """
 
 import os
@@ -16,12 +16,12 @@ import random
 import time
 
 from appium import webdriver
-from appium.options import XCUITestOptions
+from appium.options.ios import XCUITestOptions
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.common.exceptions import NoSuchElementException
 
-from agent_factory import create_agent
-from config import (
+from device.agent_factory import create_agent
+from device.config import (
     APPIUM_HOST,
     DELAY_MAX,
     DELAY_MIN,
@@ -30,20 +30,21 @@ from config import (
     TWINBY_BUNDLE,
 )
 
-UDID = os.getenv("IOS_UDID", "auto")
-PLATFORM_VERSION = os.getenv("IOS_PLATFORM_VERSION", "17.0")
+SIM_UDID = os.getenv("SIM_UDID", "")
+SIM_PLATFORM_VERSION = os.getenv("SIM_PLATFORM_VERSION", "17.0")
 
 
 def create_driver():
     opts = XCUITestOptions()
     opts.bundle_id = TWINBY_BUNDLE
-    opts.platform_version = PLATFORM_VERSION
+    opts.platform_version = SIM_PLATFORM_VERSION
     opts.automation_name = "XCUITest"
+    opts.is_simulator = True
     opts.no_reset = True
-    if UDID != "auto":
-        opts.udid = UDID
+    if SIM_UDID:
+        opts.udid = SIM_UDID
     driver = webdriver.Remote(APPIUM_HOST, options=opts)
-    print(f"[device] iPhone  ios={PLATFORM_VERSION}  udid={UDID}")
+    print(f"[device] iOS Simulator  ios={SIM_PLATFORM_VERSION}")
     return driver
 
 
@@ -99,7 +100,7 @@ def swipe_card(driver, decision: str):
 def main():
     agent = create_agent()
     print("=" * 50)
-    print(f"  Twinby Bot  |  iPhone  |  {agent.name.upper()}")
+    print(f"  <3  |  Mac Simulator  |  {agent.name.upper()}")
     print("=" * 50)
 
     driver = create_driver()

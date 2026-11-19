@@ -2,46 +2,14 @@
 pytest tests/test_all.py -v
 """
 
-# ruff: noqa: E402
 import json
 import os
-import sys
 import types
 
 import pytest
 
-# ── stub тяжёлых зависимостей до импорта ─────────────────────────────────────
-for mod in [
-    "uiautomator2",
-    "appium",
-    "appium.webdriver",
-    "appium.options",
-    "appium.webdriver.common",
-    "appium.webdriver.common.appiumby",
-    "selenium",
-    "selenium.common",
-    "selenium.common.exceptions",
-    "selenium.webdriver",
-    "selenium.webdriver.support",
-    "selenium.webdriver.support.ui",
-    "selenium.webdriver.support.expected_conditions",
-    "openai",
-    "google",
-    "google.genai",
-    "google.genai.types",
-    "anthropic",
-]:
-    sys.modules.setdefault(mod, types.ModuleType(mod))
-
-sys.modules["selenium.common.exceptions"].NoSuchElementException = Exception
-sys.modules["appium.webdriver.common.appiumby"].AppiumBy = type(
-    "AppiumBy", (), {"ACCESSIBILITY_ID": "id"}
-)()
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from agents.base import BaseAgent, Decision  # noqa: E402
-from agent_factory import create_agent, list_agents, REGISTRY  # noqa: E402
+from agents.base import BaseAgent, Decision
+from device.agent_factory import create_agent, list_agents, REGISTRY
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. Decision dataclass
@@ -201,18 +169,50 @@ class TestThreshold:
             (0, "skip"),
         ],
     )
-    def test_threshold_applied(self, confidence, expected):
-        threshold = 75
-        result = Decision("like", confidence, "test")
-        if result.decision == "like" and result.confidence < threshold:
-            result.decision = "skip"
-        assert result.decision == expected
+    @pytest.mark.parametrize("platform", ["android", "ios", "mac"])
+    def test_threshold_applied(self, monkeypatch, platform, confidence, expected):
+        self._run_driver(
+            monkeypatch, platform, Decision("like", confidence, "test"), expected
+        )
 
-    def test_skip_unaffected_by_threshold(self):
-        result = Decision("skip", 90, "test")
-        if result.decision == "like" and result.confidence < 75:
-            result.decision = "skip"
-        assert result.decision == "skip"
+    @pytest.mark.parametrize("platform", ["android", "ios", "mac"])
+    def test_skip_unaffected_by_threshold(self, monkeypatch, platform):
+        self._run_driver(monkeypatch, platform, Decision("skip", 90, "test"), "skip")
+
+    @staticmethod
+    def _run_driver(monkeypatch, platform, decision, expected):
+        import importlib
+
+        module = importlib.import_module(f"device.run_{platform}")
+        device = types.SimpleNamespace(
+            app_start=lambda *a, **kw: None, quit=lambda: None
+        )
+        agent = types.SimpleNamespace(name="test", analyze=lambda *a: decision)
+        swipes = []
+        output = []
+        monkeypatch.setattr(
+            "builtins.print", lambda *a, **kw: output.append(" ".join(map(str, a)))
+        )
+        monkeypatch.setattr(module, "create_agent", lambda: agent)
+        monkeypatch.setattr(
+            module,
+            "connect" if platform == "android" else "create_driver",
+            lambda: device,
+        )
+        monkeypatch.setattr(module, "close_popups", lambda d: None)
+        monkeypatch.setattr(module, "get_data", lambda d: ([b"png"], "bio"))
+        monkeypatch.setattr(module, "MAX_SWIPES", 1)
+        monkeypatch.setattr(module, "LIKE_THRESHOLD", 75)
+        monkeypatch.setattr(module, "time", types.SimpleNamespace(sleep=lambda s: None))
+        monkeypatch.setattr(
+            module,
+            "swipe" if platform == "android" else "swipe_card",
+            lambda d, choice: swipes.append(choice),
+        )
+        module.main()
+        assert swipes == [expected]
+        assert any("<3  |" in line for line in output)
+        assert not any("Twinby Bot" in line for line in output)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -224,11 +224,11 @@ class TestSyntax:
     @pytest.mark.parametrize(
         "fname",
         [
-            "scripts/config.py",
-            "scripts/agent_factory.py",
-            "scripts/run_android.py",
-            "scripts/run_ios.py",
-            "scripts/run_mac.py",
+            "device/config.py",
+            "device/agent_factory.py",
+            "device/run_android.py",
+            "device/run_ios.py",
+            "device/run_mac.py",
             "agents/base.py",
             "agents/claude_agent.py",
             "agents/openai_agent.py",

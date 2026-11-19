@@ -29,14 +29,21 @@ jobs:
           python -m pip install -r requirements-dev.txt
           python -m pip check
       - name: Lint
-        run: python -m flake8 agents scripts tests --count --max-complexity=10 --max-line-length=120 --statistics
+        run: python -m flake8 agents device tests ai core database filters web bot config.py main.py --count --max-complexity=10 --max-line-length=120 --statistics
       - name: Check formatting
-        run: python -m black --check --line-length=88 agents scripts tests
+        run: python -m black --check --line-length=88 agents device tests ai core database filters web bot config.py main.py
       - name: Test without inherited credentials or external connections
+        env:
+          TWINBY_ACCESS_TOKEN: ci-only-twinby-token
+          TG_BOT_TOKEN: "123456:ci-only-bot-token"
+          TG_ADMIN_ID: "1"
         run: >-
           env -i PATH="$PATH" HOME="$RUNNER_TEMP" LANG=C.UTF-8
           PYTHON_DOTENV_DISABLED=1
-          python -m pytest tests/ -v --cov=agents --cov=scripts --cov-report=xml
+          TWINBY_ACCESS_TOKEN="$TWINBY_ACCESS_TOKEN"
+          TG_BOT_TOKEN="$TG_BOT_TOKEN" TG_ADMIN_ID="$TG_ADMIN_ID"
+          python -m pytest tests/ -v --cov=agents --cov=device --cov=ai --cov=core
+          --cov=database --cov=filters --cov=web --cov=bot --cov-report=xml
           --allow-hosts=127.0.0.1,::1 --allow-unix-socket
       - name: Audit installed dependencies including optional providers
         run: python -m pip_audit --strict

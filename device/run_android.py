@@ -5,7 +5,7 @@ pip install uiautomator2 anthropic python-dotenv
 adb devices
 
 .env:  AGENT=claude  (или openai / gemini / custom)
-python run_android.py
+python -m device.run_android
 """
 
 import random
@@ -14,8 +14,8 @@ from io import BytesIO
 
 import uiautomator2 as u2
 
-from agent_factory import create_agent
-from config import (
+from device.agent_factory import create_agent
+from device.config import (
     DELAY_MAX,
     DELAY_MIN,
     LIKE_THRESHOLD,
@@ -89,7 +89,7 @@ def swipe(d: u2.Device, decision: str):
 def main():
     agent = create_agent()
     print("=" * 50)
-    print(f"  Twinby Bot  |  Android  |  {agent.name.upper()}")
+    print(f"  <3  |  Android  |  {agent.name.upper()}")
     print("=" * 50)
 
     d = connect()

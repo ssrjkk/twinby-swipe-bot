@@ -41,7 +41,13 @@ htmlcov/
 
 # Environment
 .env
-.env.local
+.env.*
+!.env.example
+data/
+backups/
+*.db
+*.db-*
+coverage.xml
 
 # Logs
 *.log

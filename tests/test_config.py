@@ -1,4 +1,4 @@
-"""Tests for scripts.config: defaults, env overrides, threshold bounds.
+"""Tests for device.config: defaults, env overrides, threshold bounds.
 
 The config module is critical: LIKE_THRESHOLD guards the "like only on
 confident match" invariant, so its default and override behaviour are
@@ -18,10 +18,10 @@ ENV_VARS = ("LIKE_THRESHOLD", "MAX_SWIPES", "DELAY_MIN", "DELAY_MAX", "AGENT")
 
 @pytest.fixture
 def clean_config(monkeypatch):
-    """Reload scripts.config with the tune-up env vars removed."""
+    """Reload device.config with the tune-up env vars removed."""
     for var in ENV_VARS:
         monkeypatch.delenv(var, raising=False)
-    import scripts.config as cfg
+    import device.config as cfg
 
     cfg = importlib.reload(cfg)
     yield cfg
