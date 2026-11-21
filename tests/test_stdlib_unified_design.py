@@ -168,6 +168,176 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
         self.assertEqual(found, [], f"в интерфейсе панели появились пиктограммы: {found}")
         self.assertIn("WS: LIVE", DASH, "живой статус-бейдж WebSocket пропал из панели")
 
+    def test_10_structural_rules_are_landing_verbatim(self) -> None:
+        """Каркас панели — это CSS лендинга без правок: сетка, шапка, hero, карточки, чипы, вкладки."""
+        shared = (
+            "body", ".container", "header", "footer", "footer a", "section", ".stats", ".stat-card",
+            ".stat-card b", ".stat-card span", ".logo", ".logo i", ".tag", "h1 em", "h2", ".sec-sub",
+            ".sec-eyebrow", ".card h3", ".card p", ".btn-secondary", ".gh-link", ".gh-link:hover",
+            ".mode-tabs", ".mode-btn", ".mode-btn.active", ".drv", ".drv-api", ".drv-hybrid", ".drv-ui",
+        )
+        for selector in shared:
+            self.assertEqual(
+                declarations(rule_body(LANDING, selector)),
+                declarations(rule_body(DASH, selector)),
+                f"CSS-правило {selector} разбилось между лендингом и панелью",
+            )
+        # Компактность hero панели — единственное разрешённое отступление: только размер заголовка.
+        self.assertIn("<h1>Управление. <em>Осмысленно.</em></h1>", DASH, "hero панели потерял курсивный акцент")
+        self.assertLess(
+            float(re.search(r"clamp\(([\d.]+)rem", rule_body(DASH, ".panel-hero h1")).group(1)),
+            float(re.search(r"clamp\(([\d.]+)rem", rule_body(LANDING, "h1")).group(1)),
+            "заголовок панели должен быть компактнее лендингового",
+        )
+
+    def test_11_nested_surfaces_and_button_hierarchy_match_the_landing(self) -> None:
+        pane, mode_content = declarations(rule_body(DASH, ".pane")), declarations(rule_body(LANDING, ".mode-content"))
+        for prop in ("background", "border", "border-radius"):
+            self.assertEqual(pane[prop], mode_content[prop], f"вложенная белая подложка разошлась с `.mode-content` в {prop}")
+        self.assertEqual(pane["border-radius"], "18px")
+        self.assertEqual(
+            declarations(rule_body(DASH, "details.adv code")),
+            declarations(rule_body(LANDING, ".mode-content code")),
+            "моно-врезка панели не совпадает с лендинговой",
+        )
+        self.assertEqual(
+            declarations(rule_body(LANDING, ".btn-primary")),
+            declarations(rule_body(DASH, ".btn-primary")),
+            ".btn-primary панели обязан быть розовой pill-кнопкой лендинга целиком",
+        )
+        self.assertIn("box-shadow: none", rule_body(DASH, "button.btn-secondary"))
+        # На карточку — одна розовая кнопка: вторичные действия обязаны быть классом btn-secondary.
+        body = DASH.split("<body>", 1)[1].split("<script>", 1)[0]
+        cards = re.split(r'\n        <div class="card">', body)
+        self.assertGreaterEqual(len(cards), 9, "карточек панели стало меньше восьми")
+        for card in cards[1:]:
+            self.assertLessEqual(
+                card.count('class="btn-primary"'), 1, "в карточке больше одной главной (розовой) кнопки"
+            )
+        self.assertIn('class="btn-secondary"', body)
+        self.assertGreaterEqual(body.count('class="btn-secondary"'), 8, "вторичные действия панели потеряли свой стиль")
+
+    def test_12_fields_chips_and_states_are_unified(self) -> None:
+        """Единый стиль полей, фокус-кольцо и disabled-состояние вместо самостийных инлайн-стилей."""
+        body = DASH.split("<body>", 1)[1].split("<script>", 1)[0]
+        self.assertNotIn('style="', body, "в разметке панели снова полезли инлайн-атрибуты style=")
+        self.assertNotIn(" style=", body)
+        fields = declarations(rule_body(DASH, "input, select, textarea"))
+        self.assertEqual(fields["border-radius"], "14px")
+        self.assertEqual(fields["background"], "#fff")
+        focus = declarations(rule_body(DASH, "input:focus-visible, select:focus-visible, textarea:focus-visible"))
+        self.assertEqual(focus["outline"], "none")
+        self.assertEqual(focus["border-color"], "var(--rose)")
+        self.assertEqual(focus["box-shadow"], "0 0 0 3px rgba(225, 29, 72, 0.14)")
+        self.assertIn("cursor: progress", rule_body(DASH, "button:disabled"))
+        self.assertIn('class="drv drv-hybrid"', body, "статусные чипы панели должны жить в стиле лендингового .drv")
+        for chip in ("wsBadge", "modeBadge", "stateBadge", "dryBadge"):
+            self.assertIn(f'id="{chip}"', body, f"статус-чип {chip} пропал из шапки/карточек")
+
+    def test_13_no_raw_json_in_the_interface(self) -> None:
+        """`JSON.stringify(r)` в интерфейс запрещён: человекочитаемый статус + сворачиваемый моно-блок."""
+        self.assertNotIn("JSON.stringify(r)", DASH)
+        for line in DASH.splitlines():
+            self.assertFalse("innerHTML" in line and "JSON.stringify" in line, f"сырой JSON лезет в innerHTML: {line}")
+        self.assertIn(".textContent = raw", DASH, "сырые детали должны попадать в DOM только как текст")
+        self.assertIn("out-raw", DASH, "нет компактного моно-блока для отладочных деталей")
+        self.assertIn("function notify(", DASH, "нет единого канала статус-сообщений")
+
+    def test_14_every_api_call_from_the_panel_is_a_registered_route(self) -> None:
+        """Паритет маршрутов: любая строка /api/v1/... из панели обязана существовать в web/api.py."""
+        api_src = (ROOT / "web/api.py").read_text(encoding="utf-8")
+        routes = set(re.findall(r'@app\.(?:get|post|patch|put|delete|websocket)\("([^"]+)"', api_src))
+
+        def registered(path: str) -> bool:
+            # `/api/v1/dialogues/` + `${threadId}` — это маршрут с параметром `/api/v1/dialogues/{thread_id}`.
+            return any(path == r or (r.startswith(path) and r[len(path):len(path) + 1] == "{") for r in routes)
+
+        used = {
+            p.split("?")[0]
+            for p in re.findall(r"""['"](/api/v1/[^' "{$?]+\??[^' "{$]*)""", DASH)
+            + re.findall(r"`(/api/v1/[^` ${?]+\??[^` ${]*)", DASH)
+        }
+        self.assertTrue(used, "панель перестала дёргать API")
+        self.assertFalse(
+            [p for p in sorted(used) if not registered(p)],
+            f"панель зовёт несуществующие маршруты: {sorted(p for p in used if not registered(p))}",
+        )
+        self.assertIn("/ws/live", DASH)
+
+    def test_15_connection_and_ai_cards_stay_scoped_to_their_mode(self) -> None:
+        """Режим задаёт набор полей, а пресеты ИИ приходят из бэкенда, а не из воздуха."""
+        api_src = (ROOT / "web/api.py").read_text(encoding="utf-8")
+        modes = set(re.findall(r'^\s{4}"(\w+)": \(', re.search(r"MODE_DRIVERS[^\n]*=\s*\{(.*?)\n\}", api_src, re.DOTALL).group(1), re.M))
+        self.assertEqual(modes, {"ui_vision", "web_vision", "api"})
+        tabs = set(re.findall(r'class="mode-btn[^"]*" data-mode="(\w+)"', DASH))
+        self.assertEqual(tabs, modes, "вкладки режимов панели разошлись с MODE_DRIVERS бэкенда")
+
+        llm_src = (ROOT / "ai/universal_llm.py").read_text(encoding="utf-8")
+        presets = re.findall(r'^\s{4}"(\w+)": \("https?://', re.search(r"PROVIDER_PRESETS[^\n]*=\s*\{(.*?)\n\}", llm_src, re.DOTALL).group(1), re.M)
+        self.assertGreaterEqual(len(presets), 13, "пресетов провайдеров стало меньше тринадцати")
+        self.assertIn("list_provider_presets", api_src)
+        self.assertIn("aiPresets = c.presets", DASH, "панель обязана строить список провайдеров из ответа API")
+
+        wrappers = set(re.findall(r'showField\(\'(\w+)\'', DASH))
+        self.assertEqual(wrappers, {"wrapOs", "wrapUdid", "wrapAppium", "wrapPkg", "wrapWebUrl", "wrapHeadless", "wrapToken"})
+        for wrapper in wrappers:
+            self.assertIn(f'id="{wrapper}"', DASH, f"нет контейнера поля {wrapper} — переключение режимов его не покажет")
+
+    def test_16_dynamic_markup_is_always_escaped(self) -> None:
+        """Ни одной подстановки в innerHTML без escapeHtml: сырое `объект.поле` — провал гейта."""
+        statement_ends = re.compile(r"(?m)^\s*.*;\s*$")
+        offenders: list[str] = []
+        for match in re.finditer(r"\.innerHTML\s*=", DASH):
+            tail = statement_ends.search(DASH, match.end())
+            statement = DASH[match.start(): tail.end() if tail else match.end() + 400]
+            for expr in re.findall(r"\$\{([^{}]*)\}", statement):
+                # Безопасные обёртки и строковые литералы вырезаем, чтобы не проверять их содержимое.
+                cut = re.sub(
+                    r"(?:escapeHtml|encodeURIComponent|Number|String|rawOf|JSON\.stringify)\([^()]*(?:\([^()]*\)[^()]*)*\)",
+                    " ",
+                    expr,
+                )
+                cut = re.sub(r"'[^']*'|\"[^\"]*\"", " ", cut)
+                for member in re.finditer(r"\b[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", cut):
+                    rest = cut[member.end():].lstrip()
+                    if rest[:1] == "?" or rest[:2] in ("==", "!=", "&&", "||") or rest[:3] in ("===", "!=="):
+                        continue  # обращение участвует только в условии — в DOM оно не попадает
+                    offenders.append(member.group(0))
+        self.assertEqual(offenders, [], f"в innerHTML попало неэкранированное выражение: {sorted(set(offenders))}")
+        self.assertIn("function escapeHtml(", DASH)
+        self.assertGreaterEqual(DASH.count("escapeHtml("), 30, "экранирования в панели подозрительно мало")
+
+    def test_17_each_mode_reveals_only_its_own_fields(self) -> None:
+        """Переключатель прячет поля чужого канала: ОС — только у adb/appium, URL — только у web_vision."""
+        conds = dict(re.findall(r"showField\('(\w+)', ([^)\n]*)\)", DASH))
+        self.assertEqual(set(conds), {"wrapOs", "wrapUdid", "wrapAppium", "wrapPkg", "wrapWebUrl", "wrapHeadless", "wrapToken"})
+        expected = {
+            "wrapOs": ("ui_vision",),
+            "wrapPkg": ("ui_vision",),
+            "wrapWebUrl": ("web_vision",),
+            "wrapHeadless": ("web_vision",),
+            "wrapToken": ("api",),
+        }
+        for wrapper, tokens in expected.items():
+            for token in tokens:
+                self.assertIn(token, conds[wrapper], f"поле {wrapper} показывается не в своём режиме: {conds[wrapper]}")
+            other_modes = {"ui_vision", "web_vision", "api"} - {tokens[0]}
+            self.assertFalse(
+                [m for m in other_modes if re.search(rf"mode\s*===\s*'{m}'", conds[wrapper])],
+                f"поле {wrapper} открыто и в чужом режиме: {conds[wrapper]}",
+            )
+
+    def test_18_mutating_requests_cannot_be_double_clicked(self) -> None:
+        """Любой POST/PATCH живёт внутри withBusy: кнопка гаснет на время запроса и получает текст-статус."""
+        busy_spans = [(m.start(), m.end()) for m in re.finditer(r"await withBusy\(", DASH)]
+        self.assertGreaterEqual(len(busy_spans), 10, "busy-обёртка потеряна у большинства запросов панели")
+        for match in re.finditer(r"method:\s*'(POST|PATCH|DELETE)'", DASH):
+            enclosed = any(start < match.start() for start, _ in busy_spans)
+            self.assertTrue(enclosed, f"запись в API вне withBusy на позиции {DASH[:match.start()].count(chr(10)) + 1}")
+        body = re.search(r"async function withBusy\([^)]*\)\s*\{(.*?)\n    \}", DASH, re.DOTALL).group(1)
+        self.assertIn("btn.disabled = true", body)
+        self.assertIn("btn.textContent = busyText", body)
+        self.assertIn("btn.disabled = false", body, "кнопка не возвращается в активное состояние после ответа")
 
 
 if __name__ == "__main__":

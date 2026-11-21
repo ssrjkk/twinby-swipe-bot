@@ -46,7 +46,7 @@ def _restore_global_settings() -> Any:
 
 
 class FakeDriver:
-    """Двойник MobileUIDriverFallback: те же поля, что у настоящего драйвера, плюс记录下来 вызовы.
+    """Двойник MobileUIDriverFallback: те же поля, что у настоящего драйвера, плюс записанные вызовы.
 
     Поля объявлены со значениями по умолчанию, чтобы фейк, созданный в тесте напрямую
     (`FakeDriver(backend="adb")`), оставался совместим с кодом панели, читающим `drv.device_udid` и др.

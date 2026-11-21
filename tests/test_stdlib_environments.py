@@ -31,6 +31,13 @@ from database.models import SwipeDecision
 from filters.engine import FilterConfig, ProfileFilterEngine
 from filters.vision_card_parser import VisionProfileParser
 
+try:  # pytest видит tests пакетом, а `unittest discover -s tests` — плоской папкой
+    from tests._net_env import hermetic_proxy
+except ImportError:
+    from _net_env import hermetic_proxy
+
+hermetic_proxy()
+
 
 def _make_png(black: bool = False, size: tuple[int, int] = (480, 960)) -> bytes:
     img = Image.new("RGB", size, (0, 0, 0))

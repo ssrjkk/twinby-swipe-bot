@@ -8,6 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    /* ==========================================================================
+       БЛОК 1 — ЭТАЛОН. Всё ниже до «БЛОК 2» скопировано из index.html дословно:
+       токены, пузыри, контейнер, шапка, hero, карточки, кнопки, вкладки режимов,
+       белые вложенные панели, статусные чипы, футер. Панель не имеет права
+       отходить от лендинга; плотность добавляется только во втором блоке.
+       ========================================================================== */
     :root {
       --bg: #fffbfc;
       --surface: rgba(255, 255, 255, 0.78);
@@ -16,8 +22,8 @@
       --rose: #e11d48;
       --rose-soft: #ffe4e6;
       --rose-border: rgba(225, 29, 72, 0.16);
-      --border: var(--rose-border);
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -27,70 +33,438 @@
       overflow-x: hidden;
       position: relative;
     }
-    .blobs { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
-    .blob { position: absolute; border-radius: 50%; animation: floatOrb 15s ease-in-out infinite alternate; }
-    .blob-1 { width: 480px; height: 480px; top: -110px; left: -90px; background: radial-gradient(circle at 35% 35%, rgba(255, 182, 193, 0.9), rgba(244, 63, 94, 0.28) 65%, transparent 100%); filter: blur(45px); }
-    .blob-2 { width: 540px; height: 540px; top: 16%; right: -140px; background: radial-gradient(circle at 40% 40%, rgba(251, 207, 232, 0.95), rgba(225, 29, 72, 0.22) 68%, transparent 100%); filter: blur(50px); animation-delay: -5s; }
-    .blob-3 { width: 420px; height: 420px; bottom: -90px; left: 15%; background: radial-gradient(circle at 30% 30%, rgba(254, 205, 211, 0.9), rgba(244, 63, 94, 0.25) 70%, transparent 100%); filter: blur(45px); animation-delay: -9s; }
-    .orb { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 192, 203, 0.55) 28%, rgba(244, 63, 94, 0.22) 72%, rgba(225, 29, 72, 0.08) 100%); box-shadow: inset -8px -8px 20px rgba(225, 29, 72, 0.14), inset 6px 6px 14px rgba(255, 255, 255, 0.85), 0 12px 30px rgba(244, 63, 94, 0.08); border: 1px solid rgba(255, 255, 255, 0.75); animation: riseBubble 18s ease-in-out infinite alternate; }
+
+    /* Оригинальные розовые пузыри (плавающие сферы + глянцевые розовые пузырьки на фоне) */
+    .blobs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      animation: floatOrb 15s ease-in-out infinite alternate;
+    }
+    /* Мягкие розовые облака-пузыри */
+    .blob-1 {
+      width: 480px; height: 480px;
+      top: -110px; left: -90px;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 182, 193, 0.9), rgba(244, 63, 94, 0.28) 65%, transparent 100%);
+      filter: blur(45px);
+    }
+    .blob-2 {
+      width: 540px; height: 540px;
+      top: 16%; right: -140px;
+      background: radial-gradient(circle at 40% 40%, rgba(251, 207, 232, 0.95), rgba(225, 29, 72, 0.22) 68%, transparent 100%);
+      filter: blur(50px);
+      animation-delay: -5s;
+    }
+    .blob-3 {
+      width: 420px; height: 420px;
+      bottom: -90px; left: 15%;
+      background: radial-gradient(circle at 30% 30%, rgba(254, 205, 211, 0.9), rgba(244, 63, 94, 0.25) 70%, transparent 100%);
+      filter: blur(45px);
+      animation-delay: -9s;
+    }
+    /* Выраженные полупрозрачные розовые пузыри с бликом */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 192, 203, 0.55) 28%, rgba(244, 63, 94, 0.22) 72%, rgba(225, 29, 72, 0.08) 100%);
+      box-shadow: inset -8px -8px 20px rgba(225, 29, 72, 0.14), inset 6px 6px 14px rgba(255, 255, 255, 0.85), 0 12px 30px rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      animation: riseBubble 18s ease-in-out infinite alternate;
+    }
     .orb-1 { width: 130px; height: 130px; top: 14%; left: 11%; animation-duration: 13s; }
     .orb-2 { width: 84px; height: 84px; top: 28%; right: 14%; animation-duration: 16s; animation-delay: -3s; }
     .orb-3 { width: 165px; height: 165px; top: 58%; right: 7%; animation-duration: 20s; animation-delay: -7s; }
     .orb-4 { width: 64px; height: 64px; top: 46%; left: 6%; animation-duration: 12s; animation-delay: -2s; }
     .orb-5 { width: 110px; height: 110px; bottom: 12%; left: 32%; animation-duration: 17s; animation-delay: -6s; }
-    @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(32px, -38px) scale(1.07); } }
-    @keyframes riseBubble { 0% { transform: translateY(0px) translateX(0px) scale(1); } 50% { transform: translateY(-28px) translateX(14px) scale(1.04); } 100% { transform: translateY(18px) translateX(-12px) scale(0.97); } }
-    @media (prefers-reduced-motion: reduce) { .blob, .orb { animation: none; } }
 
-    .container { max-width: 1120px; margin: 0 auto; padding: 24px; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--rose-border); margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
-    .logo { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.15rem; color: var(--text); text-decoration: none; }
-    .logo em { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; color: var(--rose); font-size: 1.08em; }
-    .pill { padding: 3px 9px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: .73rem; font-weight: 600; background: var(--rose-soft); color: #9f1239; }
-    .back-link { font-size: .88rem; font-weight: 600; color: var(--rose); background: var(--rose-soft); padding: 8px 16px; border-radius: 999px; border: 1px solid var(--rose-border); text-decoration: none; transition: all 0.2s; }
-    .back-link:hover { background: var(--rose); color: #fff; }
-    button.token-btn { padding: 5px 12px; font-size: .76rem; }
-    button.mini-btn { padding: 4px 10px; font-size: .76rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .card { background: var(--surface); backdrop-filter: blur(14px); border: 1px solid var(--rose-border); border-radius: 24px; padding: 26px; }
-    .kpi-label { font-size: 0.76rem; color: var(--muted); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
-    .kpi-val { font-size: 1.85rem; font-weight: 700; color: var(--rose); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    button {
-      background: var(--rose); color: #fff; border: none;
-      padding: 9px 16px; border-radius: 999px; font-family: inherit; font-weight: 600; font-size: .84rem;
-      cursor: pointer; box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35); transition: transform .15s;
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(32px, -38px) scale(1.07); }
     }
-    button.primary { background: var(--rose); color: #fff; border: none; }
-    button.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--rose-border); box-shadow: none; backdrop-filter: blur(12px); }
-    button.danger { background: #fff; color: #9f1239; border: 1px solid var(--rose-border); box-shadow: none; }
-    button:hover { transform: translateY(-2px); }
-    textarea, input, select {
-      width: 100%; border: 1px solid var(--rose-border); border-radius: 12px; padding: 9px 13px;
-      font-family: inherit; font-size: 0.88rem; background: #fff; color: var(--text);
+    @keyframes riseBubble {
+      0% { transform: translateY(0px) translateX(0px) scale(1); }
+      50% { transform: translateY(-28px) translateX(14px) scale(1.04); }
+      100% { transform: translateY(18px) translateX(-12px) scale(0.97); }
     }
-    code, pre { font-family: 'JetBrains Mono', monospace; }
-    .platform-select { width: auto; border: 1px solid var(--rose-border); border-radius: 999px; padding: 8px 14px; background: #fff; color: var(--text); font-weight: 600; font-size: .84rem; }
-    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; margin-bottom: 20px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 10px; margin-bottom: 10px; }
-    h3 { font-size: 1.03rem; margin-bottom: 12px; font-weight: 700; letter-spacing: -0.02em; }
-    .sec-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--rose); margin-bottom: 8px; }
-    .log-list { max-height: 310px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 0.84rem; }
-    .log-item { background: #fff; border: 1px solid var(--rose-border); border-radius: 14px; padding: 10px 13px; }
-    .like { color: #166534; font-weight: 700; }
-    .pass { color: #9f1239; font-weight: 700; }
-    .shot-preview { width: 100%; max-height: 320px; object-fit: contain; border-radius: 14px; border: 1px solid var(--rose-border); background: #fff; }
-    label.check { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: .8rem; color: var(--muted); }
-    label.check input { width: auto; }
-    input[type="file"] { padding: 7px 10px; font-size: .8rem; }
-    .mono-note { margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: .74rem; color: var(--muted); word-break: break-word; line-height: 1.5; }
-    .mono-note b { color: #9f1239; }
-    footer { border-top: 1px solid var(--rose-border); padding: 32px 0; margin-top: 48px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: .88rem; color: var(--muted); }
+
+    .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--rose-border);
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .logo i { font-style: normal; }
+    .gh-link {
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--rose);
+      background: var(--rose-soft);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--rose-border);
+      transition: all 0.2s;
+    }
+    .gh-link:hover { background: var(--rose); color: #fff; }
+
+    .tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--rose);
+      background: var(--rose-soft);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--rose-border);
+      margin-bottom: 20px;
+    }
+    h1 em {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rose);
+      font-size: 1.14em;
+    }
+    .btn-primary {
+      background: var(--rose);
+      color: #fff;
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35);
+      transition: transform 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--rose-border);
+      backdrop-filter: blur(12px);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin: 20px 0 64px;
+    }
+    .stat-card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--rose-border);
+      border-radius: 22px;
+      padding: 22px;
+      text-align: center;
+    }
+    .stat-card b { display: block; font-size: 1.9rem; color: var(--rose); line-height: 1.1; margin-bottom: 6px; }
+    .stat-card span { font-size: 0.85rem; color: var(--muted); }
+
+    section { padding: 52px 0; }
+    .sec-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--rose);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    h2 { font-size: 2rem; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .sec-sub { color: var(--muted); max-width: 680px; margin-bottom: 32px; }
+
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--rose-border);
+      border-radius: 24px;
+      padding: 26px;
+    }
+    .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .card p { font-size: 0.92rem; color: var(--muted); }
+
+    .mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .mode-btn {
+      border: 1px solid var(--rose-border);
+      background: #fff;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .mode-btn.active { background: var(--rose); color: #fff; border-color: var(--rose); }
+    .mode-content {
+      background: #fff;
+      border: 1px solid var(--rose-border);
+      border-radius: 18px;
+      padding: 22px;
+      font-size: 0.92rem;
+    }
+    .mode-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: var(--rose-soft);
+      color: var(--rose);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .drv {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      font-weight: 600;
+    }
+    .drv-api { background: #dcfce7; color: #166534; }
+    .drv-hybrid { background: #fef3c7; color: #92400e; }
+    .drv-ui { background: #ffe4e6; color: #9f1239; }
+
+    footer {
+      border-top: 1px solid var(--rose-border);
+      padding: 32px 0;
+      margin-top: 48px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
     footer a { color: var(--rose); text-decoration: none; }
+
+    /* ==========================================================================
+       БЛОК 2 — ПЛОТНОСТЬ ПАНЕЛИ. Только то, чего на лендинге нет по определению:
+       компактный hero, сетки карточек, поля ввода, журнал, тосты, состояния.
+       Цвета и радиусы берутся из блока 1, новых не появляется.
+       ========================================================================== */
+    .logo em {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rose);
+    }
+    .panel-hero { text-align: center; max-width: 760px; margin: 0 auto; padding: 56px 0 8px; }
+    .panel-hero h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.08;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+    .panel-hero p { font-size: 1.04rem; color: var(--muted); }
+
+    .topbar { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+
+    .two-col { display: grid; align-items: start; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .card-head h3 { margin-bottom: 0; }
+    .fields { display: grid; gap: 12px; }
+    .field-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); }
+    .field > label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+
+    input, select, textarea {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--rose-border);
+      border-radius: 14px;
+      padding: 10px 13px;
+      line-height: 1.4;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    textarea { resize: vertical; min-height: 62px; }
+    input:hover, select:hover, textarea:hover { border-color: rgba(225, 29, 72, 0.34); }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.14); }
+    input:disabled, select:disabled, textarea:disabled { opacity: 0.6; cursor: not-allowed; }
+    input[type="checkbox"] { width: auto; accent-color: var(--rose); }
+    input[type="file"] { padding: 8px 11px; font-size: 0.82rem; }
+
+    button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: var(--rose);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 11px 20px;
+      box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35);
+      transition: transform 0.15s;
+    }
+    button.btn-primary { border: none; }
+    button:hover { transform: translateY(-2px); }
+    button:disabled { opacity: 0.55; cursor: progress; transform: none; box-shadow: none; }
+    button.btn-secondary { box-shadow: none; }
+    button.btn-secondary:hover { border-color: var(--rose); color: var(--rose); }
+    button.mode-btn { box-shadow: none; }
+    button.btn-soft {
+      background: var(--rose-soft);
+      color: var(--rose);
+      border: 1px solid var(--rose-border);
+      box-shadow: none;
+      padding: 8px 16px;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+    }
+    button.btn-soft:hover { background: var(--rose); color: #fff; }
+    button.btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+
+    .btn-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .file-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .file-row input[type="file"] { flex: 1 1 200px; }
+    .check { display: inline-flex; align-items: center; gap: 7px; font-size: 0.82rem; font-weight: 500; color: var(--muted); }
+
+    .pane { background: #fff; border: 1px solid var(--rose-border); border-radius: 18px; padding: 18px; font-size: 0.86rem; }
+    .pane + .pane { margin-top: 12px; }
+    .pane-row { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+    .pane-row + .pane-row { margin-top: 8px; }
+    .pane-key { color: var(--muted); font-size: 0.8rem; }
+    .pane-val { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; word-break: break-all; }
+    .chip-row { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .card .hint, .card .empty, .hint, .empty { font-size: 0.8rem; color: var(--muted); }
+    .empty { margin-top: 14px; padding: 14px 16px; border: 1px dashed var(--rose-border);
+             border-radius: 14px; background: rgba(255, 255, 255, 0.62); }
+    input[type="file"]::file-selector-button { margin-right: 12px; padding: 8px 16px; border: 1px solid var(--rose-border);
+             border-radius: 999px; background: #fff; color: var(--text); font: inherit; font-size: 0.82rem;
+             font-weight: 600; cursor: pointer; }
+    .hint { margin-top: 10px; }
+    .hidden { display: none; }
+
+    .list { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; }
+    .list-item { background: #fff; border: 1px solid var(--rose-border); border-radius: 18px; padding: 12px 14px; font-size: 0.86rem; }
+    .item-head { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap; }
+    .item-note { color: var(--muted); font-size: 0.8rem; margin-top: 5px; }
+    .thread { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+    .shot { display: block; width: 100%; max-height: 340px; object-fit: contain; border-radius: 18px; border: 1px solid var(--rose-border); background: #fff; }
+
+    .out { margin-top: 18px; }
+    .out-msg { font-size: 0.86rem; }
+    .out-ok { color: #166534; }
+    .out-warn { color: #92400e; }
+    .out-err { color: #9f1239; }
+    .out-info { color: var(--muted); }
+    .out-raw { margin-top: 8px; }
+    .out-raw summary { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--muted); cursor: pointer; }
+    .out-raw pre {
+      margin-top: 8px;
+      background: #fff;
+      border: 1px solid var(--rose-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      line-height: 1.5;
+      color: var(--muted);
+      max-height: 190px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    details.adv { margin-top: 16px; background: #fff; border: 1px solid var(--rose-border); border-radius: 18px; padding: 14px 18px; }
+    details.adv > summary { cursor: pointer; font-size: 0.86rem; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    details.adv > summary::-webkit-details-marker { display: none; }
+    details.adv > summary::after { content: '+'; font-family: 'JetBrains Mono', monospace; color: var(--rose); font-size: 1rem; }
+    details.adv[open] > summary::after { content: '—'; }
+    details.adv .adv-body { margin-top: 14px; }
+    details.adv code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: var(--rose-soft);
+      color: var(--rose);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .toasts {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: min(360px, calc(100% - 32px));
+      pointer-events: none;
+    }
+    .toast {
+      background: #fff;
+      border: 1px solid var(--rose-border);
+      border-radius: 18px;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      box-shadow: 0 16px 30px -14px rgba(28, 16, 21, 0.32);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast-ok { border-color: rgba(22, 101, 52, 0.34); }
+    .toast-warn { border-color: rgba(146, 64, 14, 0.34); }
+    .toast-err { border-color: rgba(159, 18, 57, 0.4); }
+    .toast summary { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted); cursor: pointer; }
+    .toast pre {
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 120px;
+      overflow: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blob, .orb { animation: none; }
+      .btn-primary, .btn-secondary, button, .mode-btn, .gh-link, .toast { transition: none; }
+      .btn-primary:hover, .btn-secondary:hover, button:hover, .gh-link:hover { transform: none; }
+    }
+    @media (max-width: 720px) {
+      header { flex-wrap: wrap; gap: 12px; }
+      .topbar { justify-content: flex-start; }
+      .panel-hero { padding-top: 34px; }
+      section { padding: 34px 0; }
+      .stats { margin-bottom: 40px; }
+    }
   </style>
 </head>
 <body>
+  <!-- Плавающие розовые пузыри — тот же слой, что на лендинге -->
   <div class="blobs">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
@@ -101,162 +475,293 @@
     <div class="orb orb-4"></div>
     <div class="orb orb-5"></div>
   </div>
+
   <div class="container">
     <header>
-      <a href="/" class="logo">&lt;3 · <em>Control Panel</em></a>
-      <div class="row">
-        <span class="pill" id="wsBadge">WS: ...</span>
-        <span class="pill" id="modeBadge">загрузка...</span>
-        <button onclick="setApiToken()" class="token-btn">API Token</button>
-        <a href="/" class="back-link">← На лендинг</a>
+      <a href="/" class="logo"><i>&lt;3</i> · <em>Control Panel</em></a>
+      <div class="topbar">
+        <span class="drv drv-hybrid" id="wsBadge">WS: …</span>
+        <span class="drv drv-ui" id="modeBadge">режим загружается</span>
+        <span class="drv drv-hybrid" id="stateBadge">PAUSED</span>
+        <button type="button" class="btn-soft" onclick="setApiToken()">API Token</button>
+        <a href="/" class="gh-link">← На лендинг</a>
       </div>
     </header>
 
-    <div class="grid">
-      <div class="card"><div class="kpi-label">Обработано</div><div class="kpi-val" id="kTotal">0</div></div>
-      <div class="card"><div class="kpi-label">Лайков</div><div class="kpi-val" id="kLikes">0</div></div>
-      <div class="card"><div class="kpi-label">Мэтчей</div><div class="kpi-val" id="kMatches">0</div></div>
-      <div class="card"><div class="kpi-label">Конверсия</div><div class="kpi-val" id="kRate">0%</div></div>
+    <div class="panel-hero">
+      <span class="tag">&lt;3 · live control panel</span>
+      <h1>Управление. <em>Осмысленно.</em></h1>
+      <p>Воркер, коннект к дейтингу и ИИ-ключ любой формы меняются на ходу: живые шлюзы пересобираются без рестарта процесса и без потери текущего подключения.</p>
     </div>
 
-    <div class="card" style="margin-bottom:20px;">
+    <div class="stats">
+      <div class="stat-card"><b id="kTotal">0</b><span>обработано анкет</span></div>
+      <div class="stat-card"><b id="kLikes">0</b><span>осмысленных лайков</span></div>
+      <div class="stat-card"><b id="kMatches">0</b><span>мэтчей</span></div>
+      <div class="stat-card"><b id="kRate">0%</b><span>конверсия в мэтч</span></div>
+    </div>
+
+    <section>
       <div class="sec-eyebrow">воркер</div>
-      <h3>Управление воркером</h3>
-      <div class="row">
-        <button class="primary" onclick="apiPost('/api/v1/worker/start')">Запустить</button>
-        <button onclick="apiPost('/api/v1/worker/stop')">Остановить</button>
-        <button onclick="apiPost('/api/v1/worker/dry-run')" id="dryBtn">DRY_RUN</button>
-        <button onclick="runStep()">1 шаг (анкета → VLM)</button>
-        <button onclick="captureChat()">Прочитать чат с экрана</button>
-        <button onclick="testAI()">Проверить AI-ключ</button>
-        <button onclick="apiPost('/api/v1/backup')">Бэкап БД</button>
-        <button onclick="checkCalendar()">Слоты календаря</button>
-        <select id="platformSelect" onchange="switchPlatform()" class="platform-select">
-          <option value="twinby">Twinby</option>
-          <option value="pure">Pure</option>
-          <option value="mamba">Mamba</option>
-          <option value="vk_dating">VK Знакомства</option>
-          <option value="tabor">Tabor</option>
-          <option value="tinder">Tinder</option>
-          <option value="bumble">Bumble</option>
-          <option value="hinge">Hinge</option>
-          <option value="badoo">Badoo</option>
-          <option value="okcupid">OkCupid</option>
-        </select>
-      </div>
-      <div id="actionOut" style="margin-top:12px;font-size:.83rem;color:var(--muted);font-family:'JetBrains Mono',monospace;"></div>
-    </div>
+      <h2>Пуск, темп и Dry Run</h2>
+      <p class="sec-sub">Пока включён DRY_RUN, агент смотрит и решает, но палец в приложение не вставляет — безопасный режим для первой настройки.</p>
 
-    <div class="two-col">
-      <div class="card">
-        <div class="sec-eyebrow">коннект</div>
-        <h3>Подключение и платформа</h3>
-        <div class="form-grid">
-          <div><label>Режим</label><select id="connMode" onchange="onConnModeChange()"></select></div>
-          <div><label>Драйвер</label><select id="connDriver" onchange="onConnModeChange()"></select></div>
-          <div><label>Платформа (28)</label><select id="connPlatform" onchange="onConnModeChange()"></select></div>
-          <div id="wrapOs"><label>ОС устройства</label><select id="connOs" onchange="onConnModeChange()"><option value="Android">Android</option><option value="iOS">iOS</option></select></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="sec-eyebrow">цикл</div>
+          <div class="card-head">
+            <h3>Цикл свайпов</h3>
+            <span class="drv drv-hybrid" id="dryBadge">DRY_RUN: …</span>
+          </div>
+          <p>Один шаг = снимок экрана, разбор анкеты через VLM и вердикт. Полный цикл листает ленту сам.</p>
+          <div class="btn-row">
+            <button type="button" class="btn-primary" onclick="apiPost('/api/v1/worker/start', this)">Запустить</button>
+            <button type="button" class="btn-secondary" onclick="apiPost('/api/v1/worker/stop', this)">Остановить</button>
+            <button type="button" class="btn-secondary" onclick="apiPost('/api/v1/worker/dry-run', this)">Сменить DRY_RUN</button>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-secondary" onclick="apiPost('/api/v1/backup', this)">Бэкап БД</button>
+            <button type="button" class="btn-secondary" onclick="checkCalendar(this)">Слоты календаря</button>
+          </div>
+          <div class="out" id="actionOut"></div>
         </div>
-        <div class="form-grid">
-          <div id="wrapUdid"><label>DEVICE_UDID</label><input id="connUdid" placeholder="эмулятор/телефон по adb devices"></div>
-          <div id="wrapAppium"><label>Appium URL</label><input id="connAppium" placeholder="http://localhost:4723"></div>
-          <div id="wrapPkg"><label>Пакет / бандл</label><input id="connPkg" placeholder="авто из реестра"></div>
-          <div id="wrapWebUrl"><label>URL веб-версии</label><input id="connWebUrl" placeholder="авто из реестра"></div>
-          <div id="wrapToken"><label>Токен платформы (API)</label><input id="connToken" type="password" placeholder="из .env, если пусто"></div>
-        </div>
-        <div class="row" style="margin-top:10px;">
-          <button class="primary" onclick="applyConnection()">Подключить</button>
-          <label class="check"><input type="checkbox" id="connSaveEnv"> Сохранить в .env</label>
-          <label class="check" id="wrapHeadless"><input type="checkbox" id="connHeadless"> headless</label>
-        </div>
-        <div class="row" style="margin-top:12px;">
-          <input type="file" id="connHarFile" accept=".har,application/json">
-          <button class="secondary" onclick="uploadHar()">Импорт .har в API-профиль</button>
-        </div>
-        <div id="connState" class="mono-note">Загружаю текущее подключение...</div>
-      </div>
 
-      <div class="card">
-        <div class="sec-eyebrow">ии</div>
-        <h3>нейросеть и ключ любого формата</h3>
-        <div class="form-grid">
-          <div><label>Провайдер</label><select id="aiProvider" onchange="onAiProviderChange()"></select></div>
-          <div><label>Модель</label><input id="aiModel" placeholder="gpt-4o-mini"></div>
-        </div>
-        <label>Base URL</label><input id="aiBaseUrl" placeholder="https://api.openai.com/v1">
-        <label style="margin-top:8px;">API-ключ (пусто = оставить текущий)</label>
-        <input id="aiKey" type="password" autocomplete="off" placeholder="sk-... / Bearer ... / без префикса">
-        <div class="form-grid" style="margin-top:8px;">
-          <div><label>Свой заголовок</label><input id="aiHeader" placeholder="x-api-key"></div>
-          <div><label>Префикс Authorization</label><input id="aiPrefix" placeholder="Bearer "></div>
-          <div><label>Ключ в query</label><input id="aiQuery" placeholder="key / api_key"></div>
-        </div>
-        <div class="row" style="margin-top:10px;">
-          <button class="primary" onclick="saveAiConfig()">Применить ко всем</button>
-          <button class="secondary" onclick="testAI()">Проверить подключение</button>
-          <label class="check"><input type="checkbox" id="aiSaveEnv"> Сохранить в .env</label>
-        </div>
-        <div id="aiState" class="mono-note">Загружаю конфиг ИИ...</div>
-      </div>
-    </div>
-
-    <div class="two-col">
-      <div class="card">
-        <div class="sec-eyebrow">фильтры</div>
-        <h3>Фильтры и критерии (на лету)</h3>
-        <div class="form-grid">
-          <div><label>Мин. совм. %</label><input type="number" id="fCompat" min="0" max="100"></div>
-          <div><label>Порог Score</label><input type="number" id="fScore" min="0" max="100"></div>
-          <div><label>Возраст от</label><input type="number" id="fMinAge" min="18" max="99"></div>
-          <div><label>Возраст до</label><input type="number" id="fMaxAge" min="18" max="99"></div>
-          <div><label>Макс. км</label><input type="number" id="fDist" min="1" max="500"></div>
-        </div>
-        <label>Критерии для VLM/LLM</label>
-        <textarea id="fPrefs" rows="2"></textarea>
-        <div class="row" style="margin-top:10px;">
-          <button class="primary" onclick="saveFilters()">Сохранить фильтры</button>
-          <span id="filterSaved" style="font-size:.82rem;color:#166534;"></span>
+        <div class="card">
+          <div class="sec-eyebrow">зрение</div>
+          <div class="card-head">
+            <h3>Последний экран VLM</h3>
+            <span class="drv drv-hybrid" id="shotBadge">нет снимка</span>
+          </div>
+          <p>Что агент видел перед решением: снимок с телефона или браузера и вердикт модели.</p>
+          <div class="btn-row">
+            <button type="button" class="btn-primary" onclick="runStep(this)">1 шаг (анкета → VLM)</button>
+          </div>
+          <div class="pane hidden" id="verdictWrap"></div>
+          <div class="btn-row" id="shotWrap">
+            <p class="empty" id="shotEmpty">Нажмите «1 шаг (анкета → VLM)», чтобы увидеть скриншот и вердикт модели.</p>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="card">
-        <div class="sec-eyebrow">зрение</div>
-        <h3>Последний экран VLM</h3>
-        <div id="shotWrap" style="color:var(--muted);font-size:.86rem;">Нажмите «1 шаг (анкета → VLM)", чтобы увидеть скриншот и вердикт модели.</div>
-      </div>
-    </div>
+    <section>
+      <div class="sec-eyebrow">подключение</div>
+      <h2>Коннект и нейросеть</h2>
+      <p class="sec-sub">Панель пересобирает коннект по частям: сначала поднимается новое подключение, прежнее закрывается только после успеха. Не вышло — воркер остаётся на старом канале.</p>
 
-    <div class="two-col">
-      <div class="card">
-        <div class="sec-eyebrow">переписка</div>
-        <h3>Помощник переписки (с памятью диалога)</h3>
-        <div style="margin-bottom:8px;">
-          <label>Имя собеседницы (для сохранения истории)</label>
-          <input id="girlName" value="Алина" placeholder="Например: Соня">
+      <div class="two-col">
+        <div class="card">
+          <div class="sec-eyebrow">дейтинг</div>
+          <h3>Коннект к дейтингам</h3>
+
+          <div class="mode-tabs" id="connModeTabs">
+            <button type="button" class="mode-btn active" data-mode="ui_vision">UI-Vision · ADB / Appium</button>
+            <button type="button" class="mode-btn" data-mode="web_vision">Web-Vision · Playwright</button>
+            <button type="button" class="mode-btn" data-mode="api">API / HAR</button>
+          </div>
+          <input type="hidden" id="connMode" value="ui_vision">
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="connDriver">Драйвер</label>
+              <select id="connDriver" onchange="onConnModeChange()"></select>
+            </div>
+            <div class="field">
+              <label for="connPlatform">Платформа (28)</label>
+              <select id="connPlatform" onchange="onConnModeChange()"></select>
+            </div>
+            <div class="field" id="wrapOs">
+              <label for="connOs">ОС устройства</label>
+              <select id="connOs" onchange="onConnModeChange()">
+                <option value="Android">Android</option>
+                <option value="iOS">iOS</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field" id="wrapUdid">
+              <label for="connUdid">UDID устройства</label>
+              <input id="connUdid" placeholder="из adb devices">
+            </div>
+            <div class="field" id="wrapAppium">
+              <label for="connAppium">Appium URL</label>
+              <input id="connAppium" placeholder="http://localhost:4723">
+            </div>
+            <div class="field" id="wrapPkg">
+              <label for="connPkg">Пакет / бандл</label>
+              <input id="connPkg" placeholder="авто из реестра">
+            </div>
+            <div class="field" id="wrapWebUrl">
+              <label for="connWebUrl">URL веб-версии</label>
+              <input id="connWebUrl" placeholder="авто из реестра">
+            </div>
+            <div class="field" id="wrapToken">
+              <label for="connToken">Токен платформы (API)</label>
+              <input id="connToken" type="password" autocomplete="off" placeholder="из .env, если пусто">
+            </div>
+          </div>
+
+          <div class="pane" id="connSpec">
+            <p class="empty">Загружаю реестр платформ...</p>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-primary" onclick="applyConnection(this)">Подключить</button>
+            <button type="button" class="btn-secondary" onclick="switchPlatform(this)">Только сменить платформу</button>
+          </div>
+          <div class="btn-row">
+            <label class="check" id="wrapHeadless"><input type="checkbox" id="connHeadless"> headless</label>
+            <label class="check"><input type="checkbox" id="connSaveEnv"> Сохранить в .env</label>
+          </div>
+
+          <div class="file-row">
+            <input type="file" id="connHarFile" accept=".har,application/json">
+            <button type="button" class="btn-secondary" onclick="uploadHar(this)">Импорт .har в API-профиль</button>
+          </div>
+
+          <div class="out" id="connState"></div>
         </div>
-        <label>Её сообщение</label>
-        <textarea id="girlMsg" rows="3" placeholder="Вставьте сообщение от девушки..."></textarea>
-        <div class="row" style="margin-top:10px;">
-          <button class="primary" onclick="previewReply()">Сгенерировать ответ</button>
-          <button onclick="rewardLastArm(true)" id="btnGood" style="display:none;">Сработало</button>
-          <button onclick="rewardLastArm(false)" id="btnBad" style="display:none;">Игнор</button>
-          <button class="primary" onclick="sendVisualDraft()" id="btnSendScreen" style="display:none;">Отправить прямо в чат</button>
+
+        <div class="card">
+          <div class="sec-eyebrow">ии</div>
+          <h3>Нейросеть и ключ любого формата</h3>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="aiProvider">Пресет провайдера</label>
+              <select id="aiProvider" onchange="onAiProviderChange()"></select>
+            </div>
+            <div class="field">
+              <label for="aiModel">Модель</label>
+              <input id="aiModel" placeholder="gpt-4o-mini">
+            </div>
+          </div>
+
+          <div class="fields">
+            <div class="field">
+              <label for="aiBaseUrl">Base URL</label>
+              <input id="aiBaseUrl" placeholder="https://api.openai.com/v1">
+            </div>
+            <div class="field">
+              <label for="aiKey">API-ключ (пусто = оставить текущий)</label>
+              <input id="aiKey" type="password" autocomplete="off" placeholder="sk-... / Bearer ... / без префикса">
+            </div>
+          </div>
+
+          <p class="hint" id="aiVisionHint"></p>
+
+          <details class="adv">
+            <summary>Формат ключа / расширенные заголовки</summary>
+            <div class="adv-body fields">
+              <div class="field">
+                <label for="aiHeader">Свой заголовок</label>
+                <input id="aiHeader" placeholder="x-api-key">
+              </div>
+              <div class="field">
+                <label for="aiPrefix">Префикс Authorization</label>
+                <input id="aiPrefix" placeholder="Bearer">
+              </div>
+              <div class="field">
+                <label for="aiQuery">Ключ в query-параметре</label>
+                <input id="aiQuery" placeholder="key / api_key">
+              </div>
+              <p class="hint">Префикс можно оставить пустым — тогда ключ уйдёт в заголовок как есть. Уже оформленный ключ (<code>Bearer …</code>, <code>Token …</code>, <code>Api-Key …</code>, <code>Basic …</code>) повторно не оборачивается.</p>
+            </div>
+          </details>
+
+          <div class="btn-row">
+            <button type="button" class="btn-primary" onclick="saveAiConfig(this)">Применить ко всем</button>
+            <button type="button" class="btn-secondary" onclick="testAI(this)">Проверить подключение</button>
+            <label class="check"><input type="checkbox" id="aiSaveEnv"> Сохранить в .env</label>
+          </div>
+
+          <div class="out" id="aiState"></div>
         </div>
-        <div id="replyBox" style="margin-top:12px;font-size:.9rem;"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-eyebrow">данные</div>
+      <h2>Критерии, переписка и лента</h2>
+      <p class="sec-sub">Фильтры действуют уже на следующем анкетном шаге, а решения и черновики приходят по WebSocket без перезагрузки страницы.</p>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="sec-eyebrow">критерии</div>
+          <div class="card-head">
+            <h3>Фильтры и критерии</h3>
+            <span class="drv drv-api hidden" id="filterBadge">сохранено</span>
+          </div>
+          <div class="field-grid">
+            <div class="field"><label for="fCompat">Мин. совм. %</label><input type="number" id="fCompat" min="0" max="100"></div>
+            <div class="field"><label for="fScore">Порог Score</label><input type="number" id="fScore" min="0" max="100"></div>
+            <div class="field"><label for="fMinAge">Возраст от</label><input type="number" id="fMinAge" min="18" max="99"></div>
+            <div class="field"><label for="fMaxAge">Возраст до</label><input type="number" id="fMaxAge" min="18" max="99"></div>
+            <div class="field"><label for="fDist">Макс. км</label><input type="number" id="fDist" min="1" max="500"></div>
+          </div>
+          <div class="field">
+            <label for="fPrefs">Критерии для VLM/LLM</label>
+            <textarea id="fPrefs" rows="2"></textarea>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-primary" onclick="saveFilters(this)">Сохранить фильтры</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sec-eyebrow">переписка</div>
+          <div class="card-head">
+            <h3>Помощник переписки</h3>
+            <span class="drv drv-ui hidden" id="draftBadge">черновик</span>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="girlName">Имя собеседницы</label>
+              <input id="girlName" value="Алина" placeholder="Например: Соня">
+            </div>
+          </div>
+          <div class="field">
+            <label for="girlMsg">Её сообщение</label>
+            <textarea id="girlMsg" rows="3" placeholder="Вставьте сообщение от девушки..."></textarea>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-primary" onclick="previewReply(this)">Сгенерировать ответ</button>
+            <button type="button" class="btn-secondary" onclick="captureChat(this)">Прочитать чат с экрана</button>
+            <button type="button" class="btn-secondary hidden" onclick="sendVisualDraft(this)" id="btnSendScreen">Отправить прямо в чат</button>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-secondary hidden" onclick="rewardLastArm(true, this)" id="btnGood">Сработало</button>
+            <button type="button" class="btn-secondary hidden" onclick="rewardLastArm(false, this)" id="btnBad">Игнор</button>
+          </div>
+          <div class="fields" id="replyBox"></div>
+        </div>
       </div>
 
-      <div class="card">
-        <div class="sec-eyebrow">лента</div>
-        <h3>Последние анкеты</h3>
-        <div class="log-list" id="swipesList">Загрузка...</div>
-      </div>
-    </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="sec-eyebrow">лента</div>
+          <div class="card-head">
+            <h3>Последние анкеты</h3>
+            <span class="drv drv-hybrid" id="swipesBadge">лента</span>
+          </div>
+          <div class="list" id="swipesList">
+            <p class="empty">Загрузка...</p>
+          </div>
+        </div>
 
-    <div class="card">
-      <div class="sec-eyebrow">память</div>
-      <h3>Сохранённые диалоги (SQLite)</h3>
-      <div class="log-list" id="threadsList" style="max-height:220px;">Загрузка...</div>
-    </div>
+        <div class="card">
+          <div class="sec-eyebrow">память</div>
+          <div class="card-head">
+            <h3>Сохранённые диалоги</h3>
+            <span class="drv drv-api" id="threadsBadge">SQLite</span>
+          </div>
+          <div class="list" id="threadsList">
+            <p class="empty">Загрузка...</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <footer>
       <span>&lt;3 · ваши критерии. осмысленный выбор.</span>
@@ -264,11 +769,15 @@
     </footer>
   </div>
 
+  <div class="toasts" id="toasts"></div>
+
   <script>
     let filtersLoaded = false;
     let platformsLoaded = false;
     let lastBanditArm = null;
     let lastVisualDraftId = null;
+
+    function el(id) { return document.getElementById(id); }
 
     function escapeHtml(str) {
       return String(str ?? '')
@@ -297,273 +806,569 @@
       const resp = await fetch(url, Object.assign({}, opts, { headers }));
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) {
-        throw new Error(data.detail || `HTTP ${resp.status}`);
+        const err = new Error(data.detail || `HTTP ${resp.status}`);
+        err.payload = data;
+        throw err;
       }
       return data;
     }
+
+    /* ---------- обратная связь: человекочитаемый статус + журнал, без сырого JSON ---------- */
+
+    const TOAST_LIFE = { ok: 4200, warn: 6000, err: 9000 };
+
+    function setOut(nodeId, kind, text, raw) {
+      const box = el(nodeId);
+      if (!box) return;
+      box.textContent = '';
+      const line = document.createElement('div');
+      line.className = `out-msg out-${kind}`;
+      line.textContent = text;
+      box.appendChild(line);
+      if (raw) {
+        const det = document.createElement('details');
+        det.className = 'out-raw';
+        const sum = document.createElement('summary');
+        sum.textContent = 'Сырой ответ сервера';
+        const pre = document.createElement('pre');
+        pre.textContent = raw;
+        det.append(sum, pre);
+        box.appendChild(det);
+      }
+    }
+
+    function notify(kind, text, raw, opts = {}) {
+      setOut(opts.target || 'actionOut', kind, text, raw);
+      if (opts.silent) return;
+      const box = el('toasts');
+      if (!box) return;
+      const node = document.createElement('div');
+      node.className = `toast toast-${kind}`;
+      const head = document.createElement('div');
+      head.textContent = text;
+      node.appendChild(head);
+      if (raw) {
+        const det = document.createElement('details');
+        const sum = document.createElement('summary');
+        sum.textContent = 'подробности';
+        const pre = document.createElement('pre');
+        pre.textContent = raw;
+        det.append(sum, pre);
+        node.appendChild(det);
+      }
+      box.appendChild(node);
+      while (box.children.length > 3) box.removeChild(box.firstElementChild);
+      requestAnimationFrame(() => node.classList.add('show'));
+      setTimeout(() => {
+        node.classList.remove('show');
+        setTimeout(() => node.remove(), 260);
+      }, TOAST_LIFE[kind] || 4200);
+    }
+
+    function rawOf(value) {
+      if (value === undefined || value === null || value === '') return '';
+      if (typeof value === 'string') return value;
+      try { return JSON.stringify(value, null, 2); } catch (e) { return String(value); }
+    }
+
+    async function withBusy(btn, busyText, run) {
+      if (btn && btn.disabled) return undefined;
+      const label = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = busyText; }
+      try {
+        return await run();
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = label; }
+      }
+    }
+
+    function setChip(id, text, tone) {
+      const node = el(id);
+      if (!node) return;
+      node.textContent = text;
+      node.className = `drv drv-${tone}`;
+    }
+
+    /* ---------- живой статус ---------- */
 
     function connectWS() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
       const tok = getApiToken();
       const qs = tok ? `?token=${encodeURIComponent(tok)}` : '';
       const ws = new WebSocket(`${proto}://${location.host}/ws/live${qs}`);
-      ws.onopen = () => { document.getElementById('wsBadge').textContent = 'WS: LIVE'; };
-      ws.onmessage = () => { refresh(); };
+      ws.onopen = () => setChip('wsBadge', 'WS: LIVE', 'api');
+      ws.onmessage = () => { refresh({ silent: true }); };
       ws.onclose = () => {
-        document.getElementById('wsBadge').textContent = 'WS: RECONNECT';
+        setChip('wsBadge', 'WS: RECONNECT', 'hybrid');
         setTimeout(connectWS, 3000);
       };
     }
 
-    async function refresh() {
+    const SCREEN_COPY = {
+      profile: (v) => `${v.name || 'анкета'}, ${v.age ?? '—'} — ${v.decision === 'like' ? 'лайк' : 'пас'} (${Number(v.score || 0).toFixed(1)})`
+        + (v.dry_run ? ' · DRY_RUN: свайп не отправлен' : ''),
+      duplicate: () => 'Эта анкета уже была в ленте — листаем дальше.',
+      match_popup: () => 'Попап мэтча закрыт, идём дальше.',
+      promo_popup: () => 'Промо-попап закрыт.',
+      paywall: () => 'Упёрлись в paywall или дневной лимит — воркер ставит паузу.',
+      secure_black_screen: () => 'Экран чёрный или закрыт FLAG_SECURE: этому приложению нужен web_vision или Appium.',
+    };
+
+    function describeStep(r) {
+      const v = (r && r.result) || {};
+      const fn = SCREEN_COPY[v.screen_type];
+      return {
+        kind: v.screen_type === 'profile' ? 'ok' : 'warn',
+        text: fn ? fn(v) : `Шаг готов: экран ${v.screen_type || 'не распознан'}.`,
+        raw: fn ? '' : rawOf(v),
+      };
+    }
+
+    const RESULT_COPY = {
+      '/api/v1/worker/start': (r) => ({
+        kind: 'ok',
+        text: r.started ? 'Воркер запущен — листает ленту.' : 'Воркер уже был запущен.',
+      }),
+      '/api/v1/worker/stop': (r) => ({
+        kind: 'ok',
+        text: r.stopped ? 'Воркер остановлен.' : 'Воркер и так был остановлен.',
+      }),
+      '/api/v1/worker/dry-run': (r) => ({
+        kind: r.dry_run ? 'warn' : 'ok',
+        text: r.dry_run
+          ? 'DRY_RUN включён: решения пишутся, свайпы в приложение не уходят.'
+          : 'DRY_RUN выключен: агент свайпает по-настоящему.',
+      }),
+      '/api/v1/backup': (r) => ({
+        kind: r.backup_file ? 'ok' : 'warn',
+        text: r.backup_file ? `Бэкап базы создан: ${r.backup_file}` : 'Бэкап не создан — он доступен только для SQLite.',
+      }),
+    };
+
+    async function apiPost(url, btn) {
+      await withBusy(btn, 'Выполняю…', async () => {
+        try {
+          const r = await fetchJson(url, { method: 'POST' });
+          const info = (RESULT_COPY[url] || (() => ({ kind: 'ok', text: 'Готово.' })))(r);
+          notify(info.kind, info.text, info.raw);
+          await refresh({ silent: true });
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
+        }
+      });
+    }
+
+    async function checkCalendar(btn) {
+      await withBusy(btn, 'Читаю календарь…', async () => {
+        try {
+          const r = await fetchJson('/api/v1/calendar/slots?days_ahead=3');
+          const text = typeof r.slots === 'string' ? r.slots : rawOf(r.slots);
+          notify(/не настроен/i.test(text) ? 'warn' : 'ok', text);
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
+        }
+      });
+    }
+
+    async function runStep(btn) {
+      await withBusy(btn, 'Снимаю экран…', async () => {
+        try {
+          const r = await fetchJson('/api/v1/worker/step', { method: 'POST' });
+          const info = describeStep(r);
+          notify(info.kind, info.text, info.raw);
+          await refresh({ silent: true, forceShot: true });
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
+        }
+      });
+    }
+
+    /* ---------- рендер живых данных ---------- */
+
+    let shotSig = '';
+
+    function renderShot(w, force) {
+      const lv = w.last_verdict || null;
+      const sig = JSON.stringify([w.has_screenshot, lv]);
+      if (!force && sig === shotSig) return;
+      shotSig = sig;
+
+      setChip('shotBadge', w.has_screenshot ? 'есть снимок' : 'нет снимка', w.has_screenshot ? 'api' : 'hybrid');
+
+      const verdict = el('verdictWrap');
+      if (lv) {
+        verdict.classList.remove('hidden');
+        verdict.innerHTML = `
+          <div class="pane-row">
+            <span class="pane-key">экран</span>
+            <span class="pane-val">${escapeHtml(lv.screen_type || '—')}</span>
+          </div>
+          <div class="pane-row">
+            <span class="pane-key">анкета</span>
+            <span class="pane-val">${escapeHtml(lv.name || '—')}${lv.age !== undefined && lv.age !== null ? ', ' + escapeHtml(lv.age) : ''}</span>
+          </div>
+          <div class="pane-row">
+            <span class="pane-key">вердикт</span>
+            <span class="chip-row">
+              <span class="drv ${lv.decision === 'pass' ? 'drv-ui' : 'drv-api'}">${escapeHtml(String(lv.decision || 'нет решения').toUpperCase())}</span>
+              ${lv.score !== undefined && lv.score !== null ? `<span class="pane-val">${escapeHtml(Number(lv.score).toFixed(1))}</span>` : ''}
+            </span>
+          </div>
+          ${lv.reason || lv.reasoning ? `<div class="item-note">${escapeHtml(lv.reason || lv.reasoning)}</div>` : ''}
+        `;
+      } else {
+        verdict.classList.add('hidden');
+        verdict.textContent = '';
+      }
+
+      const box = el('shotWrap');
+      if (!w.has_screenshot) {
+        box.innerHTML = '<p class="empty">Нажмите «1 шаг (анкета → VLM)», чтобы увидеть скриншот и вердикт модели.</p>';
+        return;
+      }
+      const tok = getApiToken();
+      const src = `/api/v1/worker/last-screenshot?t=${Date.now()}${tok ? '&token=' + encodeURIComponent(tok) : ''}`;
+      box.innerHTML = `<img class="shot" src="${escapeHtml(src)}" alt="Последний экран, который видел агент">`;
+    }
+
+    function renderThreads(threads) {
+      const box = el('threadsList');
+      setChip('threadsBadge', `${threads.length} в SQLite`, threads.length ? 'api' : 'hybrid');
+      if (!threads.length) {
+        box.innerHTML = '<p class="empty">Пока нет сохранённых диалогов.</p>';
+        return;
+      }
+      box.innerHTML = threads.map((t) => `
+        <div class="list-item">
+          <div class="thread">
+            <div>
+              <strong>${escapeHtml(t.girl_name)}</strong>
+              <span class="chip-row">
+                <span class="drv drv-ui">${escapeHtml(t.platform)}</span>
+                <span class="drv drv-hybrid">стадия: ${escapeHtml(t.stage)}</span>
+                ${t.bandit_arm ? `<span class="drv drv-api">arm: ${escapeHtml(t.bandit_arm)}</span>` : ''}
+              </span>
+            </div>
+            <button type="button" class="btn-secondary btn-sm" onclick="resetThread(${Number(t.id)}, this)">Сбросить</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderSwipes(swipes) {
+      const box = el('swipesList');
+      setChip('swipesBadge', `${swipes.length} записей`, swipes.length ? 'api' : 'hybrid');
+      if (!swipes.length) {
+        box.innerHTML = '<p class="empty">Пока нет обработанных анкет.</p>';
+        return;
+      }
+      box.innerHTML = swipes.map((s) => `
+        <div class="list-item">
+          <div class="item-head">
+            <span class="drv ${s.decision === 'like' ? 'drv-api' : 'drv-ui'}">${escapeHtml(String(s.decision).toUpperCase())}</span>
+            <strong>${escapeHtml(s.name)}, ${escapeHtml(s.age)}</strong>
+            <span class="pane-val">${escapeHtml(s.platform)} · ${escapeHtml(s.match_score)}</span>
+            ${s.is_dry_run ? '<span class="drv drv-hybrid">DRY</span>' : ''}
+          </div>
+          <div class="item-note">${escapeHtml(s.reason)}</div>
+        </div>
+      `).join('');
+    }
+
+    async function refresh(opts = {}) {
       try {
         const ov = await fetchJson('/api/v1/overview');
-        document.getElementById('kTotal').textContent = ov.stats.total_processed;
-        document.getElementById('kLikes').textContent = ov.stats.total_likes;
-        document.getElementById('kMatches').textContent = ov.stats.total_matches;
-        document.getElementById('kRate').textContent = ov.stats.match_rate + '%';
+        el('kTotal').textContent = ov.stats.total_processed;
+        el('kLikes').textContent = ov.stats.total_likes;
+        el('kMatches').textContent = ov.stats.total_matches;
+        el('kRate').textContent = ov.stats.match_rate + '%';
 
         const w = ov.worker;
-        document.getElementById('modeBadge').textContent = `${w.mode} · ${w.platform} · ${w.is_running ? 'ON' : 'PAUSED'}`;
-        if (!platformsLoaded) {
-          const plats = await fetchJson('/api/v1/platforms');
-          const psEl = document.getElementById('platformSelect');
-          if (psEl && Array.isArray(plats) && plats.length) {
-            psEl.innerHTML = plats.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} (${escapeHtml(p.region)})</option>`).join('');
-            platformsLoaded = true;
-          }
-        }
-        const ps = document.getElementById('platformSelect'); if (ps && ps.value !== w.platform) ps.value = w.platform;
-        document.getElementById('dryBtn').textContent = `DRY_RUN: ${w.dry_run ? 'ВКЛ' : 'ВЫКЛ'}`;
+        setChip('modeBadge', `${w.mode} · ${w.platform}`, 'ui');
+        setChip('stateBadge', w.is_running ? 'ON' : 'PAUSED', w.is_running ? 'api' : 'hybrid');
+        setChip('dryBadge', `DRY_RUN: ${w.dry_run ? 'ВКЛ' : 'ВЫКЛ'}`, w.dry_run ? 'hybrid' : 'ui');
+        renderShot(w, !!opts.forceShot);
+
+        if (!platformsLoaded) await loadRegistry();
 
         if (!filtersLoaded) {
-          document.getElementById('fCompat').value = ov.filters.min_compatibility;
-          document.getElementById('fScore').value = ov.filters.min_score_threshold;
-          document.getElementById('fMinAge').value = ov.filters.min_age;
-          document.getElementById('fMaxAge').value = ov.filters.max_age;
-          document.getElementById('fDist').value = ov.filters.max_distance_km;
-          document.getElementById('fPrefs').value = w.user_preferences || '';
+          el('fCompat').value = ov.filters.min_compatibility;
+          el('fScore').value = ov.filters.min_score_threshold;
+          el('fMinAge').value = ov.filters.min_age;
+          el('fMaxAge').value = ov.filters.max_age;
+          el('fDist').value = ov.filters.max_distance_km;
+          el('fPrefs').value = w.user_preferences || '';
           filtersLoaded = true;
         }
 
-        if (w.has_screenshot) {
-          const lv = w.last_verdict;
-          const verdictTxt = lv
-            ? `<div style="margin-top:8px;font-size:.82rem;"><strong>${escapeHtml(lv.name || lv.screen_type)}</strong> · ${escapeHtml(lv.decision || '')} ${escapeHtml(lv.reason || '')}</div>`
-            : '';
-          document.getElementById('shotWrap').innerHTML = `<img class="shot-preview" src="/api/v1/worker/last-screenshot?t=${Date.now()}${getApiToken() ? '&token=' + encodeURIComponent(getApiToken()) : ''}" alt="screen">${verdictTxt}`;
+        renderThreads(await fetchJson('/api/v1/dialogues'));
+        renderSwipes(await fetchJson('/api/v1/swipes?limit=20'));
+      } catch (err) {
+        setChip('stateBadge', 'НЕТ СВЯЗИ', 'hybrid');
+        setOut('actionOut', 'warn', 'Статус не обновился: ' + err.message, rawOf(err.payload));
+      }
+    }
+
+    async function saveFilters(btn) {
+      await withBusy(btn, 'Сохраняю…', async () => {
+        try {
+          await fetchJson('/api/v1/filters', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              min_compatibility: Number(el('fCompat').value),
+              min_score_threshold: Number(el('fScore').value),
+              min_age: Number(el('fMinAge').value),
+              max_age: Number(el('fMaxAge').value),
+              max_distance_km: Number(el('fDist').value),
+              user_preferences: el('fPrefs').value,
+            }),
+          });
+          const badge = el('filterBadge');
+          badge.classList.remove('hidden');
+          notify('ok', 'Фильтры применены — следующий шаг уже по ним.');
+          setTimeout(() => badge.classList.add('hidden'), 2600);
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
         }
+      });
+    }
 
-        const threads = await fetchJson('/api/v1/dialogues');
-        const tbox = document.getElementById('threadsList');
-        if (tbox) {
-          tbox.innerHTML = threads.length ? threads.map(t => `
-            <div class="log-item" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-              <div><strong>${escapeHtml(t.girl_name)}</strong> (${escapeHtml(t.platform)}) · стадия: <code>${escapeHtml(t.stage)}</code> ${t.bandit_arm ? '· arm: ' + escapeHtml(t.bandit_arm) : ''}</div>
-              <button class="mini-btn" onclick="resetThread(${Number(t.id)})">Сбросить</button>
-            </div>
-          `).join('') : '<div style="color:var(--muted)">Пока нет сохранённых диалогов.</div>';
+    async function switchPlatform(btn) {
+      const plat = el('connPlatform').value;
+      await withBusy(btn, 'Меняю цель…', async () => {
+        try {
+          const r = await fetchJson('/api/v1/worker/platform', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ platform: plat, launch_on_device: false }),
+          });
+          notify('ok', `Цель воркера: ${r.platform} · пакет ${r.package || '—'}`, '', { target: 'connState' });
+          await refresh({ silent: true });
+          await loadConnection();
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload), { target: 'connState' });
         }
-
-        const swipes = await fetchJson('/api/v1/swipes?limit=20');
-        const box = document.getElementById('swipesList');
-        box.innerHTML = swipes.length ? swipes.map(s => `
-          <div class="log-item">
-            <div><span class="${s.decision === 'like' ? 'like' : 'pass'}">${escapeHtml(s.decision).toUpperCase()}</span>
-            ${s.is_dry_run ? '[DRY] ' : ''}<strong>${escapeHtml(s.name)}, ${escapeHtml(s.age)}</strong> (${escapeHtml(s.platform)}) · ${escapeHtml(s.match_score)}</div>
-            <div style="color:var(--muted);font-size:.8rem;margin-top:3px;">${escapeHtml(s.reason)}</div>
-          </div>
-        `).join('') : '<div style="color:var(--muted)">Пока нет обработанных анкет.</div>';
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '· ' + err.message;
-      }
+      });
     }
 
-    async function saveFilters() {
-      try {
-        await fetchJson('/api/v1/filters', {
-          method: 'PATCH',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            min_compatibility: Number(document.getElementById('fCompat').value),
-            min_score_threshold: Number(document.getElementById('fScore').value),
-            min_age: Number(document.getElementById('fMinAge').value),
-            max_age: Number(document.getElementById('fMaxAge').value),
-            max_distance_km: Number(document.getElementById('fDist').value),
-            user_preferences: document.getElementById('fPrefs').value,
-          })
-        });
-        document.getElementById('filterSaved').textContent = '✓ Сохранено';
-        setTimeout(() => document.getElementById('filterSaved').textContent = '', 2000);
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
+    /* ---------- переписка ---------- */
+
+    function renderReply(meta, chunks) {
+      const box = el('replyBox');
+      box.innerHTML = `<p class="hint">${meta}</p>`
+        + (chunks || []).map((c) => `<div class="list-item">${escapeHtml(c)}</div>`).join('');
     }
 
-    async function apiPost(url) {
-      try {
-        const r = await fetchJson(url, { method: 'POST' });
-        document.getElementById('actionOut').textContent = JSON.stringify(r);
-        await refresh();
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
+    function setArmButtonsVisible(visible) {
+      el('btnGood').classList.toggle('hidden', !visible);
+      el('btnBad').classList.toggle('hidden', !visible);
     }
-    async function switchPlatform() {
-      const plat = document.getElementById('platformSelect').value;
-      try {
-        const r = await fetchJson('/api/v1/worker/platform', {
-          method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ platform: plat, launch_on_device: false })
-        });
-        document.getElementById('actionOut').textContent = `Платформа переключена: ${r.platform} (${r.package})`;
-        await refresh();
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
-    }
-    async function checkCalendar() {
-      document.getElementById('actionOut').textContent = 'Проверяю слоты Google Calendar...';
-      try {
-        const r = await fetchJson('/api/v1/calendar/slots?days_ahead=3');
-        document.getElementById('actionOut').textContent = r.slots || 'OK';
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
-    }
-    async function runStep() {
-      document.getElementById('actionOut').textContent = 'Снимаю скриншот и анализирую через VLM...';
-      await apiPost('/api/v1/worker/step');
-    }
-    async function testAI() {
-      document.getElementById('actionOut').textContent = 'Проверяю ИИ-шлюз...';
-      try {
-        const r = await fetchJson('/api/v1/ai/test', { method: 'POST' });
-        document.getElementById('actionOut').textContent = (r.ok ? '✓ ' : '✗ ') + r.message;
-        if (r.config) {
-          showAiState(
-            `${r.ok ? '✓' : '✗'} ${escapeHtml(r.config.provider)} · ${escapeHtml(r.config.model)} · ${escapeHtml(r.config.auth)}` +
-            `<br>${escapeHtml(r.message)}`
+
+    async function previewReply(btn) {
+      const msg = el('girlMsg').value.trim();
+      const name = el('girlName').value.trim() || 'Собеседница';
+      if (!msg) { notify('warn', 'Сначала вставьте её сообщение.'); return; }
+      el('replyBox').innerHTML = '<p class="hint">Генерирую через Profiler → Strategist → Humanizer…</p>';
+      await withBusy(btn, 'Думаю…', async () => {
+        try {
+          const r = await fetchJson('/api/v1/ai/reply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ thread_name: name, message: msg }),
+          });
+          lastBanditArm = r.bandit_arm || null;
+          setArmButtonsVisible(!!lastBanditArm);
+          renderReply(
+            `Стадия: <strong>${escapeHtml(r.stage)}</strong> · сообщений в памяти: ${escapeHtml(r.history_len)}`,
+            r.chunks,
           );
+          notify('ok', 'Ответ готов — проверьте тон перед отправкой.');
+        } catch (err) {
+          el('replyBox').innerHTML = '<p class="hint">Ответ не сгенерирован.</p>';
+          notify('err', err.message, rawOf(err.payload));
         }
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-        showAiState('✗ ' + escapeHtml(err.message));
-      }
+      });
     }
-    async function previewReply() {
-      const msg = document.getElementById('girlMsg').value.trim();
-      const name = document.getElementById('girlName').value.trim() || 'Собеседница';
-      if (!msg) return;
-      document.getElementById('replyBox').textContent = 'Генерирую через Profiler → Strategist → Humanizer...';
-      try {
-        const r = await fetchJson('/api/v1/ai/reply', {
-          method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ thread_name: name, message: msg })
-        });
-        lastBanditArm = r.bandit_arm || null;
-        document.getElementById('btnGood').style.display = lastBanditArm ? 'inline-block' : 'none';
-        document.getElementById('btnBad').style.display = lastBanditArm ? 'inline-block' : 'none';
-        document.getElementById('replyBox').innerHTML =
-          `<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">Стадия: ${escapeHtml(r.stage)} · сообщений в памяти: ${escapeHtml(r.history_len)}</div>` +
-          (r.chunks || []).map(c => `<div class="log-item" style="margin-bottom:6px;">${escapeHtml(c)}</div>`).join('');
-      } catch (err) {
-        document.getElementById('replyBox').textContent = '✗ ' + err.message;
-      }
-    }
-    async function captureChat() {
-      document.getElementById('actionOut').textContent = 'Считываю открытый чат с экрана через VLM...';
-      try {
-        const r = await fetchJson('/api/v1/visual-chat/capture', { method: 'POST' });
-        if (!r.ok) {
-          document.getElementById('actionOut').textContent = '· ' + (r.error || 'Чат не распознан');
-          return;
+
+    async function captureChat(btn) {
+      await withBusy(btn, 'Считываю экран…', async () => {
+        try {
+          const r = await fetchJson('/api/v1/visual-chat/capture', { method: 'POST' });
+          if (!r.ok) {
+            el('draftBadge').classList.add('hidden');
+            notify('warn', r.error || 'Чат на экране не распознан.');
+            return;
+          }
+          lastVisualDraftId = r.draft_id;
+          lastBanditArm = r.bandit_arm || null;
+          el('girlName').value = r.girl_name || 'Собеседница';
+          el('btnSendScreen').classList.remove('hidden');
+          setArmButtonsVisible(!!lastBanditArm);
+          el('draftBadge').classList.remove('hidden');
+          setChip('draftBadge', 'черновик', 'ui');
+          renderReply(
+            `Чат с <strong>${escapeHtml(r.girl_name)}</strong> · стадия: ${escapeHtml(r.stage)} · сообщений: ${escapeHtml(r.messages_seen)}`,
+            r.chunks,
+          );
+          notify('ok', 'Черновик готов — проверьте и нажмите «Отправить прямо в чат».');
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
         }
-        lastVisualDraftId = r.draft_id;
-        lastBanditArm = r.bandit_arm || null;
-        document.getElementById('girlName').value = r.girl_name || 'Собеседница';
-        document.getElementById('btnSendScreen').style.display = 'inline-block';
-        document.getElementById('btnGood').style.display = lastBanditArm ? 'inline-block' : 'none';
-        document.getElementById('btnBad').style.display = lastBanditArm ? 'inline-block' : 'none';
-        document.getElementById('replyBox').innerHTML =
-          `<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">Чат с <strong>${escapeHtml(r.girl_name)}</strong> · стадия: ${escapeHtml(r.stage)} · сообщений: ${escapeHtml(r.messages_seen)}</div>` +
-          (r.chunks || []).map(c => `<div class="log-item" style="margin-bottom:6px;">${escapeHtml(c)}</div>`).join('');
-        document.getElementById('actionOut').textContent = '✓ Черновик готов — проверьте и нажмите «Отправить прямо в чат».';
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
+      });
     }
-    async function sendVisualDraft() {
-      if (!lastVisualDraftId) return;
-      document.getElementById('actionOut').textContent = 'Печатаю и отправляю сообщение в приложение...';
-      try {
-        const r = await fetchJson(`/api/v1/visual-chat/send/${encodeURIComponent(lastVisualDraftId)}`, { method: 'POST' });
-        lastVisualDraftId = null;
-        document.getElementById('btnSendScreen').style.display = 'none';
-        document.getElementById('actionOut').textContent = `✓ Отправлено для ${r.girl_name}`;
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
+
+    async function sendVisualDraft(btn) {
+      if (!lastVisualDraftId) { notify('warn', 'Сначала прочитайте чат с экрана.'); return; }
+      await withBusy(btn, 'Печатаю…', async () => {
+        try {
+          const r = await fetchJson(`/api/v1/visual-chat/send/${encodeURIComponent(lastVisualDraftId)}`, { method: 'POST' });
+          lastVisualDraftId = null;
+          el('btnSendScreen').classList.add('hidden');
+          el('draftBadge').classList.add('hidden');
+          notify('ok', `Отправлено в чат: ${r.girl_name}`);
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
+        }
+      });
     }
-    async function resetThread(threadId) {
-      try {
-        await fetchJson(`/api/v1/dialogues/${threadId}`, { method: 'DELETE' });
-        await refresh();
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
+
+    async function resetThread(threadId, btn) {
+      await withBusy(btn, 'Сброс…', async () => {
+        try {
+          await fetchJson(`/api/v1/dialogues/${threadId}`, { method: 'DELETE' });
+          notify('ok', 'Диалог сброшен — память по этой собеседнице очищена.');
+          await refresh({ silent: true });
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
+        }
+      });
     }
-    async function rewardLastArm(success) {
-      if (!lastBanditArm) return;
-      try {
-        await fetchJson('/api/v1/bandits/reward', {
-          method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ arm: lastBanditArm, success })
-        });
-        document.getElementById('actionOut').textContent = `Bandit обновлён: ${lastBanditArm} (${success ? '+1 успех' : '+1 игнор'})`;
-      } catch (err) {
-        document.getElementById('actionOut').textContent = '✗ ' + err.message;
-      }
+
+    async function rewardLastArm(success, btn) {
+      if (!lastBanditArm) { notify('warn', 'Пока нет ответа, который можно оценить.'); return; }
+      await withBusy(btn, 'Пишу…', async () => {
+        try {
+          await fetchJson('/api/v1/bandits/reward', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ arm: lastBanditArm, success }),
+          });
+          notify('ok', `Bandit: ${lastBanditArm} +1 ${success ? 'успех' : 'игнор'}`);
+        } catch (err) {
+          notify('err', err.message, rawOf(err.payload));
+        }
+      });
     }
+
+    /* ---------- карточка коннекта ---------- */
 
     let connPlatforms = [];
     let connDriversByMode = {};
     let connPrefilled = false;
-    let aiPresets = [];
-    let aiPrefilled = false;
+    let connHarProfiles = [];
+    let registryMeta = {};
 
-    function el(id) { return document.getElementById(id); }
-    function showConnState(html) { const node = el('connState'); if (node) node.innerHTML = html; }
-    function showAiState(html) { const node = el('aiState'); if (node) node.innerHTML = html; }
-
-    const MODE_TITLES = { ui_vision: 'UI-Vision · телефон', web_vision: 'Web-Vision · браузер', api: 'API · прямой REST' };
     const DRIVER_TITLES = {
-      adb: 'ADB (без Appium)', appium: 'Appium (UiAutomator2 / XCUITest)',
-      playwright: 'Playwright (Chromium)', rest_api: 'REST / HAR-профиль',
+      adb: 'ADB (без Appium)',
+      appium: 'Appium (UiAutomator2 / XCUITest)',
+      playwright: 'Playwright (Chromium)',
+      rest_api: 'REST / HAR-профиль',
     };
+
+    function currentMode() { return el('connMode').value; }
 
     function fillConnDrivers(mode, preferred) {
       const drivers = connDriversByMode[mode] || [];
-      el('connDriver').innerHTML = drivers.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(DRIVER_TITLES[d] || d)}</option>`).join('');
+      el('connDriver').innerHTML = drivers
+        .map((d) => `<option value="${escapeHtml(d)}">${escapeHtml(DRIVER_TITLES[d] || d)}</option>`)
+        .join('');
       if (drivers.includes(preferred)) el('connDriver').value = preferred;
     }
 
+    function paintModeTabs() {
+      const mode = currentMode();
+      document.querySelectorAll('#connModeTabs .mode-btn').forEach((b) => {
+        const on = b.dataset.mode === mode;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+
+    function setConnMode(mode) {
+      el('connMode').value = mode;
+      paintModeTabs();
+      fillConnDrivers(mode, (connDriversByMode[mode] || [])[0]);
+      onConnModeChange();
+    }
+
+    function showField(id, visible) { const node = el(id); if (node) node.classList.toggle('hidden', !visible); }
+
     function onConnModeChange() {
-      const mode = el('connMode').value;
-      const drivers = connDriversByMode[mode] || [];
-      if (!drivers.includes(el('connDriver').value)) fillConnDrivers(mode, drivers[0]);
+      const mode = currentMode();
       const driver = el('connDriver').value;
       const visual = mode !== 'api';
-      el('wrapOs').style.display = visual ? '' : 'none';
-      el('wrapUdid').style.display = visual && driver !== 'playwright' ? '' : 'none';
-      el('wrapAppium').style.display = driver === 'appium' ? '' : 'none';
-      el('wrapPkg').style.display = mode === 'ui_vision' ? '' : 'none';
-      el('wrapWebUrl').style.display = mode === 'web_vision' ? '' : 'none';
-      el('wrapHeadless').style.display = mode === 'web_vision' ? '' : 'none';
-      el('wrapToken').style.display = mode === 'api' ? '' : 'none';
-      const spec = connPlatforms.find(p => p.id === el('connPlatform').value) || {};
-      el('connPkg').placeholder = (el('connOs').value === 'iOS' ? spec.ios_bundle_id : spec.android_package) || 'авто из реестра';
+      showField('wrapOs', mode === 'ui_vision');
+      showField('wrapUdid', visual && driver !== 'playwright');
+      showField('wrapAppium', driver === 'appium');
+      showField('wrapPkg', mode === 'ui_vision');
+      showField('wrapWebUrl', mode === 'web_vision');
+      showField('wrapHeadless', mode === 'web_vision');
+      showField('wrapToken', mode === 'api');
+      renderPlatformSpec();
+      renderAiVisionHint();
+    }
+
+    async function loadRegistry() {
+      try {
+        const plats = await fetchJson('/api/v1/platforms');
+        if (!Array.isArray(plats) || !plats.length) return;
+        registryMeta = {};
+        plats.forEach((p) => { registryMeta[p.id] = p; });
+        platformsLoaded = true;
+        renderPlatformSpec();
+      } catch (err) {
+        /* реестр — только подсказка в карточке, коннект работает и без него */
+      }
+    }
+
+    function renderPlatformSpec() {
+      const box = el('connSpec');
+      if (!box || !connPlatforms.length) return;
+      const spec = connPlatforms.find((p) => p.id === el('connPlatform').value) || {};
+      const meta = registryMeta[spec.id] || {};
+      const os = el('connOs').value;
+      const pkg = (os === 'iOS' ? spec.ios_bundle_id : spec.android_package) || '';
+      el('connPkg').placeholder = pkg || 'авто из реестра';
       el('connWebUrl').placeholder = spec.web_url || 'авто из реестра';
+      const har = connHarProfiles.includes(spec.id);
+      box.innerHTML = `
+        <div class="pane-row">
+          <span class="pane-key">пакет / бандл (${escapeHtml(os)})</span>
+          <span class="pane-val">${escapeHtml(pkg || 'нет в реестре')}</span>
+        </div>
+        <div class="pane-row">
+          <span class="pane-key">веб-версия</span>
+          <span class="pane-val">${escapeHtml(spec.web_url || 'нет')}</span>
+        </div>
+        <div class="pane-row">
+          <span class="pane-key">API-база</span>
+          <span class="pane-val">${escapeHtml(spec.api_base_url || 'нет')}</span>
+        </div>
+        <div class="pane-row">
+          <span class="pane-key">HAR-профиль</span>
+          <span class="chip-row"><span class="drv ${har ? 'drv-api' : 'drv-hybrid'}">${har ? 'есть в ./data/api_profiles' : 'нет'}</span></span>
+        </div>
+        <div class="pane-row">
+          <span class="pane-key">реестр</span>
+          <span class="chip-row">
+            <span class="drv drv-ui">${escapeHtml(meta.driver || '—')}</span>
+            <span class="drv ${meta.has_native_compatibility ? 'drv-api' : 'drv-hybrid'}">${meta.has_native_compatibility ? 'свой % совместимости' : 'синтетический Vibe Score'}</span>
+            <span class="drv ${meta.requires_face_on_primary_photo ? 'drv-api' : 'drv-hybrid'}">${meta.requires_face_on_primary_photo ? 'лицо обязательно' : 'лицо не обязательно'}</span>
+          </span>
+        </div>
+        ${meta.notes ? `<div class="item-note">${escapeHtml(meta.notes)}</div>` : ''}
+      `;
     }
 
     async function loadConnection() {
@@ -571,11 +1376,13 @@
         const c = await fetchJson('/api/v1/connection');
         if (!connPlatforms.length) {
           connPlatforms = c.options.platforms;
-          c.options.modes.forEach(m => { connDriversByMode[m.mode] = m.drivers; });
-          el('connMode').innerHTML = c.options.modes.map(m => `<option value="${escapeHtml(m.mode)}">${escapeHtml(MODE_TITLES[m.mode] || m.mode)}</option>`).join('');
-          el('connPlatform').innerHTML = connPlatforms.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} · ${escapeHtml(p.region)}</option>`).join('');
+          c.options.modes.forEach((m) => { connDriversByMode[m.mode] = m.drivers; });
+          el('connPlatform').innerHTML = connPlatforms
+            .map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} · ${escapeHtml(p.region)}</option>`)
+            .join('');
         }
         el('connMode').value = c.mode;
+        paintModeTabs();
         fillConnDrivers(c.mode, c.driver === 'none' ? undefined : c.driver);
         el('connPlatform').value = c.platform;
         if (!connPrefilled) {
@@ -585,22 +1392,22 @@
           el('connHeadless').checked = !!c.visual.web_headless;
           connPrefilled = true;
         }
+        connHarProfiles = c.api.har_profiles || [];
         onConnModeChange();
-        const harNote = c.api.har_profiles.length
-          ? ` · HAR-профили: ${escapeHtml(c.api.har_profiles.join(', '))}`
-          : ' · HAR-профилей в ./data/api_profiles пока нет';
-        showConnState(
-          `сейчас: <b>${escapeHtml(c.mode)}</b> · ${escapeHtml(c.driver)} · ${escapeHtml(c.platform_name)}` +
-          ` · ${c.connected ? 'подключено' : 'нет активного подключения'}${harNote}` +
-          (c.api.token_from_env ? ' · токен платформы взят из .env' : '')
-        );
+        const harNote = connHarProfiles.length
+          ? `HAR-профили: ${connHarProfiles.join(', ')}.`
+          : 'HAR-профилей в ./data/api_profiles пока нет.';
+        setOut('connState', 'info',
+          `Сейчас: ${c.mode} · ${c.driver} · ${c.platform_name} · `
+          + `${c.connected ? 'подключено' : 'нет активного подключения'}. `
+          + `${c.api.token_from_env ? 'Токен платформы взят из .env. ' : ''}${harNote}`);
       } catch (err) {
-        showConnState('· ' + escapeHtml(err.message));
+        setOut('connState', 'err', 'Коннект не прочитался: ' + err.message, rawOf(err.payload));
       }
     }
 
-    async function applyConnection() {
-      const mode = el('connMode').value;
+    async function applyConnection(btn) {
+      const mode = currentMode();
       const body = {
         mode: mode,
         platform: el('connPlatform').value,
@@ -614,49 +1421,74 @@
       if (el('connWebUrl').value.trim()) body.web_target_url = el('connWebUrl').value.trim();
       if (el('connToken').value.trim()) body.api_token = el('connToken').value.trim();
       if (mode === 'web_vision') body.web_headless = el('connHeadless').checked;
-      showConnState('Поднимаю новое подключение — прежнее ещё живо...');
-      try {
-        const r = await fetchJson('/api/v1/connection', {
-          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
-        });
-        connPrefilled = false;
-        await refresh();
-        await loadConnection();
-        showConnState(
-          `✓ ${escapeHtml(r.mode)} · ${escapeHtml(r.driver)} · ${escapeHtml(r.platform)}` +
-          ` · пакет ${escapeHtml(r.package || '—')} · ${escapeHtml(r.web_url || '—')}` +
-          (r.worker_was_running ? '<br>· Воркер был остановлен — нажмите «Запустить».' : '') +
-          (r.env_saved ? ` · записано в ${escapeHtml(r.env_saved)}` : '')
-        );
-      } catch (err) {
-        showConnState('✗ ' + escapeHtml(err.message));
-      }
+
+      await withBusy(btn, 'Поднимаю коннект…', async () => {
+        setOut('connState', 'warn', 'Поднимаю новое подключение — прежнее ещё живо…');
+        try {
+          const r = await fetchJson('/api/v1/connection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          connPrefilled = false;
+          await refresh({ silent: true });
+          await loadConnection();
+          const bits = [
+            `${r.mode} · ${r.driver} · ${r.platform}`,
+            `пакет ${r.package || '—'}`,
+            `веб ${r.web_url || '—'}`,
+            r.env_saved ? `записано в ${r.env_saved}` : '',
+            r.worker_was_running ? 'воркер был остановлен — нажмите «Запустить»' : '',
+          ].filter(Boolean).join(' · ');
+          notify(r.worker_was_running ? 'warn' : 'ok', 'Коннект переключён: ' + bits, '', { target: 'connState' });
+        } catch (err) {
+          notify('err', 'Переключение не применилось: ' + err.message, rawOf(err.payload), { target: 'connState' });
+        }
+      });
     }
 
-    async function uploadHar() {
+    async function uploadHar(btn) {
       const file = el('connHarFile').files[0];
-      if (!file) { showConnState('· Сначала выберите .har дамп (mitmproxy / Proxyman).'); return; }
+      if (!file) { notify('warn', 'Сначала выберите .har дамп (mitmproxy / Proxyman).', '', { target: 'connState' }); return; }
       const form = new FormData();
       form.append('file', file);
       form.append('platform', el('connPlatform').value);
       form.append('host', '');
-      showConnState('Разбираю ' + escapeHtml(file.name) + ' ...');
-      try {
-        const r = await fetchJson('/api/v1/connection/har-import', { method: 'POST', body: form });
-        showConnState(
-          `✓ Декларативный профиль: <b>${escapeHtml(r.profile_path)}</b>` +
-          `<br>Дальше: режим «${escapeHtml(r.apply.mode)}» + драйвер «${escapeHtml(r.apply.driver)}» — нажмите «Подключить».`
-        );
-      } catch (err) {
-        showConnState('✗ ' + escapeHtml(err.message));
-      }
+      await withBusy(btn, 'Разбираю HAR…', async () => {
+        setOut('connState', 'warn', `Разбираю ${file.name}…`);
+        try {
+          const r = await fetchJson('/api/v1/connection/har-import', { method: 'POST', body: form });
+          connHarProfiles = r.har_profiles || connHarProfiles;
+          renderPlatformSpec();
+          notify('ok',
+            `API-профиль собран: ${r.profile_path}. Режим «${r.apply.mode}» + драйвер «${r.apply.driver}» — нажмите «Подключить».`,
+            '', { target: 'connState' });
+        } catch (err) {
+          notify('err', 'HAR не подошёл: ' + err.message, rawOf(err.payload), { target: 'connState' });
+        }
+      });
+    }
+
+    /* ---------- карточка ИИ ---------- */
+
+    let aiPresets = [];
+    let aiPrefilled = false;
+
+    function renderAiVisionHint() {
+      const box = el('aiVisionHint');
+      if (!box) return;
+      const mode = currentMode();
+      box.textContent = (mode === 'ui_vision' || mode === 'web_vision')
+        ? `Режим ${mode} читает анкеты со скриншотов — нужна vision-модель (gpt-4o-mini, gemini-2.0-flash, llama-3.2-90b-vision).`
+        : 'Режим API читает текст анкеты, скриншоты не участвуют: подходит обычная чат-модель.';
     }
 
     function onAiProviderChange() {
-      const preset = aiPresets.find(p => p.provider === el('aiProvider').value);
+      const preset = aiPresets.find((p) => p.provider === el('aiProvider').value);
       if (!preset) return;
       el('aiBaseUrl').value = preset.base_url;
       el('aiModel').value = preset.model;
+      el('aiKey').placeholder = preset.requires_key ? 'sk-... / Bearer ... / без префикса' : 'ключ не нужен';
     }
 
     async function loadAiConfig() {
@@ -664,7 +1496,7 @@
         const c = await fetchJson('/api/v1/ai/config');
         aiPresets = c.presets;
         if (!aiPrefilled) {
-          el('aiProvider').innerHTML = aiPresets.map(p =>
+          el('aiProvider').innerHTML = aiPresets.map((p) =>
             `<option value="${escapeHtml(p.provider)}">${escapeHtml(p.provider)}${p.requires_key ? '' : ' · без ключа'}</option>`).join('');
           el('aiBaseUrl').value = c.current.base_url;
           el('aiModel').value = c.current.model;
@@ -673,22 +1505,22 @@
           el('aiQuery').value = c.current.api_key_query_param || '';
           aiPrefilled = true;
         }
-        if (![...el('aiProvider').options].some(o => o.value === c.current.provider)) {
-          el('aiProvider').insertAdjacentHTML('afterbegin', `<option value="${escapeHtml(c.current.provider)}">${escapeHtml(c.current.provider)} · текущий</option>`);
+        if (![...el('aiProvider').options].some((o) => o.value === c.current.provider)) {
+          el('aiProvider').insertAdjacentHTML('afterbegin',
+            `<option value="${escapeHtml(c.current.provider)}">${escapeHtml(c.current.provider)} · текущий</option>`);
         }
         el('aiProvider').value = c.current.provider;
         const cur = c.current;
-        showAiState(
-          `${escapeHtml(cur.auth)} · ключ: <b>${escapeHtml(cur.api_key_masked || (cur.keyless_ok ? 'не требуется' : 'не задан'))}</b>` +
-          `<br>живых шлюзов: ${escapeHtml(String(c.gateway_paths.length))} (${escapeHtml(c.gateway_paths.join(', '))})` +
-          (c.gateways_in_sync ? '' : ' · конфиги разошлись, «Применить» синхронизирует')
-        );
+        const keyNote = cur.api_key_masked || (cur.keyless_ok ? 'ключ не требуется' : 'ключ не задан');
+        setOut('aiState', cur.key_configured || cur.keyless_ok ? 'info' : 'warn',
+          `${cur.auth} · ключ: ${keyNote} · живых шлюзов: ${c.gateway_paths.length} (${c.gateway_paths.join(', ')})`
+          + (c.gateways_in_sync ? '' : ' · конфиги разошлись, «Применить» синхронизирует'));
       } catch (err) {
-        showAiState('· ' + escapeHtml(err.message));
+        setOut('aiState', 'err', 'Конфиг ИИ не прочитался: ' + err.message, rawOf(err.payload));
       }
     }
 
-    async function saveAiConfig() {
+    async function saveAiConfig(btn) {
       const body = {
         provider: el('aiProvider').value,
         base_url: el('aiBaseUrl').value.trim(),
@@ -698,31 +1530,60 @@
         api_key_query_param: el('aiQuery').value.trim(),
         save_to_env: el('aiSaveEnv').checked,
       };
-      if (!body.base_url || !body.model) { showAiState('· Нужны и base_url, и модель.'); return; }
+      if (!body.base_url || !body.model) {
+        notify('warn', 'Нужны и Base URL, и модель.', '', { target: 'aiState' });
+        return;
+      }
       const key = el('aiKey').value.trim();
       if (key) body.api_key = key;
-      showAiState('Применяю ко всем живым шлюзам...');
-      try {
-        const r = await fetchJson('/api/v1/ai/config', {
-          method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
-        });
-        el('aiKey').value = '';
-        aiPrefilled = false;
-        await loadAiConfig();
-        showAiState(
-          `✓ ${escapeHtml(r.config.provider)} · ${escapeHtml(r.config.model)} · ${escapeHtml(r.config.auth)}` +
-          ` · обновлено ${escapeHtml(String(r.rewired.length))} шлюзов${r.env_saved ? ' · записано в ' + escapeHtml(r.env_saved) : ''}`
-        );
-      } catch (err) {
-        showAiState('✗ ' + escapeHtml(err.message));
-      }
+      await withBusy(btn, 'Применяю…', async () => {
+        setOut('aiState', 'warn', 'Применяю ко всем живым шлюзам…');
+        try {
+          const r = await fetchJson('/api/v1/ai/config', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          el('aiKey').value = '';
+          aiPrefilled = false;
+          await loadAiConfig();
+          notify('ok',
+            `ИИ переключён: ${r.config.provider} · ${r.config.model} · ${r.config.auth}. `
+            + `Обновлено шлюзов: ${r.rewired.length}`
+            + (r.env_saved ? ` · записано в ${r.env_saved}` : ''),
+            '', { target: 'aiState' });
+          if (r.test) notify(r.test.ok ? 'ok' : 'err', 'Проверка связи: ' + r.test.message, '', { target: 'aiState' });
+        } catch (err) {
+          notify('err', 'Конфиг ИИ не применён: ' + err.message, rawOf(err.payload), { target: 'aiState' });
+        }
+      });
     }
+
+    async function testAI(btn) {
+      await withBusy(btn, 'Стучусь…', async () => {
+        try {
+          const r = await fetchJson('/api/v1/ai/test', { method: 'POST' });
+          notify(r.ok ? 'ok' : 'err',
+            `${r.config.provider} · ${r.config.model} · ${r.config.auth}: ${r.message}`,
+            '', { target: 'aiState' });
+          await loadAiConfig();
+        } catch (err) {
+          notify('err', 'Проверка ИИ не прошла: ' + err.message, rawOf(err.payload), { target: 'aiState' });
+        }
+      });
+    }
+
+    /* ---------- старт ---------- */
+
+    document.querySelectorAll('#connModeTabs .mode-btn').forEach((b) => {
+      b.addEventListener('click', () => setConnMode(b.dataset.mode));
+    });
 
     refresh();
     loadConnection();
     loadAiConfig();
     connectWS();
-    setInterval(refresh, 8000);
+    setInterval(() => refresh({ silent: true }), 8000);
   </script>
 </body>
 </html>
