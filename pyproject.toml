@@ -6,7 +6,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "aiogram>=3.15.0",
-    "sqlalchemy>=2.0.36",
+    # The [asyncio] extra is load-bearing: SQLAlchemy 2.1 dropped its implicit greenlet
+    # dependency, and database/repository.py imports sqlalchemy.ext.asyncio.
+    "sqlalchemy[asyncio]>=2.0.36",
     "aiosqlite>=0.20.0",
     "httpx>=0.28.0",
     "pydantic>=2.10.0",
