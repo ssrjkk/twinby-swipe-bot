@@ -1,89 +1,308 @@
+import asyncio
+import base64
+import json
+import logging
+import re
 from typing import Any
-from urllib.parse import urlsplit
 
 import httpx
 
 from config import settings
 
+logger = logging.getLogger(__name__)
+
+
+def extract_json_object(raw_text: str) -> dict[str, Any]:
+    """Надёжно извлекает первый валидный JSON-объект из ответа LLM
+    (включая ответы в ```json ... ``` или с пояснениями до/после JSON).
+    """
+    cleaned = raw_text.strip()
+    fence_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, flags=re.DOTALL)
+    if fence_match:
+        return json.loads(fence_match.group(1).strip())
+
+    try:
+        parsed = json.loads(cleaned)
+        if isinstance(parsed, dict):
+            return parsed
+    except json.JSONDecodeError:
+        pass
+
+    decoder = json.JSONDecoder()
+    for idx, ch in enumerate(cleaned):
+        if ch == "{":
+            try:
+                obj, _ = decoder.raw_decode(cleaned[idx:])
+                if isinstance(obj, dict):
+                    return obj
+            except json.JSONDecodeError:
+                continue
+
+    raise ValueError(f"Не удалось извлечь JSON-объект из ответа модели: {cleaned[:160]!r}")
+
 
 class UniversalAIGateway:
-    """Explicitly configured providers; Gemini supports only OpenAI-compatible /openai URLs."""
+    """Универсальный мультимодальный шлюз для любого провайдера ИИ:
+    - OpenAI / OpenRouter / DeepSeek / Ollama / vLLM / Custom (OpenAI-compatible)
+    - Anthropic Claude (native /messages + base64 images)
+    - Google Gemini (нативный REST API :generateContent и OpenAI-compatible endpoint)
+    Поддерживает любые форматы ключей (Bearer, x-api-key, x-goog-api-key, custom_auth_header).
+    """
 
-    def __init__(self) -> None:
-        self.provider = settings.ai_provider.lower().strip()
-        if self.provider not in {
-            "openai",
-            "anthropic",
-            "gemini",
-            "openrouter",
-            "deepseek",
-            "ollama",
-            "custom",
-        }:
-            raise ValueError("Unsupported AI provider")
-        self.base_url = settings.llm_base_url.rstrip("/")
-        self.api_key = settings.llm_api_key.get_secret_value().strip()
-        self.model = settings.llm_model.strip()
-        self.custom_header = settings.custom_auth_header
+    def __init__(
+        self,
+        provider: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
+        model: str | None = None,
+        custom_header: str | None = None,
+        max_retries: int = 3,
+    ) -> None:
+        self.provider = (provider or settings.ai_provider).lower().strip()
+        self.base_url = (base_url or settings.llm_base_url).rstrip("/")
+        self.api_key = (api_key if api_key is not None else settings.llm_api_key.get_secret_value()).strip()
+        self.model = (model or settings.llm_model).strip()
+        self.custom_header = custom_header if custom_header is not None else settings.custom_auth_header
+        self.max_retries = max_retries
+
+    def _is_native_gemini(self) -> bool:
+        return self.provider == "gemini" and "/openai" not in self.base_url
 
     def _build_headers(self) -> dict[str, str]:
         headers = {"Content-Type": "application/json"}
-        if self.api_key and self.api_key != "sk-dummy":
-            if self.custom_header:
-                headers[self.custom_header] = self.api_key
-            elif self.provider == "anthropic":
-                headers["x-api-key"] = self.api_key
-            elif self.provider == "gemini":
-                headers["x-goog-api-key"] = self.api_key
-            elif self.api_key.lower().startswith("bearer "):
+        if not self.api_key or self.api_key in ("sk-dummy", ""):
+            return headers
+
+        if self.custom_header:
+            headers[self.custom_header] = self.api_key
+        elif self.provider == "anthropic":
+            headers["x-api-key"] = self.api_key
+            headers["anthropic-version"] = "2023-06-01"
+        elif self.provider == "gemini":
+            headers["x-goog-api-key"] = self.api_key
+        else:
+            if self.api_key.lower().startswith("bearer "):
                 headers["Authorization"] = self.api_key
             else:
                 headers["Authorization"] = f"Bearer {self.api_key}"
 
-        # Protocol negotiation is required even with custom or absent authentication.
-        if self.provider == "anthropic":
-            headers["anthropic-version"] = "2023-06-01"
         return headers
 
-    async def complete_chat(
+    def _build_anthropic_payload(
         self,
-        messages: list[dict[str, str]],
-        temperature: float = 0.7,
-        json_mode: bool = True,
-    ) -> str:
-        if self.provider == "gemini" and not urlsplit(self.base_url).path.endswith(
-            "/openai"
-        ):
-            raise ValueError(
-                "Gemini requires an OpenAI-compatible base URL ending in /openai"
-            )
-        headers = self._build_headers()
+        messages: list[dict[str, Any]],
+        temperature: float,
+        images: list[bytes] | None = None,
+    ) -> dict[str, Any]:
+        system_parts: list[str] = []
+        anth_messages: list[dict[str, Any]] = []
 
-        # Корректировка эндпоинта под специфику провайдеров
-        url = f"{self.base_url}/chat/completions"
-        if self.provider == "anthropic":
-            url = f"{self.base_url}/messages"
+        for msg in messages:
+            role = msg["role"]
+            content = msg["content"]
+            if role == "system":
+                system_parts.append(str(content))
+            else:
+                anth_messages.append({"role": role, "content": content})
+
+        valid_images = [raw for raw in (images or []) if raw]
+        if valid_images and anth_messages:
+            last = anth_messages[-1]
+            blocks: list[dict[str, Any]] = []
+            for raw in valid_images:
+                media = "image/png" if raw[:4] == b"\x89PNG" else "image/jpeg"
+                blocks.append(
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media,
+                            "data": base64.b64encode(raw).decode("ascii"),
+                        },
+                    }
+                )
+            blocks.append({"type": "text", "text": str(last["content"])})
+            last["content"] = blocks
 
         payload: dict[str, Any] = {
             "model": self.model,
-            "messages": messages,
+            "max_tokens": 1024,
+            "temperature": temperature,
+            "messages": anth_messages,
+        }
+        if system_parts:
+            payload["system"] = "\n\n".join(system_parts)
+        return payload
+
+    def _build_native_gemini_payload(
+        self,
+        messages: list[dict[str, Any]],
+        temperature: float,
+        json_mode: bool,
+        images: list[bytes] | None = None,
+    ) -> dict[str, Any]:
+        system_parts: list[str] = []
+        contents: list[dict[str, Any]] = []
+
+        for msg in messages:
+            role = msg["role"]
+            text = str(msg["content"])
+            if role == "system":
+                system_parts.append(text)
+            else:
+                gem_role = "model" if role == "assistant" else "user"
+                contents.append({"role": gem_role, "parts": [{"text": text}]})
+
+        valid_images = [raw for raw in (images or []) if raw]
+        if valid_images and contents:
+            last_parts = contents[-1]["parts"]
+            for raw in valid_images:
+                mime = "image/png" if raw[:4] == b"\x89PNG" else "image/jpeg"
+                last_parts.append(
+                    {
+                        "inline_data": {
+                            "mime_type": mime,
+                            "data": base64.b64encode(raw).decode("ascii"),
+                        }
+                    }
+                )
+
+        gen_cfg: dict[str, Any] = {"temperature": temperature}
+        if json_mode:
+            gen_cfg["responseMimeType"] = "application/json"
+
+        payload: dict[str, Any] = {
+            "contents": contents,
+            "generationConfig": gen_cfg,
+        }
+        if system_parts:
+            payload["systemInstruction"] = {"parts": [{"text": "\n\n".join(system_parts)}]}
+        return payload
+
+    def _build_openai_payload(
+        self,
+        messages: list[dict[str, Any]],
+        temperature: float,
+        json_mode: bool,
+        images: list[bytes] | None = None,
+    ) -> dict[str, Any]:
+        formatted: list[dict[str, Any]] = [dict(m) for m in messages]
+
+        valid_images = [raw for raw in (images or []) if raw]
+        if valid_images and formatted:
+            last = formatted[-1]
+            content_blocks: list[dict[str, Any]] = [{"type": "text", "text": str(last["content"])}]
+            for raw in valid_images:
+                mime = "image/png" if raw[:4] == b"\x89PNG" else "image/jpeg"
+                b64 = base64.b64encode(raw).decode("ascii")
+                content_blocks.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime};base64,{b64}", "detail": "high"},
+                    }
+                )
+            last["content"] = content_blocks
+
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "messages": formatted,
             "temperature": temperature,
         }
-        if self.provider == "anthropic":
-            payload["max_tokens"] = 1024
-            payload["messages"] = [m for m in messages if m["role"] != "system"]
-            system_messages = [m["content"] for m in messages if m["role"] == "system"]
-            if system_messages:
-                payload["system"] = "\n\n".join(system_messages)
-        elif json_mode:
+        if json_mode:
             payload["response_format"] = {"type": "json_object"}
+        return payload
 
-        # Do not inherit workstation proxy credentials or malformed NO_PROXY values.
-        async with httpx.AsyncClient(timeout=30.0, trust_env=False) as client:
-            resp = await client.post(url, headers=headers, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+    def _resolve_endpoint_and_payload(
+        self,
+        messages: list[dict[str, Any]],
+        temperature: float,
+        json_mode: bool,
+        images: list[bytes] | None = None,
+    ) -> tuple[str, dict[str, Any]]:
+        if self.provider == "anthropic":
+            if self.base_url.endswith("/messages"):
+                url = self.base_url
+            else:
+                base = self.base_url if self.base_url.endswith("/v1") else f"{self.base_url}/v1"
+                url = f"{base}/messages"
+            return url, self._build_anthropic_payload(messages, temperature, images=images)
 
-            if self.provider == "anthropic":
-                return data["content"][0]["text"]
-            return data["choices"][0]["message"]["content"]
+        if self._is_native_gemini():
+            if ":generateContent" in self.base_url:
+                url = self.base_url
+            else:
+                base = self.base_url
+                if not base.endswith("/v1beta") and not base.endswith("/v1"):
+                    base = f"{base}/v1beta"
+                url = f"{base}/models/{self.model}:generateContent"
+            return url, self._build_native_gemini_payload(messages, temperature, json_mode=json_mode, images=images)
+
+        url = self.base_url if self.base_url.endswith("/chat/completions") else f"{self.base_url}/chat/completions"
+        return url, self._build_openai_payload(messages, temperature, json_mode=json_mode, images=images)
+
+    def _extract_response_text(self, data: dict[str, Any]) -> str:
+        if self.provider == "anthropic":
+            return str(data["content"][0]["text"])
+        if self._is_native_gemini():
+            parts = data["candidates"][0]["content"]["parts"]
+            return "".join(str(p.get("text", "")) for p in parts)
+        return str(data["choices"][0]["message"]["content"])
+
+    async def complete_chat(
+        self,
+        messages: list[dict[str, Any]],
+        temperature: float = 0.7,
+        json_mode: bool = True,
+        images: list[bytes] | None = None,
+    ) -> str:
+        headers = self._build_headers()
+        url, payload = self._resolve_endpoint_and_payload(messages, temperature, json_mode, images=images)
+
+        last_exc: Exception | None = None
+        async with httpx.AsyncClient(timeout=45.0) as client:
+            for attempt in range(1, self.max_retries + 1):
+                try:
+                    resp = await client.post(url, headers=headers, json=payload)
+                    if resp.status_code == 400 and "response_format" in payload:
+                        payload.pop("response_format", None)
+                        resp = await client.post(url, headers=headers, json=payload)
+
+                    if resp.status_code in (429, 500, 502, 503, 504) and attempt < self.max_retries:
+                        wait_s = min(2 ** attempt, 12)
+                        logger.warning("LLM HTTP %d (попытка %d/%d), повтор через %d сек", resp.status_code, attempt, self.max_retries, wait_s)
+                        await asyncio.sleep(wait_s)
+                        continue
+
+                    if resp.status_code >= 400:
+                        body_preview = getattr(resp, "text", "")[:300]
+                        logger.error("LLM %s/%s HTTP %d: %s", self.provider, self.model, resp.status_code, body_preview)
+                    resp.raise_for_status()
+                    return self._extract_response_text(resp.json())
+                except (httpx.TimeoutException, httpx.TransportError) as exc:
+                    last_exc = exc
+                    if attempt < self.max_retries:
+                        await asyncio.sleep(min(2 ** attempt, 10))
+                        continue
+                    raise
+        assert last_exc is not None
+        raise last_exc
+
+    async def complete_json(
+        self,
+        messages: list[dict[str, Any]],
+        temperature: float = 0.3,
+        images: list[bytes] | None = None,
+    ) -> dict[str, Any]:
+        raw = await self.complete_chat(messages=messages, temperature=temperature, json_mode=True, images=images)
+        return extract_json_object(raw)
+
+    async def health_check(self) -> tuple[bool, str]:
+        try:
+            reply = await self.complete_chat(
+                messages=[{"role": "user", "content": "Ответь ровно одним словом: OK"}],
+                temperature=0.0,
+                json_mode=False,
+            )
+            return True, f"{self.provider}/{self.model} ответил: {reply.strip()[:60]}"
+        except Exception as exc:
+            return False, f"Ошибка подключения к {self.provider}/{self.model}: {exc}"

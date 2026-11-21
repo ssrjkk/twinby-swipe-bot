@@ -1,0 +1,24 @@
+{
+  "project": "<3",
+  "archive_slug": "heart3",
+  "target_repo": "https://github.com/ssrjkk/twinby-swipe-bot",
+  "previous_codenames": [
+    "14/02",
+    "twinby-swipe-bot"
+  ],
+  "version": "3.9.0",
+  "working_modes": [
+    "ui_vision",
+    "web_vision",
+    "api_declarative_har"
+  ],
+  "vlm_ui_grounding": true,
+  "visual_chat_automation": true,
+  "flag_secure_detection": true,
+  "har_to_declarative_api": true,
+  "calendar_wired": true,
+  "live_platform_switch": true,
+  "github_ci_and_pages": true,
+  "platforms_registry_count": 28,
+  "design_preserved": true
+}

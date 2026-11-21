@@ -1,64 +1,78 @@
 [project]
-name = "heart3"
-version = "3.0.0"
-description = "<3 (Heart3) — Twinby device automation and experimental API/AI components"
+name = "heart3-matchmaking"
+version = "3.9.0"
+description = "<3 — AI Matchmaking Agent (UI-Vision ADB/Appium/Playwright + VLM + LangGraph + Telegram)"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
     "aiogram>=3.15.0",
-    "sqlalchemy[asyncio]>=2.0.36",
-    "asyncpg>=0.30.0",
+    "sqlalchemy>=2.0.36",
     "aiosqlite>=0.20.0",
-    "curl-cffi>=0.7.4",
-    "httpx>=0.27.0",
+    "httpx>=0.28.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",
     "tenacity>=9.0.0",
     "fastapi>=0.115.6",
     "uvicorn>=0.34.0",
-    "python-dotenv>=1.2.4",
-    "uiautomator2>=3.7.1",
-    "Appium-Python-Client>=6.1.5",
-    "anthropic>=2.2.0",
+    "prometheus-client>=0.21.1",
+    "pillow>=11.0.0",
 ]
 
 [project.optional-dependencies]
+api = [
+    "curl-cffi>=0.7.4",
+]
+web-browser = [
+    "playwright>=1.49.0",
+]
+langgraph = [
+    "langchain>=0.3.13",
+    "langchain-openai>=0.2.14",
+    "langgraph>=0.2.60",
+]
+vision-local = [
+    "torch>=2.5.1",
+    "transformers>=4.47.0",
+    "insightface>=0.7.3",
+    "opencv-python-headless>=4.10.0.84",
+    "pillow>=11.0.0",
+    "numpy>=2.2.0",
+]
+calendar = [
+    "google-api-python-client>=2.156.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.2.1",
+]
+enterprise = [
+    "asyncpg>=0.30.0",
+    "pgvector>=0.3.2",
+    "temporalio>=1.9.0",
+    "redis>=5.2.1",
+]
 test = [
     "pytest>=8.3.4",
     "pytest-asyncio>=0.25.0",
-    "pytest-socket>=0.8.1",
-    "pytest-cov>=7.1.0",
     "respx>=0.22.0",
-    "fakeredis>=2.26.0",
-    "openai>=3.46.0",
-    "google-genai>=3.0.0",
-    "langgraph>=0.2.60",
-    "google-api-python-client>=2.156.0",
-    "google-auth-oauthlib>=1.2.1",
-    "redis>=5.2.1",
-    "numpy>=2.2.0",
-    "tzdata>=2025.2",
-]
-agent = [
-    "langgraph>=0.2.60",
-    "google-api-python-client>=2.156.0",
-    "google-auth-oauthlib>=1.2.1",
-    "redis>=5.2.1",
-    "numpy>=2.2.0",
-    "tzdata>=2025.2",
 ]
 
+[project.scripts]
+heart3 = "cli:main"
+
+[build-system]
+requires = ["setuptools>=75.0.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools]
-py-modules = ["config", "main"]
+py-modules = ["cli", "config", "main"]
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["agents*", "ai*", "bot*", "core*", "database*", "device*", "filters*", "web*"]
-namespaces = true
+include = ["ai*", "bot*", "core*", "database*", "filters*", "tools*", "web*"]
 
 [tool.setuptools.package-data]
 web = ["static/*.html"]
 
-[build-system]
-requires = ["setuptools>=84.2.1"]
-build-backend = "setuptools.build_meta"
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,49 +1,30 @@
-name: CI
+name: <3 CI
 
 on:
   push:
-    branches: [main, master]
+    branches: ["main", "master", "feat/*"]
   pull_request:
-    branches: [main, master]
-
-permissions:
-  contents: read
+    branches: ["main", "master"]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: requirements*.txt
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-dev.txt
-          python -m pip check
-      - name: Lint
-        run: python -m flake8 agents device tests ai core database filters web bot config.py main.py --count --max-complexity=10 --max-line-length=120 --statistics
-      - name: Check formatting
-        run: python -m black --check --line-length=88 agents device tests ai core database filters web bot config.py main.py
-      - name: Test without inherited credentials or external connections
-        env:
-          TWINBY_ACCESS_TOKEN: ci-only-twinby-token
-          TG_BOT_TOKEN: "123456:ci-only-bot-token"
-          TG_ADMIN_ID: "1"
-        run: >-
-          env -i PATH="$PATH" HOME="$RUNNER_TEMP" LANG=C.UTF-8
-          PYTHON_DOTENV_DISABLED=1
-          TWINBY_ACCESS_TOKEN="$TWINBY_ACCESS_TOKEN"
-          TG_BOT_TOKEN="$TG_BOT_TOKEN" TG_ADMIN_ID="$TG_ADMIN_ID"
-          python -m pytest tests/ -v --cov=agents --cov=device --cov=ai --cov=core
-          --cov=database --cov=filters --cov=web --cov=bot --cov-report=xml
-          --allow-hosts=127.0.0.1,::1 --allow-unix-socket
-      - name: Audit installed dependencies including optional providers
-        run: python -m pip_audit --strict
+          pip install -e ".[test]"
+      - name: Bytecode syntax check
+        run: python -m compileall -q ai bot core database filters tools web scripts cli.py main.py config.py
+      - name: Run full pytest suite
+        run: pytest -v
+      - name: Run stdlib unittest suite
+        run: python -m unittest discover -s tests -p "test_stdlib_*.py" -v

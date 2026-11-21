@@ -1,22 +1,11 @@
-# Swarm core (v3)
 aiogram>=3.15.0
-sqlalchemy[asyncio]>=2.0.36
-asyncpg>=0.30.0
+sqlalchemy>=2.0.36
 aiosqlite>=0.20.0
-curl-cffi>=0.7.4
-httpx>=0.27.0
+httpx>=0.28.0
 pydantic>=2.10.0
 pydantic-settings>=2.7.0
 tenacity>=9.0.0
 fastapi>=0.115.6
 uvicorn>=0.34.0
-
-# Device layer (v1): Android / iPhone / Mac swipes
-python-dotenv>=1.2.4
-uiautomator2>=3.7.1
-Appium-Python-Client>=6.1.5
-anthropic>=2.2.0
-
-# Optional agents (установи нужное)
-# openai>=1.30.0
-# google-genai>=1.0.0
+prometheus-client>=0.21.1
+pillow>=11.0.0

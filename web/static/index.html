@@ -1,351 +1,516 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>&lt;3 — ваши критерии. Осмысленный выбор.</title>
-<meta name="description" content="&lt;3: автоматизация Twinby на Android, iPhone и Mac, порог от 75%. Экспериментальное API-ядро, 28 спецификаций платформ и отдельные AI-модули; поддержка реальных API не подтверждена.">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="&lt;3 (Heart3)">
-<meta property="og:title" content="&lt;3 — ваши критерии. Осмысленный выбор.">
-<meta property="og:description" content="&lt;3: автоматизация Twinby на Android, iPhone и Mac, порог от 75%. Экспериментальное API-ядро, 28 спецификаций платформ и отдельные AI-модули; поддержка реальных API не подтверждена.">
-<meta property="og:url" content="https://ssrjkk.github.io/twinby-swipe-bot/">
-<meta property="og:locale" content="ru_RU">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="&lt;3 — ваши критерии. Осмысленный выбор.">
-<meta name="twitter:description" content="&lt;3: автоматизация Twinby на Android, iPhone и Mac, порог от 75%. Экспериментальное API-ядро, 28 спецификаций платформ и отдельные AI-модули; поддержка реальных API не подтверждена.">
-<meta name="twitter:image" content="https://ssrjkk.github.io/twinby-swipe-bot/og-card.png">
-<meta property="og:image" content="https://ssrjkk.github.io/twinby-swipe-bot/og-card.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23ffffff'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='28' font-weight='bold' fill='%23c23a68' text-anchor='middle'%3E%26lt%3B3%3C/text%3E%3C/svg%3E">
-<link rel="canonical" href="https://ssrjkk.github.io/twinby-swipe-bot/">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --berry:#e0507f; --berry-deep:#c23a68; --plum:#7c5cbf;
-  --ink:#5a2340; --ink-soft:#805274;
-  --b1:rgba(255,255,255,.55); --b2:rgba(255,240,248,.65);
-  --round:'Comfortaa',cursive; --display:'Unbounded',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  background:linear-gradient(160deg,#ffe1ee 0%, #f3e2ff 48%, #ffe7f3 100%);
-  color:var(--ink); font:15px/1.7 var(--round);
-  min-height:100vh; overflow-x:hidden;
-  -webkit-font-smoothing:antialiased;
-}
-/* ── пузыри фона ─────────────────────────────── */
-.bubble{
-  position:fixed; border-radius:50%; pointer-events:none; z-index:0;
-  background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.35) 30%, var(--b2) 68%);
-  border:1.5px solid rgba(255,255,255,.85);
-  box-shadow:inset -8px -12px 24px rgba(224,80,127,.12), 0 14px 34px rgba(224,80,127,.14);
-}
-.bubble::after{content:"";position:absolute;top:12%;left:16%;width:26%;height:16%;
-  background:rgba(255,255,255,.95);border-radius:50%;filter:blur(2px);transform:rotate(-28deg)}
-.heart{position:fixed;z-index:0;pointer-events:none;opacity:.9}
-/* ── шапка ───────────────────────────────────── */
-header{
-  position:relative;z-index:2;max-width:1080px;margin:0 auto;
-  padding:34px 26px 0;display:flex;align-items:center;justify-content:space-between;gap:14px;
-}
-.logo{font:700 19px var(--display);color:var(--berry-deep);text-decoration:none}
-.logo i{display:inline-block;font-style:normal;transform:translateY(2px)}
-nav{display:flex;gap:24px;font-size:14px}
-nav a{color:var(--ink-soft);text-decoration:none}
-nav a:hover{color:var(--berry-deep)}
-.gh{padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.6);
-  border:1.5px solid rgba(224,80,127,.35);color:var(--berry-deep);font-weight:600}
-.gh:hover{background:#fff}
-/* ── хиро ────────────────────────────────────── */
-.hero{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:86px 26px 40px;text-align:center}
-.hero .tag{
-  display:inline-block;padding:9px 22px;border-radius:999px;
-  background:rgba(255,255,255,.65);border:1.5px solid rgba(224,80,127,.3);
-  font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--berry-deep);
-}
-h1{
-  font:700 clamp(40px,6.4vw,74px)/1.14 var(--display);
-  margin:26px auto 18px;max-width:21ch;color:var(--ink);
-}
-h1 em{font-style:normal;color:var(--berry)}
-.hero p{font-size:17px;color:var(--ink-soft);max-width:58ch;margin:0 auto 34px}
-.cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
-.btn{
-  display:inline-block;padding:17px 34px;border-radius:999px;
-  font:600 15px var(--round);text-decoration:none;color:var(--berry-deep);
-  background:radial-gradient(circle at 30% 25%, #fff 0%, #fff2f7 55%, #ffd7e7 100%);
-  border:1.5px solid rgba(224,80,127,.4);
-  box-shadow:inset -6px -10px 20px rgba(224,80,127,.15), 0 16px 36px rgba(224,80,127,.28);
-}
-.btn.solid{
-  color:#fff;background:linear-gradient(160deg,var(--berry-deep) 0%,#ab2d58 100%);
-  border-color:transparent;box-shadow:0 16px 36px rgba(194,58,104,.4);
-}
-.btn:hover{transform:translateY(-3px) scale(1.02);transition:.2s}
-/* ── конфетная статистика ────────────────────── */
-.candy{position:relative;z-index:2;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:44px auto 0;max-width:1080px;padding:0 26px}
-.candy .pill{
-  padding:20px 30px;border-radius:999px;text-align:center;
-  background:radial-gradient(circle at 32% 24%, rgba(255,255,255,.95), var(--b2) 70%);
-  border:1.5px solid rgba(255,255,255,.9);
-  box-shadow:inset -6px -10px 18px rgba(224,80,127,.1), 0 12px 28px rgba(224,80,127,.16);
-}
-.candy b{display:block;font:700 30px var(--display);color:var(--berry-deep)}
-.candy span{font-size:12.5px;color:var(--ink-soft)}
-/* ── секции ──────────────────────────────────── */
-section{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:96px 26px 0}
-.kicker{font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);text-align:center}
-h2{font:700 clamp(30px,4.4vw,46px)/1.2 var(--display);text-align:center;margin:12px 0 14px}
-section > p.intro{text-align:center;color:var(--ink-soft);max-width:62ch;margin:0 auto 44px}
-/* шаги */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.step{
-  padding:30px 26px;border-radius:36px;
-  background:radial-gradient(circle at 30% 22%, rgba(255,255,255,.96), var(--b1) 72%);
-  border:1.5px solid rgba(255,255,255,.9);
-  box-shadow:inset -8px -12px 26px rgba(124,92,191,.1), 0 16px 34px rgba(224,80,127,.15);
-  position:relative;
-}
-.step b.n{
-  position:absolute;top:-19px;left:26px;width:40px;height:40px;border-radius:50%;
-  background:linear-gradient(160deg,var(--berry),var(--berry-deep));color:#fff;
-  display:flex;align-items:center;justify-content:center;font:700 16px var(--display);
-  box-shadow:0 8px 18px rgba(194,58,104,.35);
-}
-.step h3{font:700 17px var(--round);margin:8px 0 8px;color:var(--ink)}
-.step p{font-size:13.5px;color:var(--ink-soft)}
-/* агенты */
-.agents{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.agent{
-  padding:26px 20px;border-radius:50% 50% 42% 42%/38% 38% 30% 30%;
-  text-align:center;
-  background:radial-gradient(circle at 34% 20%, rgba(255,255,255,.96), var(--b2) 75%);
-  border:1.5px solid rgba(255,255,255,.9);
-  box-shadow:inset -6px -12px 22px rgba(124,92,191,.12), 0 14px 30px rgba(224,80,127,.16);
-  transition:box-shadow .25s;
-}
-.agent:hover{transform:translateY(-6px) scale(1.03)}
-.agent i{font-style:normal;font-size:30px;display:block;margin-bottom:10px}
-.agent b{display:block;font-size:14.5px;color:var(--ink)}
-.agent span{font-size:12px;color:var(--ink-soft)}
-/* платформы */
-.platforms{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
-.plat{
-  padding:14px 26px;border-radius:999px;font-size:14px;
-  background:rgba(255,255,255,.6);border:1.5px solid rgba(124,92,191,.3);color:var(--plum);
-}
-/* ── финальная CTA-пузырь ────────────────────── */
-.final{text-align:center;padding:40px 26px 0}
-.final .big{
-  display:inline-block;padding:58px 74px;border-radius:50%;
-  background:radial-gradient(circle at 32% 26%, #fff 0%, #ffeef6 45%, #ffd2e4 100%);
-  border:2px solid rgba(255,255,255,.95);
-  box-shadow:inset -14px -20px 44px rgba(224,80,127,.18), 0 30px 70px rgba(224,80,127,.3);
-}
-.final .big p{font:600 15px var(--round);color:var(--ink-soft);margin:0 0 16px}
-/* ── подвал ──────────────────────────────────── */
-footer{
-  position:relative;z-index:2;max-width:1080px;margin:80px auto 0;padding:30px 26px 44px;
-  border-top:1.5px solid rgba(224,80,127,.2);
-  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
-  font-size:13px;color:var(--ink-soft);
-}
-footer a{color:var(--berry-deep);text-decoration:none}
-@media(max-width:900px){
-  .steps{grid-template-columns:1fr}
-  .agents{grid-template-columns:repeat(2,1fr)}
-  nav{display:none}
-}
-a:focus-visible{outline:3px solid var(--ink);outline-offset:5px}
-@media(max-width:560px){
-  h1{font-size:clamp(26px,7.2vw,40px)}
-  h2{font-size:clamp(24px,6.4vw,30px)}
-  .agents{grid-template-columns:1fr}
-  .final .big{padding:40px 26px}
-}
-@media(prefers-reduced-motion:reduce){
-  *{animation:none!important;transition:none!important}
-  html{scroll-behavior:auto}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;3 — AI Matchmaking Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fffbfc;
+      --surface: rgba(255, 255, 255, 0.78);
+      --text: #1c1015;
+      --muted: #6e5660;
+      --rose: #e11d48;
+      --rose-soft: #ffe4e6;
+      --rose-border: rgba(225, 29, 72, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Оригинальные розовые пузыри (плавающие сферы + глянцевые розовые пузырьки на фоне) */
+    .blobs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      animation: floatOrb 15s ease-in-out infinite alternate;
+    }
+    /* Мягкие розовые облака-пузыри */
+    .blob-1 {
+      width: 480px; height: 480px;
+      top: -110px; left: -90px;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 182, 193, 0.9), rgba(244, 63, 94, 0.28) 65%, transparent 100%);
+      filter: blur(45px);
+    }
+    .blob-2 {
+      width: 540px; height: 540px;
+      top: 16%; right: -140px;
+      background: radial-gradient(circle at 40% 40%, rgba(251, 207, 232, 0.95), rgba(225, 29, 72, 0.22) 68%, transparent 100%);
+      filter: blur(50px);
+      animation-delay: -5s;
+    }
+    .blob-3 {
+      width: 420px; height: 420px;
+      bottom: -90px; left: 15%;
+      background: radial-gradient(circle at 30% 30%, rgba(254, 205, 211, 0.9), rgba(244, 63, 94, 0.25) 70%, transparent 100%);
+      filter: blur(45px);
+      animation-delay: -9s;
+    }
+    /* Выраженные полупрозрачные розовые пузыри с бликом */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 192, 203, 0.55) 28%, rgba(244, 63, 94, 0.22) 72%, rgba(225, 29, 72, 0.08) 100%);
+      box-shadow: inset -8px -8px 20px rgba(225, 29, 72, 0.14), inset 6px 6px 14px rgba(255, 255, 255, 0.85), 0 12px 30px rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      animation: riseBubble 18s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 130px; height: 130px; top: 14%; left: 11%; animation-duration: 13s; }
+    .orb-2 { width: 84px; height: 84px; top: 28%; right: 14%; animation-duration: 16s; animation-delay: -3s; }
+    .orb-3 { width: 165px; height: 165px; top: 58%; right: 7%; animation-duration: 20s; animation-delay: -7s; }
+    .orb-4 { width: 64px; height: 64px; top: 46%; left: 6%; animation-duration: 12s; animation-delay: -2s; }
+    .orb-5 { width: 110px; height: 110px; bottom: 12%; left: 32%; animation-duration: 17s; animation-delay: -6s; }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(32px, -38px) scale(1.07); }
+    }
+    @keyframes riseBubble {
+      0% { transform: translateY(0px) translateX(0px) scale(1); }
+      50% { transform: translateY(-28px) translateX(14px) scale(1.04); }
+      100% { transform: translateY(18px) translateX(-12px) scale(0.97); }
+    }
+
+    .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--rose-border);
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .logo i { font-style: normal; }
+    nav { display: flex; gap: 24px; }
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--rose); }
+    .gh-link {
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--rose);
+      background: var(--rose-soft);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--rose-border);
+      transition: all 0.2s;
+    }
+    .gh-link:hover { background: var(--rose); color: #fff; }
+
+    .hero {
+      text-align: center;
+      padding: 80px 0 48px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--rose);
+      background: var(--rose-soft);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--rose-border);
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(2.6rem, 5vw, 4.1rem);
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+    h1 em {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rose);
+      font-size: 1.14em;
+    }
+    .hero p {
+      font-size: 1.08rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--rose);
+      color: #fff;
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35);
+      transition: transform 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--rose-border);
+      backdrop-filter: blur(12px);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin: 20px 0 64px;
+    }
+    .stat-card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--rose-border);
+      border-radius: 22px;
+      padding: 22px;
+      text-align: center;
+    }
+    .stat-card b { display: block; font-size: 1.9rem; color: var(--rose); line-height: 1.1; margin-bottom: 6px; }
+    .stat-card span { font-size: 0.85rem; color: var(--muted); }
+
+    section { padding: 52px 0; }
+    .sec-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--rose);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    h2 { font-size: 2rem; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .sec-sub { color: var(--muted); max-width: 680px; margin-bottom: 32px; }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--rose-border);
+      border-radius: 24px;
+      padding: 26px;
+    }
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--rose-soft);
+      color: var(--rose);
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .card p { font-size: 0.92rem; color: var(--muted); }
+
+    /* Pure & No-Score Mode Selector */
+    .mode-box {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--rose-border);
+      border-radius: 26px;
+      padding: 28px;
+    }
+    .mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .mode-btn {
+      border: 1px solid var(--rose-border);
+      background: #fff;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .mode-btn.active { background: var(--rose); color: #fff; border-color: var(--rose); }
+    .mode-content {
+      background: #fff;
+      border: 1px solid var(--rose-border);
+      border-radius: 18px;
+      padding: 22px;
+      font-size: 0.92rem;
+    }
+    .mode-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: var(--rose-soft);
+      color: var(--rose);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    /* Full Table of Russian + Global Dating Apps */
+    .table-card {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--rose-border);
+      border-radius: 24px;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.86rem; }
+    th, td { padding: 13px 16px; border-bottom: 1px solid var(--rose-border); vertical-align: top; }
+    th { background: rgba(255, 228, 230, 0.55); font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .drv {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      font-weight: 600;
+    }
+    .drv-api { background: #dcfce7; color: #166534; }
+    .drv-hybrid { background: #fef3c7; color: #92400e; }
+    .drv-ui { background: #ffe4e6; color: #9f1239; }
+
+    .cta-banner {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--rose-border);
+      border-radius: 26px;
+      padding: 40px 28px;
+      text-align: center;
+      margin-top: 32px;
+    }
+    .cta-banner p {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-size: 1.9rem;
+      margin-bottom: 18px;
+    }
+
+    footer {
+      border-top: 1px solid var(--rose-border);
+      padding: 32px 0;
+      margin-top: 48px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--rose); text-decoration: none; }
+  </style>
 </head>
 <body>
-
-<header>
-  <a class="logo" href="#"><i>💌</i> &lt;3</a>
-  <nav>
-    <a href="#how">как работает</a>
-    <a href="#agents">llm-шлюз</a>
-    <a href="#chat">переписка</a>
-    <a href="#platforms">платформы</a>
-  </nav>
-  <a class="gh" href="https://github.com/ssrjkk/twinby-swipe-bot">GitHub ↗</a>
-</header>
-
-<div class="hero">
-  <span class="tag">&lt;3 · ai matchmaking agent</span>
-  <h1>Ваши критерии.<br><em>Осмысленный</em> выбор.</h1>
-  <p>&lt;3 сопоставляет анкету с критериями: фото и bio через device-слой
-  или текст и процент совместимости в экспериментальном API-ядре.
-  Порог по умолчанию — не ниже 75%. Реальные устройства и API требуют отдельной проверки.</p>
-  <div class="cta">
-    <a class="btn solid" href="https://github.com/ssrjkk/twinby-swipe-bot">Попробовать &lt;3</a>
-    <a class="btn" href="https://github.com/ssrjkk/twinby-swipe-bot#readme">Как это устроено</a>
+  <!-- Плавающие розовые пузыри -->
+  <div class="blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="orb orb-5"></div>
   </div>
-</div>
 
-<div class="candy">
-  <div class="pill"><b>75%</b><span>порог уверенности по умолчанию</span></div>
-  <div class="pill"><b>28</b><span>спецификаций, не готовых интеграций</span></div>
-  <div class="pill"><b>3</b><span>device-платформы: Android · iPhone · Mac</span></div>
-  <div class="pill"><b data-gate="tests">302</b><span>тестов, сетевой-guard в CI</span></div>
-</div>
+  <div class="container">
+    <header>
+      <a href="#" class="logo"><i>💌</i> &lt;3</a>
+      <nav>
+        <a href="#how">как работает</a>
+        <a href="#pure">как ищет в Pure</a>
+        <a href="#platforms">все дейтинги</a>
+        <a href="#agents">агенты</a>
+      </nav>
+      <a href="https://github.com/ssrjkk/twinby-swipe-bot" class="gh-link">GitHub ↗</a>
+    </header>
 
-<section id="how">
-  <div class="kicker">как это работает</div>
-  <h2>Три шага до осмысленного лайка</h2>
-  <p class="intro">Агент видит анкету как человек: лента, bio, ваши критерии —
-  и возвращает решение с объяснением. Сомневается — пропускает.</p>
-  <div class="steps">
-    <div class="step"><b class="n">1</b><h3>Получает анкету</h3><p>Device-слой читает экран через uiautomator2 или Appium. API-запуск создаёт только один Twinby-клиент; его контракт с живым сервисом пока не подтверждён.</p></div>
-    <div class="step"><b class="n">2</b><h3>Проверяет критерии</h3><p>Возраст, расстояние, фото, описание и порог совместимости. Текстовый LLM-скорер может отметить рекламу; нативный процент не является проверкой на спам.</p></div>
-    <div class="step"><b class="n">3</b><h3>Ограничивает действия</h3><p>Паузы и дневной бюджет попыток лайка. Неизвестный результат запроса не повторяется автоматически. Защита аккаунта от блокировок не гарантируется.</p></div>
+    <div class="hero">
+      <span class="tag">&lt;3 · ai matchmaking agent</span>
+      <h1>Ваши критерии.<br><em>Осмысленный</em> выбор.</h1>
+      <p>&lt;3 смотрит на анкету вашими глазами во всех дейтинг-приложениях России и мира: проверяет фото через InsightFace, вычисляет AI-совместимость даже без встроенных процентов (Pure, Tinder, VK, Мамба), ведет переписку через LangGraph и бронирует встречу в Google Calendar.</p>
+      <div class="actions">
+        <a href="/dashboard" class="btn-primary">Открыть Control Panel</a>
+        <a href="#platforms" class="btn-secondary">Все 28 платформ</a>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><b>UI-Vision</b><span>рабочий контур: ADB / Appium + VLM</span></div>
+      <div class="stat-card"><b>4</b><span>LLM-бэкенда: Claude · OpenAI · Gemini · Local</span></div>
+      <div class="stat-card"><b>API + UI</b><span>curl_cffi TLS-стелс + Appium/uiautomator2</span></div>
+      <div class="stat-card"><b>InsightFace</b><span>сверка лиц + VLM-детали для icebreakers</span></div>
+    </div>
+
+    <section id="how">
+      <div class="sec-eyebrow">как это работает</div>
+      <h2>Три шага до осмысленного лайка</h2>
+      <p class="sec-sub">Агент видит анкету как человек: фото, bio, ваши критерии — и возвращает решение с объяснением. Сомневается или видит фейк — пропускает.</p>
+      <div class="grid-3">
+        <div class="card">
+          <div class="step-badge">1</div>
+          <h3>Смотрит</h3>
+          <p>Гибридный драйвер открывает анкету (через stealth-API или Appium UI), сверяет лица на всех фото через InsightFace и извлекает визуальные детали через VLM.</p>
+        </div>
+        <div class="card">
+          <div class="step-badge">2</div>
+          <h3>Решает</h3>
+          <p>Если приложение не дает % совместимости (Pure, Tinder, VK, Мамба), LLM + VLM вычисляют синтетический Vibe Score (0–100%). Уверенность выше порога — лайк.</p>
+        </div>
+        <div class="card">
+          <div class="step-badge">3</div>
+          <h3>Действует</h3>
+          <p>Свайп с человеческим темпом (Гаусс + кривая Безье), живой диалог в LangGraph без ИИ-штампов и авто-бронирование слота в Google Calendar.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pure">
+      <div class="sec-eyebrow">механика скоринга</div>
+      <h2>Как &lt;3 ищет мэтч в Pure и Tinder, где нет процентов совместимости</h2>
+      <p class="sec-sub">В Twinby или Теамо процент совместимости отдает сам бэкенд. В анонимном Pure или классическом Tinder этого числа нет — поэтому &lt;3 включает собственный конвейер оценки.</p>
+
+      <div class="mode-box">
+        <div class="mode-tabs">
+          <button class="mode-btn active" onclick="switchMode('pure', this)">Pure (нет % и часто нет лица)</button>
+          <button class="mode-btn" onclick="switchMode('rus', this)">VK Знакомства / Мамба / Табор / ДругВокруг</button>
+          <button class="mode-btn" onclick="switchMode('native', this)">Twinby / Теамо / OkCupid (есть %)</button>
+        </div>
+        <div class="mode-content" id="mode-display">
+          <strong>Алгоритм для Pure (Synthetic Vibe Score + TTL):</strong><br><br>
+          1. <strong>Мягкий Face-Gate:</strong> В Pure пользователи часто выкладывают атмосферные фото без лица или арт-снимки. Для Pure в реестре выставлено <code>requires_face_on_primary_photo = False</code> — бот не отсекает такие анкеты, но блокирует стоковый спам и рекламу.<br>
+          2. <strong>Синтетическая оценка (60% LLM + 40% VLM):</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM оценивает эстетику и вайб снимка.<br>
+          3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>vibe_score &ge; 70</code> бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.
+        </div>
+      </div>
+    </section>
+
+    <section id="platforms">
+      <div class="sec-eyebrow">честный технический аудит</div>
+      <h2>Честный статус платформ: UI-Vision, API и Roadmap</h2>
+      <p class="sec-sub">Нельзя просто дергать приватный API у приложений с Apple App Attest или Google Play Integrity — аккаунт улетит в бан за секунду. Универсальный режим <b>UI-Vision (ADB/Appium + VLM)</b> работает на Twinby и любом приложении на экране телефона, а прямые API-клиенты (Twinby/Pure/Tabor) отмечены как экспериментальные до сверки с живым трафиком.</p>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Регион</th>
+              <th>Приложение</th>
+              <th>Режим работы</th>
+              <th>Технический вердикт и защита от банов</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>🇷🇺 РФ</td><td><strong>Twinby</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td><code>curl_cffi</code> TLS-спуфинг iOS + нативный % психологической совместимости.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>VK Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Авторизация через <code>vk_sign</code> мини-приложения + AI Vibe Score.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Mamba (Мамба)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST + WebSocket; антиспам-фильтр ссылок и лимиты на симпатии.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Tabor (Табор)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Мобильные токен-сессии, поиск по городам РФ + InsightFace.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>LovePlanet</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST API ленты и сообщений + LLM-фильтр ботов.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Фотострана</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>API раздела «Встречи» + Playwright при срабатывании капчи.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Beboo / Kismia</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Эмуляция мобильного веб-клиента через <code>curl_cffi</code> с RU-прокси.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>ДругВокруг</strong></td><td><span class="drv drv-hybrid">UI-Vision Ready</span></td><td>Собственный сокет-протокол; свайпы и анкеты через гибридный драйвер.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Теамо / RusDate</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Психологическое тестирование — есть встроенный процент совместимости.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>ОК Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Интеграция через API мини-приложений Одноклассников + AI-скоринг.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>LinkYou / SkyLove / JuliaDates</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Нишевые сервисы (по профессии/интересам); LLM учитывает контекст профиля.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Vox (голосовой)</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>Анонимный голосовой формат без фото на старте -> только Appium UI.</td></tr>
+            <tr><td>🌍 Мир</td><td><strong>Pure</strong></td><td><span class="drv drv-hybrid">UI-Vision · API Exp</span></td><td>Нет % и часто нет лица -> Synthetic Vibe Score (LLM + VLM) + быстрый чат.</td></tr>
+            <tr><td>🇺🇸🇪🇺 Мир</td><td><strong>Tinder / Badoo</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>Cloudflare / X-Pingback обходятся через <code>curl_cffi</code> + sticky гео-прокси.</td></tr>
+            <tr><td>🇺🇸🇪🇺 США/ЕС</td><td><strong>Bumble / Hinge / Happn</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>App Attest / Play Integrity / Akamai -> безопасный свайп по дуге Безье в Appium.</td></tr>
+            <tr><td>🇺🇸🇪🇺 США/ЕС</td><td><strong>OkCupid / Feeld / CMB / Grindr</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>В OkCupid есть нативный %; в Feeld и CMB используется AI Vibe Score.</td></tr>
+            <tr><td>🇨🇳🇯🇵🇰🇷 Азия</td><td><strong>Tantan / Pairs / Wippy</strong></td><td><span class="drv drv-ui">UI-Vision + Proxy</span></td><td>Резидентские IP Японии/Кореи/Китая + авто-ведение диалога на языке региона.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="agents">
+      <div class="sec-eyebrow">LLM-бэкенды и архитектура</div>
+      <h2>Четыре сердца одного агента</h2>
+      <p class="sec-sub">Бэкенд переключается переменной окружения — цикл свайпов, InsightFace и LangGraph работают без изменений.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>🧠 LangGraph + Bandits</h3>
+          <p>Profiler, Strategist и Humanizer разбивают ответ на живые короткие сообщения без длинных тире, а Thompson Sampling отбирает лучшие промпты.</p>
+        </div>
+        <div class="card">
+          <h3>👁️ InsightFace + VLM</h3>
+          <p>Сверка лиц на всех снимках анкеты (защита от фейков) + извлечение деталей с фото для персонализированного первого сообщения.</p>
+        </div>
+        <div class="card">
+          <h3>📅 Google Calendar + Temporal</h3>
+          <p>Проверка свободных слотов в календаре, создание встречи и durable-воркеры Temporal для деликатного пинга при молчании 24 часа.</p>
+        </div>
+      </div>
+
+      <div class="cta-banner">
+        <p>перестаньте свайпать вслепую</p>
+        <a href="https://github.com/ssrjkk/twinby-swipe-bot" class="btn-primary">Открыть репозиторий &lt;3 →</a>
+      </div>
+    </section>
+
+    <footer>
+      <span>&lt;3 · ваши критерии. осмысленный выбор.</span>
+      <span><a href="https://github.com/ssrjkk/twinby-swipe-bot">GitHub ↗</a> · <a href="https://ssrjkk.github.io/">все проекты ↗</a></span>
+    </footer>
   </div>
-</section>
 
-<section id="agents">
-  <div class="kicker">LLM-шлюз</div>
-  <h2>Один интерфейс — разные модели</h2>
-  <p class="intro">OpenAI-совместимые endpoints и Anthropic Messages. URL, модель и ключ
-  нужно настроить явно; Gemini — только через совместимый endpoint.
-  Vision-провайдер device-слоя выбирается отдельно переменной AGENT.</p>
-  <div class="agents">
-    <div class="agent"><i>🧠</i><b>OpenAI-совместимые</b><span>openai · openrouter · deepseek · ollama</span></div>
-    <div class="agent"><i>⚡</i><b>Anthropic</b><span>x-api-key + версия API</span></div>
-    <div class="agent"><i>✨</i><b>Gemini</b><span>x-goog-api-key</span></div>
-    <div class="agent"><i>🛠️</i><b>Custom</b><span>свой заголовок и эндпоинт</span></div>
-  </div>
-</section>
-
-<section id="chat">
-  <div class="kicker">экспериментальные компоненты</div>
-  <h2>Модули, не автопилот</h2>
-  <p class="intro">Эти компоненты доступны отдельно: к мэтчам и рабочему циклу они
-  не подключены. Автоматической переписки, выбора айсбрейкеров и бронирования нет.</p>
-  <div class="steps">
-    <div class="step"><b class="n">1</b><h3>LangGraph</h3><p>profiler → strategist → humanizer: контекст анкеты, черновик и редактура. До двух проходов редактора; сообщения не отправляются.</p></div>
-    <div class="step"><b class="n">2</b><h3>Thompson Sampling</h3><p>Отдельный модуль выбора вариантов в Redis. Результаты нужно передавать явно: автоматического сбора обратной связи нет.</p></div>
-    <div class="step"><b class="n">3</b><h3>Google Calendar</h3><p>Явный вызов инструмента создаёт событие на 90 минут в вашем календаре. Нужен OAuth; интеграции с графом и мэтчами пока нет.</p></div>
-  </div>
-</section>
-
-<section id="platforms">
-  <div class="kicker">платформы</div>
-  <h2>28 спецификаций · три устройства</h2>
-  <p class="intro">Реестр описывает предполагаемые режимы 28 сервисов, но не подтверждает
-  их поддержку. Отдельные клиенты написаны для Twinby, Pure и Tabor; остальные
-  фабрика отклоняет. Живые API и UI-селекторы требуют проверки на вашем аккаунте.
-  Device-слой предназначен только для Twinby.</p>
-  <div class="platforms">
-    <span class="plat">10 · direct API — метаданные</span>
-    <span class="plat">12 · hybrid API + UI — метаданные</span>
-    <span class="plat">6 · UI-only — метаданные</span>
-    <span class="plat">🤖 Android · uiautomator2</span>
-    <span class="plat">📱 iPhone · Appium</span>
-    <span class="plat">💻 Mac · Appium</span>
-  </div>
-</section>
-
-<section class="final">
-  <div class="big">
-    <p>перестаньте свайпать вслепую</p>
-    <a class="btn solid" href="https://github.com/ssrjkk/twinby-swipe-bot">Открыть &lt;3 на GitHub →</a>
-  </div>
-</section>
-
-<footer>
-  <span>&lt;3 · ваши критерии. осмысленный выбор.</span>
-  <span><a href="https://github.com/ssrjkk/twinby-swipe-bot">GitHub ↗</a> · <a href="https://ssrjkk.github.io/">все проекты ↗</a></span>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
-<script>
-(function(){
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* пузыри фона */
-  var spots = [[8,14,120],[86,10,150],[4,64,90],[92,58,110],[70,82,70],[22,86,86],[55,6,66],[40,92,60]];
-  spots.forEach(function(s, i){
-    var b = document.createElement("div");
-    b.className = "bubble";
-    b.style.left = s[0] + "vw"; b.style.top = s[1] + "vh"; b.style.width = b.style.height = s[2] + "px";
-    document.body.appendChild(b);
-    if (!reduced && window.gsap){
-      gsap.to(b, {y:"+=" + (24 + i*7), x:"+=" + (i%2? 18 : -18), duration:5 + i*1.3, repeat:-1, yoyo:true, ease:"sine.inOut"});
+  <script>
+    const modeTexts = {
+      pure: `<strong>Алгоритм для Pure (Synthetic Vibe Score + TTL):</strong><br><br>
+        1. <strong>Мягкий Face-Gate:</strong> В Pure пользователи часто выкладывают атмосферные фото без лица или арт-снимки. Для Pure в реестре выставлено <code>requires_face_on_primary_photo = False</code> — бот не отсекает такие анкеты, но блокирует стоковый спам и рекламу.<br>
+        2. <strong>Синтетическая оценка (60% LLM + 40% VLM):</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM оценивает эстетику и вайб снимка.<br>
+        3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>vibe_score &ge; 70</code> бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.`,
+      rus: `<strong>Алгоритм для VK Знакомств, Мамбы, Табора, Фотостраны и ОК:</strong><br><br>
+        1. <strong>Антиспам-щит:</strong> Мгновенно отсекает рекламные анкеты, ссылки на сторонние каналы и ботов.<br>
+        2. <strong>InsightFace:</strong> Проверяет, что на всех фото один и тот же реальный человек (отсеиваются мемы, картинки из интернета и групповые фото).<br>
+        3. <strong>LLM Vibe Classifier:</strong> Вычисляет синтетический процент совместимости (0–100%) по описанию анкеты и интересам.`,
+      native: `<strong>Алгоритм для Twinby, Теамо, RusDate и OkCupid:</strong><br><br>
+        1. Платформа сама отдает базовый процент совместимости (например, <code>89%</code>).<br>
+        2. <strong>InsightFace + VLM</strong> проверяют подлинность фото и находят детали для первого сообщения.<br>
+        3. Итоговый скор = <code>50% нативный % + 30% VLM-детали фото + 20% совпадение ключевых слов</code>.`
+    };
+    function switchMode(key, btn) {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('mode-display').innerHTML = modeTexts[key];
     }
-  });
-
-  /* сердечки-акценты */
-  var hearts = [[14,30],[78,38],[30,70],[66,74]];
-  hearts.forEach(function(h, i){
-    var el = document.createElement("div");
-    el.className = "heart"; el.textContent = "💗";
-    el.style.left = h[0] + "vw"; el.style.top = h[1] + "vh"; el.style.fontSize = (14 + i*6) + "px";
-    document.body.appendChild(el);
-    if (!reduced && window.gsap){
-      gsap.to(el, {y:"-=30", scale:1.25, duration:3 + i*.7, repeat:-1, yoyo:true, ease:"sine.inOut", opacity:.75});
-    }
-  });
-
-  /* лопающиеся сердечки по клику */
-  document.addEventListener("click", function(e){
-    if (reduced || !window.gsap) return;
-    for (var i = 0; i < 6; i++){
-      var h = document.createElement("div");
-      h.className = "heart"; h.textContent = ["💗","💕","💖"][i%3];
-      h.style.left = e.clientX + "px"; h.style.top = e.clientY + "px";
-      h.style.fontSize = (12 + Math.random()*10) + "px"; h.style.zIndex = 9;
-      document.body.appendChild(h);
-      (function(node){
-        gsap.to(node, {x:(Math.random()-0.5)*140, y:(Math.random()-0.5)*140 - 40,
-          opacity:0, scale:1.6, duration:.9 + Math.random()*.4, ease:"power2.out",
-          onComplete:function(){ node.remove(); }});
-      })(h);
-    }
-  });
-
-  if (!window.gsap || !window.ScrollTrigger || reduced) return;
-  gsap.registerPlugin(ScrollTrigger);
-
-  gsap.from("header, .hero .tag, .hero h1, .hero p, .cta", {
-    duration:.9, y:26, opacity:0, stagger:.1, ease:"power2.out"
-  });
-  gsap.from(".candy .pill", {
-    duration:.8, scale:.5, opacity:0, stagger:.12, ease:"elastic.out(1,.6)",
-    scrollTrigger:{trigger:".candy", start:"top 80%", once:true}
-  });
-  gsap.utils.toArray("section").forEach(function(sec){
-    gsap.from(sec.querySelectorAll(".kicker, h2, p.intro"), {
-      duration:.8, y:24, opacity:0, stagger:.1, ease:"power2.out",
-      scrollTrigger:{trigger:sec, start:"top 72%", once:true}
-    });
-    var cards = sec.querySelectorAll(".step, .agent, .plat");
-    if (cards.length) gsap.from(cards, {
-      duration:.85, y:30, opacity:0, stagger:.11, ease:"back.out(1.5)",
-      scrollTrigger:{trigger:sec, start:"top 66%", once:true}
-    });
-  });
-  gsap.from(".final .big", {
-    duration:1, scale:.6, opacity:0, ease:"elastic.out(1,.5)",
-    scrollTrigger:{trigger:".final", start:"top 70%", once:true}
-  });
-})();
-</script>
+  </script>
 </body>
 </html>

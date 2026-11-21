@@ -1,21 +1,29 @@
 import asyncio
 import logging
-from contextlib import closing, suppress
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
+
 from aiogram import Bot
 from aiogram.types import BufferedInputFile
+
 from config import settings
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseBackupService:
-    def __init__(self, bot: Bot, db_path: str | Path, interval_hours: int = 24) -> None:
+    def __init__(
+        self,
+        bot: Bot | None,
+        db_path: str = "./data/heart3.db",
+        interval_hours: int = 24,
+        retention_count: int = 7,
+    ) -> None:
         self.bot = bot
         self.db_path = Path(db_path)
         self.interval_seconds = interval_hours * 3600
+        self.retention_count = retention_count
         self._is_running = False
         self._task: asyncio.Task[None] | None = None
 
@@ -30,56 +38,56 @@ class DatabaseBackupService:
         if self._task:
             self._task.cancel()
             try:
-                with suppress(asyncio.CancelledError):
-                    await self._task
-            finally:
-                self._task = None
+                await self._task
+            except asyncio.CancelledError:
+                pass
 
-    def _create_safe_backup_sync(self) -> Path:
-        source_path = self.db_path.resolve()
-        if not source_path.is_file():
-            raise FileNotFoundError(f"Backup source does not exist: {source_path}")
-        # mode=ro also prevents accidental creation if the source disappears
-        # between the existence check and opening the connection.
-        with closing(
-            sqlite3.connect(f"{source_path.as_uri()}?mode=ro", uri=True)
-        ) as src_conn:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
-            backup_dir = source_path.parent / "backups"
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            backup_path = backup_dir / f"heart3_backup_{timestamp}.db"
-            with closing(sqlite3.connect(backup_path)) as dst_conn:
-                with dst_conn:
-                    src_conn.backup(dst_conn)
+    def _rotate_old_backups(self, backup_dir: Path) -> None:
+        backups = sorted(backup_dir.glob("heart3_backup_*.db"), key=lambda p: p.stat().st_mtime, reverse=True)
+        for stale in backups[self.retention_count :]:
+            try:
+                stale.unlink()
+            except OSError:
+                pass
+
+    def create_safe_backup_sync(self) -> Path | None:
+        if not self.db_path.exists():
+            logger.warning("Файл БД %s ещё не создан — пропуск бэкапа.", self.db_path)
+            return None
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        backup_dir = self.db_path.parent / "backups"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup_path = backup_dir / f"heart3_backup_{timestamp}.db"
+
+        src_conn = sqlite3.connect(self.db_path)
+        dst_conn = sqlite3.connect(backup_path)
+        try:
+            with dst_conn:
+                src_conn.backup(dst_conn)
+        finally:
+            src_conn.close()
+            dst_conn.close()
+
+        self._rotate_old_backups(backup_dir)
         return backup_path
 
     async def _loop(self) -> None:
         await asyncio.sleep(60)
         while self._is_running:
             try:
-                backup_task = asyncio.create_task(
-                    asyncio.to_thread(self._create_safe_backup_sync)
-                )
-                try:
-                    backup_file = await asyncio.shield(backup_task)
-                except asyncio.CancelledError:
-                    # A thread cannot be cancelled: wait for it to close both
-                    # SQLite connections before allowing stop() to finish.
-                    try:
-                        await backup_task
-                    except Exception:
-                        logger.exception("Backup failed during shutdown")
-                    raise
-                file_bytes = backup_file.read_bytes()
-                document = BufferedInputFile(file_bytes, filename=backup_file.name)
-                await self.bot.send_document(
-                    chat_id=settings.tg_admin_id,
-                    document=document,
-                    caption=f"📦 Database Backup ({datetime.now(timezone.utc).isoformat()})",
-                    parse_mode="HTML",
-                )
+                backup_file = await asyncio.to_thread(self.create_safe_backup_sync)
+                if backup_file and self.bot and settings.tg_admin_id:
+                    file_bytes = backup_file.read_bytes()
+                    document = BufferedInputFile(file_bytes, filename=backup_file.name)
+                    await self.bot.send_document(
+                        chat_id=settings.tg_admin_id,
+                        document=document,
+                        caption=f"📦 <b>&lt;3 Backup</b> ({datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')})",
+                        parse_mode="HTML",
+                    )
             except asyncio.CancelledError:
                 break
-            except Exception as e:
-                logger.error(f"Backup error: {e}")
+            except Exception as exc:
+                logger.exception("Ошибка бэкапа БД: %s", exc)
             await asyncio.sleep(self.interval_seconds)

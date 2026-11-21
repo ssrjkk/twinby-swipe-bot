@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;3 — AI Matchmaking Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fffbfc;
+      --surface: rgba(255, 255, 255, 0.78);
+      --text: #1c1015;
+      --muted: #6e5660;
+      --rose: #e11d48;
+      --rose-soft: #ffe4e6;
+      --rose-border: rgba(225, 29, 72, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Оригинальные розовые пузыри (плавающие сферы + глянцевые розовые пузырьки на фоне) */
+    .blobs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      animation: floatOrb 15s ease-in-out infinite alternate;
+    }
+    /* Мягкие розовые облака-пузыри */
+    .blob-1 {
+      width: 480px; height: 480px;
+      top: -110px; left: -90px;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 182, 193, 0.9), rgba(244, 63, 94, 0.28) 65%, transparent 100%);
+      filter: blur(45px);
+    }
+    .blob-2 {
+      width: 540px; height: 540px;
+      top: 16%; right: -140px;
+      background: radial-gradient(circle at 40% 40%, rgba(251, 207, 232, 0.95), rgba(225, 29, 72, 0.22) 68%, transparent 100%);
+      filter: blur(50px);
+      animation-delay: -5s;
+    }
+    .blob-3 {
+      width: 420px; height: 420px;
+      bottom: -90px; left: 15%;
+      background: radial-gradient(circle at 30% 30%, rgba(254, 205, 211, 0.9), rgba(244, 63, 94, 0.25) 70%, transparent 100%);
+      filter: blur(45px);
+      animation-delay: -9s;
+    }
+    /* Выраженные полупрозрачные розовые пузыри с бликом */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 192, 203, 0.55) 28%, rgba(244, 63, 94, 0.22) 72%, rgba(225, 29, 72, 0.08) 100%);
+      box-shadow: inset -8px -8px 20px rgba(225, 29, 72, 0.14), inset 6px 6px 14px rgba(255, 255, 255, 0.85), 0 12px 30px rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      animation: riseBubble 18s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 130px; height: 130px; top: 14%; left: 11%; animation-duration: 13s; }
+    .orb-2 { width: 84px; height: 84px; top: 28%; right: 14%; animation-duration: 16s; animation-delay: -3s; }
+    .orb-3 { width: 165px; height: 165px; top: 58%; right: 7%; animation-duration: 20s; animation-delay: -7s; }
+    .orb-4 { width: 64px; height: 64px; top: 46%; left: 6%; animation-duration: 12s; animation-delay: -2s; }
+    .orb-5 { width: 110px; height: 110px; bottom: 12%; left: 32%; animation-duration: 17s; animation-delay: -6s; }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(32px, -38px) scale(1.07); }
+    }
+    @keyframes riseBubble {
+      0% { transform: translateY(0px) translateX(0px) scale(1); }
+      50% { transform: translateY(-28px) translateX(14px) scale(1.04); }
+      100% { transform: translateY(18px) translateX(-12px) scale(0.97); }
+    }
+
+    .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--rose-border);
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .logo i { font-style: normal; }
+    nav { display: flex; gap: 24px; }
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--rose); }
+    .gh-link {
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--rose);
+      background: var(--rose-soft);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--rose-border);
+      transition: all 0.2s;
+    }
+    .gh-link:hover { background: var(--rose); color: #fff; }
+
+    .hero {
+      text-align: center;
+      padding: 80px 0 48px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--rose);
+      background: var(--rose-soft);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--rose-border);
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(2.6rem, 5vw, 4.1rem);
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+    h1 em {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rose);
+      font-size: 1.14em;
+    }
+    .hero p {
+      font-size: 1.08rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--rose);
+      color: #fff;
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35);
+      transition: transform 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+      padding: 13px 28px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid var(--rose-border);
+      backdrop-filter: blur(12px);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin: 20px 0 64px;
+    }
+    .stat-card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--rose-border);
+      border-radius: 22px;
+      padding: 22px;
+      text-align: center;
+    }
+    .stat-card b { display: block; font-size: 1.9rem; color: var(--rose); line-height: 1.1; margin-bottom: 6px; }
+    .stat-card span { font-size: 0.85rem; color: var(--muted); }
+
+    section { padding: 52px 0; }
+    .sec-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--rose);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    h2 { font-size: 2rem; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .sec-sub { color: var(--muted); max-width: 680px; margin-bottom: 32px; }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--rose-border);
+      border-radius: 24px;
+      padding: 26px;
+    }
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--rose-soft);
+      color: var(--rose);
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .card p { font-size: 0.92rem; color: var(--muted); }
+
+    /* Pure & No-Score Mode Selector */
+    .mode-box {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--rose-border);
+      border-radius: 26px;
+      padding: 28px;
+    }
+    .mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .mode-btn {
+      border: 1px solid var(--rose-border);
+      background: #fff;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .mode-btn.active { background: var(--rose); color: #fff; border-color: var(--rose); }
+    .mode-content {
+      background: #fff;
+      border: 1px solid var(--rose-border);
+      border-radius: 18px;
+      padding: 22px;
+      font-size: 0.92rem;
+    }
+    .mode-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: var(--rose-soft);
+      color: var(--rose);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    /* Full Table of Russian + Global Dating Apps */
+    .table-card {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--rose-border);
+      border-radius: 24px;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.86rem; }
+    th, td { padding: 13px 16px; border-bottom: 1px solid var(--rose-border); vertical-align: top; }
+    th { background: rgba(255, 228, 230, 0.55); font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .drv {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      font-weight: 600;
+    }
+    .drv-api { background: #dcfce7; color: #166534; }
+    .drv-hybrid { background: #fef3c7; color: #92400e; }
+    .drv-ui { background: #ffe4e6; color: #9f1239; }
+
+    .cta-banner {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--rose-border);
+      border-radius: 26px;
+      padding: 40px 28px;
+      text-align: center;
+      margin-top: 32px;
+    }
+    .cta-banner p {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-size: 1.9rem;
+      margin-bottom: 18px;
+    }
+
+    footer {
+      border-top: 1px solid var(--rose-border);
+      padding: 32px 0;
+      margin-top: 48px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <!-- Плавающие розовые пузыри -->
+  <div class="blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="orb orb-5"></div>
+  </div>
+
+  <div class="container">
+    <header>
+      <a href="#" class="logo"><i>💌</i> &lt;3</a>
+      <nav>
+        <a href="#how">как работает</a>
+        <a href="#pure">как ищет в Pure</a>
+        <a href="#platforms">все дейтинги</a>
+        <a href="#agents">агенты</a>
+      </nav>
+      <a href="https://github.com/ssrjkk/twinby-swipe-bot" class="gh-link">GitHub ↗</a>
+    </header>
+
+    <div class="hero">
+      <span class="tag">&lt;3 · ai matchmaking agent</span>
+      <h1>Ваши критерии.<br><em>Осмысленный</em> выбор.</h1>
+      <p>&lt;3 смотрит на анкету вашими глазами во всех дейтинг-приложениях России и мира: проверяет фото через InsightFace, вычисляет AI-совместимость даже без встроенных процентов (Pure, Tinder, VK, Мамба), ведет переписку через LangGraph и бронирует встречу в Google Calendar.</p>
+      <div class="actions">
+        <a href="/dashboard" class="btn-primary">Открыть Control Panel</a>
+        <a href="#platforms" class="btn-secondary">Все 28 платформ</a>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><b>UI-Vision</b><span>рабочий контур: ADB / Appium + VLM</span></div>
+      <div class="stat-card"><b>4</b><span>LLM-бэкенда: Claude · OpenAI · Gemini · Local</span></div>
+      <div class="stat-card"><b>API + UI</b><span>curl_cffi TLS-стелс + Appium/uiautomator2</span></div>
+      <div class="stat-card"><b>InsightFace</b><span>сверка лиц + VLM-детали для icebreakers</span></div>
+    </div>
+
+    <section id="how">
+      <div class="sec-eyebrow">как это работает</div>
+      <h2>Три шага до осмысленного лайка</h2>
+      <p class="sec-sub">Агент видит анкету как человек: фото, bio, ваши критерии — и возвращает решение с объяснением. Сомневается или видит фейк — пропускает.</p>
+      <div class="grid-3">
+        <div class="card">
+          <div class="step-badge">1</div>
+          <h3>Смотрит</h3>
+          <p>Гибридный драйвер открывает анкету (через stealth-API или Appium UI), сверяет лица на всех фото через InsightFace и извлекает визуальные детали через VLM.</p>
+        </div>
+        <div class="card">
+          <div class="step-badge">2</div>
+          <h3>Решает</h3>
+          <p>Если приложение не дает % совместимости (Pure, Tinder, VK, Мамба), LLM + VLM вычисляют синтетический Vibe Score (0–100%). Уверенность выше порога — лайк.</p>
+        </div>
+        <div class="card">
+          <div class="step-badge">3</div>
+          <h3>Действует</h3>
+          <p>Свайп с человеческим темпом (Гаусс + кривая Безье), живой диалог в LangGraph без ИИ-штампов и авто-бронирование слота в Google Calendar.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pure">
+      <div class="sec-eyebrow">механика скоринга</div>
+      <h2>Как &lt;3 ищет мэтч в Pure и Tinder, где нет процентов совместимости</h2>
+      <p class="sec-sub">В Twinby или Теамо процент совместимости отдает сам бэкенд. В анонимном Pure или классическом Tinder этого числа нет — поэтому &lt;3 включает собственный конвейер оценки.</p>
+
+      <div class="mode-box">
+        <div class="mode-tabs">
+          <button class="mode-btn active" onclick="switchMode('pure', this)">Pure (нет % и часто нет лица)</button>
+          <button class="mode-btn" onclick="switchMode('rus', this)">VK Знакомства / Мамба / Табор / ДругВокруг</button>
+          <button class="mode-btn" onclick="switchMode('native', this)">Twinby / Теамо / OkCupid (есть %)</button>
+        </div>
+        <div class="mode-content" id="mode-display">
+          <strong>Алгоритм для Pure (Synthetic Vibe Score + TTL):</strong><br><br>
+          1. <strong>Мягкий Face-Gate:</strong> В Pure пользователи часто выкладывают атмосферные фото без лица или арт-снимки. Для Pure в реестре выставлено <code>requires_face_on_primary_photo = False</code> — бот не отсекает такие анкеты, но блокирует стоковый спам и рекламу.<br>
+          2. <strong>Синтетическая оценка (60% LLM + 40% VLM):</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM оценивает эстетику и вайб снимка.<br>
+          3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>vibe_score &ge; 70</code> бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.
+        </div>
+      </div>
+    </section>
+
+    <section id="platforms">
+      <div class="sec-eyebrow">честный технический аудит</div>
+      <h2>Честный статус платформ: UI-Vision, API и Roadmap</h2>
+      <p class="sec-sub">Нельзя просто дергать приватный API у приложений с Apple App Attest или Google Play Integrity — аккаунт улетит в бан за секунду. Универсальный режим <b>UI-Vision (ADB/Appium + VLM)</b> работает на Twinby и любом приложении на экране телефона, а прямые API-клиенты (Twinby/Pure/Tabor) отмечены как экспериментальные до сверки с живым трафиком.</p>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Регион</th>
+              <th>Приложение</th>
+              <th>Режим работы</th>
+              <th>Технический вердикт и защита от банов</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>🇷🇺 РФ</td><td><strong>Twinby</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td><code>curl_cffi</code> TLS-спуфинг iOS + нативный % психологической совместимости.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>VK Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Авторизация через <code>vk_sign</code> мини-приложения + AI Vibe Score.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Mamba (Мамба)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST + WebSocket; антиспам-фильтр ссылок и лимиты на симпатии.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Tabor (Табор)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Мобильные токен-сессии, поиск по городам РФ + InsightFace.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>LovePlanet</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST API ленты и сообщений + LLM-фильтр ботов.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Фотострана</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>API раздела «Встречи» + Playwright при срабатывании капчи.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Beboo / Kismia</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Эмуляция мобильного веб-клиента через <code>curl_cffi</code> с RU-прокси.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>ДругВокруг</strong></td><td><span class="drv drv-hybrid">UI-Vision Ready</span></td><td>Собственный сокет-протокол; свайпы и анкеты через гибридный драйвер.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Теамо / RusDate</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Психологическое тестирование — есть встроенный процент совместимости.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>ОК Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Интеграция через API мини-приложений Одноклассников + AI-скоринг.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>LinkYou / SkyLove / JuliaDates</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Нишевые сервисы (по профессии/интересам); LLM учитывает контекст профиля.</td></tr>
+            <tr><td>🇷🇺 РФ</td><td><strong>Vox (голосовой)</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>Анонимный голосовой формат без фото на старте -> только Appium UI.</td></tr>
+            <tr><td>🌍 Мир</td><td><strong>Pure</strong></td><td><span class="drv drv-hybrid">UI-Vision · API Exp</span></td><td>Нет % и часто нет лица -> Synthetic Vibe Score (LLM + VLM) + быстрый чат.</td></tr>
+            <tr><td>🇺🇸🇪🇺 Мир</td><td><strong>Tinder / Badoo</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>Cloudflare / X-Pingback обходятся через <code>curl_cffi</code> + sticky гео-прокси.</td></tr>
+            <tr><td>🇺🇸🇪🇺 США/ЕС</td><td><strong>Bumble / Hinge / Happn</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>App Attest / Play Integrity / Akamai -> безопасный свайп по дуге Безье в Appium.</td></tr>
+            <tr><td>🇺🇸🇪🇺 США/ЕС</td><td><strong>OkCupid / Feeld / CMB / Grindr</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>В OkCupid есть нативный %; в Feeld и CMB используется AI Vibe Score.</td></tr>
+            <tr><td>🇨🇳🇯🇵🇰🇷 Азия</td><td><strong>Tantan / Pairs / Wippy</strong></td><td><span class="drv drv-ui">UI-Vision + Proxy</span></td><td>Резидентские IP Японии/Кореи/Китая + авто-ведение диалога на языке региона.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="agents">
+      <div class="sec-eyebrow">LLM-бэкенды и архитектура</div>
+      <h2>Четыре сердца одного агента</h2>
+      <p class="sec-sub">Бэкенд переключается переменной окружения — цикл свайпов, InsightFace и LangGraph работают без изменений.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>🧠 LangGraph + Bandits</h3>
+          <p>Profiler, Strategist и Humanizer разбивают ответ на живые короткие сообщения без длинных тире, а Thompson Sampling отбирает лучшие промпты.</p>
+        </div>
+        <div class="card">
+          <h3>👁️ InsightFace + VLM</h3>
+          <p>Сверка лиц на всех снимках анкеты (защита от фейков) + извлечение деталей с фото для персонализированного первого сообщения.</p>
+        </div>
+        <div class="card">
+          <h3>📅 Google Calendar + Temporal</h3>
+          <p>Проверка свободных слотов в календаре, создание встречи и durable-воркеры Temporal для деликатного пинга при молчании 24 часа.</p>
+        </div>
+      </div>
+
+      <div class="cta-banner">
+        <p>перестаньте свайпать вслепую</p>
+        <a href="https://github.com/ssrjkk/twinby-swipe-bot" class="btn-primary">Открыть репозиторий &lt;3 →</a>
+      </div>
+    </section>
+
+    <footer>
+      <span>&lt;3 · ваши критерии. осмысленный выбор.</span>
+      <span><a href="https://github.com/ssrjkk/twinby-swipe-bot">GitHub ↗</a> · <a href="https://ssrjkk.github.io/">все проекты ↗</a></span>
+    </footer>
+  </div>
+
+  <script>
+    const modeTexts = {
+      pure: `<strong>Алгоритм для Pure (Synthetic Vibe Score + TTL):</strong><br><br>
+        1. <strong>Мягкий Face-Gate:</strong> В Pure пользователи часто выкладывают атмосферные фото без лица или арт-снимки. Для Pure в реестре выставлено <code>requires_face_on_primary_photo = False</code> — бот не отсекает такие анкеты, но блокирует стоковый спам и рекламу.<br>
+        2. <strong>Синтетическая оценка (60% LLM + 40% VLM):</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM оценивает эстетику и вайб снимка.<br>
+        3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>vibe_score &ge; 70</code> бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.`,
+      rus: `<strong>Алгоритм для VK Знакомств, Мамбы, Табора, Фотостраны и ОК:</strong><br><br>
+        1. <strong>Антиспам-щит:</strong> Мгновенно отсекает рекламные анкеты, ссылки на сторонние каналы и ботов.<br>
+        2. <strong>InsightFace:</strong> Проверяет, что на всех фото один и тот же реальный человек (отсеиваются мемы, картинки из интернета и групповые фото).<br>
+        3. <strong>LLM Vibe Classifier:</strong> Вычисляет синтетический процент совместимости (0–100%) по описанию анкеты и интересам.`,
+      native: `<strong>Алгоритм для Twinby, Теамо, RusDate и OkCupid:</strong><br><br>
+        1. Платформа сама отдает базовый процент совместимости (например, <code>89%</code>).<br>
+        2. <strong>InsightFace + VLM</strong> проверяют подлинность фото и находят детали для первого сообщения.<br>
+        3. Итоговый скор = <code>50% нативный % + 30% VLM-детали фото + 20% совпадение ключевых слов</code>.`
+    };
+    function switchMode(key, btn) {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('mode-display').innerHTML = modeTexts[key];
+    }
+  </script>
+</body>
+</html>

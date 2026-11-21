@@ -1,13 +1,11 @@
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 
 
-class AutomationDriverType(StrEnum):
-    DIRECT_API = "direct_api"  # Прямой HTTP/2 API через curl_cffi
-    HYBRID_API_UI = (
-        "hybrid_api_ui"  # API для ленты + Appium/Playwright для токенов, сессий и капч
-    )
-    UI_DRIVER_ONLY = "ui_driver_only"  # Строгий App Attest / Play Integrity / Akamai -> только Appium/uiautomator2
+class AutomationDriverType(str, Enum):
+    DIRECT_API = "direct_api"
+    HYBRID_API_UI = "hybrid_api_ui"
+    UI_DRIVER_ONLY = "ui_driver_only"
 
 
 @dataclass(frozen=True)
@@ -20,10 +18,13 @@ class PlatformSpec:
     requires_face_on_primary_photo: bool
     api_base_url: str
     anti_bot_notes: str
+    android_package: str = ""
+    ios_bundle_id: str = ""
+    web_url: str = ""
 
 
 GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
-    # ================= РОССИЯ И СНГ (ВСЕ ДЕЙТИНГ-СЕРВИСЫ) =================
+    # ================= РОССИЯ И СНГ (16 ПЛАТФОРМ) =================
     "twinby": PlatformSpec(
         id="twinby",
         name="Twinby",
@@ -32,7 +33,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=True,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.twinby.com/v1",
-        anti_bot_notes="TLS-спуфинг iOS Safari (curl_cffi) + авто-рефреш JWT + нативный % совместимости.",
+        anti_bot_notes="UI-Vision (ADB/Appium + VLM) работает сразу; для MODE=api экспортируйте HAR-профиль.",
+        android_package="com.twinby.app",
+        ios_bundle_id="com.twinby.app",
+        web_url="https://twinby.com/",
     ),
     "vk_dating": PlatformSpec(
         id="vk_dating",
@@ -42,7 +46,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://dating.vk-apps.com/api/v1",
-        anti_bot_notes="Mini-App API с подписью X-VK-Sign; совместимость вычисляет SyntheticCompatibilityScorer.",
+        anti_bot_notes="Web-Vision (Playwright) или UI-Vision; совместимость вычисляет VLM/SyntheticScorer.",
+        android_package="com.vkontakte.android",
+        ios_bundle_id="com.vk.vkclient",
+        web_url="https://vk.com/dating",
     ),
     "ok_dating": PlatformSpec(
         id="ok_dating",
@@ -52,7 +59,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.ok.ru/fb.do",
-        anti_bot_notes="Mini-App API Одноклассников; высокая активность аудитории 25–45+.",
+        anti_bot_notes="Web-Vision (Playwright) или UI-Vision; аудитория 25-45+.",
+        android_package="ru.ok.android",
+        ios_bundle_id="ru.odnoklassniki.iphone",
+        web_url="https://ok.ru/dating",
     ),
     "mamba": PlatformSpec(
         id="mamba",
@@ -62,7 +72,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.mamba.ru/v2",
-        anti_bot_notes="REST + WebSocket; жесткий антиспам на ссылки в первых сообщениях и лимиты на симпатии.",
+        anti_bot_notes="Web-Vision (Playwright) и UI-Vision; антиспам-фильтр ссылок.",
+        android_package="ru.mamba.client",
+        ios_bundle_id="ru.mamba.mamba",
+        web_url="https://www.mamba.ru/rating",
     ),
     "tabor": PlatformSpec(
         id="tabor",
@@ -72,7 +85,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://tabor.ru/api/v1",
-        anti_bot_notes="Мобильные сессионные куки/токены; высокий трафик в регионах РФ.",
+        anti_bot_notes="Web-Vision и UI-Vision; высокий трафик в регионах РФ.",
+        android_package="ru.tabor.app",
+        ios_bundle_id="ru.tabor.app",
+        web_url="https://tabor.ru/encounters",
     ),
     "loveplanet": PlatformSpec(
         id="loveplanet",
@@ -82,7 +98,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://loveplanet.ru/api",
-        anti_bot_notes="Классический REST API поиска анкет по городам; требуется фильтрация ботов.",
+        anti_bot_notes="Web-Vision и UI-Vision; фильтрация ботов через VLM/LLM.",
+        android_package="ru.loveplanet.app",
+        ios_bundle_id="ru.loveplanet.app",
+        web_url="https://loveplanet.ru/",
     ),
     "fotostrana": PlatformSpec(
         id="fotostrana",
@@ -92,7 +111,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://fotostrana.ru/api",
-        anti_bot_notes="Веб/мобильный API «Встречи» (свайпы); при капче переключается на Playwright.",
+        anti_bot_notes="Web-Vision (Playwright) для раздела «Встречи».",
+        android_package="ru.fotostrana.app",
+        ios_bundle_id="ru.fotostrana.app",
+        web_url="https://fotostrana.ru/meeting/",
     ),
     "beboo": PlatformSpec(
         id="beboo",
@@ -102,7 +124,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://beboo.ru/api",
-        anti_bot_notes="Веб-ориентированный API с сессионными куками и RU-прокси.",
+        anti_bot_notes="Web-Vision (Playwright) с RU-прокси.",
+        android_package="ru.beboo.app",
+        ios_bundle_id="ru.beboo.app",
+        web_url="https://beboo.ru/",
     ),
     "kismia": PlatformSpec(
         id="kismia",
@@ -112,7 +137,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://kismia.com/api/v1",
-        anti_bot_notes="Сервис серьезных знакомств в СНГ; гибридная работа через curl_cffi + Playwright.",
+        anti_bot_notes="Web-Vision (Playwright) + AI Vibe Score.",
+        android_package="com.kismia.android",
+        ios_bundle_id="com.kismia.ios",
+        web_url="https://kismia.com/matches",
     ),
     "drugvokrug": PlatformSpec(
         id="drugvokrug",
@@ -122,7 +150,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://drugvokrug.ru/api",
-        anti_bot_notes="Собственный сокет-протокол сообщений; рекомендуется гибридный драйвер с Appium.",
+        anti_bot_notes="UI-Vision (ADB/Appium) из-за собственного сокет-протокола.",
+        android_package="ru.drugvokrug",
+        ios_bundle_id="ru.drugvokrug",
+        web_url="https://drugvokrug.ru/",
     ),
     "teamo": PlatformSpec(
         id="teamo",
@@ -132,7 +163,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=True,
         requires_face_on_primary_photo=True,
         api_base_url="https://teamo.ru/api/v1",
-        anti_bot_notes="Психологический подбор с нативным индексом совместимости.",
+        anti_bot_notes="Психологический подбор с нативным % совместимости (Web-Vision / HAR API).",
+        android_package="ru.teamo.app",
+        ios_bundle_id="ru.teamo.app",
+        web_url="https://teamo.ru/",
     ),
     "rusdate": PlatformSpec(
         id="rusdate",
@@ -142,7 +176,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=True,
         requires_face_on_primary_photo=True,
         api_base_url="https://rusdate.net/api",
-        anti_bot_notes="Русскоязычный дейтинг по всему миру; есть процент совместимости по опроснику.",
+        anti_bot_notes="Web-Vision / UI-Vision; нативный % совместимости.",
+        android_package="net.rusdate.app",
+        ios_bundle_id="net.rusdate.app",
+        web_url="https://rusdate.net/",
     ),
     "linkyou": PlatformSpec(
         id="linkyou",
@@ -152,7 +189,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://linkyou.ru/api/v1",
-        anti_bot_notes="Подбор по профессии и образованию; LLM учитывает карьерный контекст в скоринге.",
+        anti_bot_notes="Подбор по профессии; Web-Vision + LLM карьерный контекст.",
+        android_package="ru.linkyou.app",
+        ios_bundle_id="ru.linkyou.app",
+        web_url="https://linkyou.ru/",
     ),
     "skylove": PlatformSpec(
         id="skylove",
@@ -162,7 +202,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://skylove.ru/api",
-        anti_bot_notes="Мобильный сервис знакомств; работает через гибридный API/Appium адаптер.",
+        anti_bot_notes="UI-Vision (ADB/Appium) или Web-Vision.",
+        android_package="com.skylove.app",
+        ios_bundle_id="com.skylove.app",
+        web_url="https://skylove.ru/",
     ),
     "juliadates": PlatformSpec(
         id="juliadates",
@@ -172,7 +215,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://juliadates.com/api",
-        anti_bot_notes="Веб-ориентированный REST API с антибот-защитой Cloudflare.",
+        anti_bot_notes="Web-Vision (Playwright) обходит Cloudflare.",
+        android_package="com.juliadates.app",
+        ios_bundle_id="com.juliadates.app",
+        web_url="https://juliadates.com/",
     ),
     "vox": PlatformSpec(
         id="vox",
@@ -182,9 +228,13 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=False,
         api_base_url="https://voxapp.ru/api",
-        anti_bot_notes="Анонимный голосовой формат без фото на старте -> работает через Appium UI-драйвер.",
+        anti_bot_notes="Голосовой формат без классических фото-карточек (ограниченная визуальная поддержка).",
+        android_package="ru.voxapp.android",
+        ios_bundle_id="ru.voxapp.ios",
+        web_url="https://voxapp.ru/",
     ),
-    # ================= АНОНИМНЫЕ И НИШЕВЫЕ (РФ + МИР) =================
+
+    # ================= АНОНИМНЫЕ И НИШЕВЫЕ =================
     "pure": PlatformSpec(
         id="pure",
         name="Pure",
@@ -193,7 +243,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=False,
         api_base_url="https://pure.dating/api/v2",
-        anti_bot_notes="Нет % совместимости и часто нет лица -> SyntheticCompatibilityScorer (LLM + VLM).",
+        anti_bot_notes="Soft Face-Gate + Synthetic Vibe Score + детекция FLAG_SECURE.",
+        android_package="com.getpure.pure",
+        ios_bundle_id="com.getpure.pure",
+        web_url="https://pure.app/",
     ),
     "feeld": PlatformSpec(
         id="feeld",
@@ -203,9 +256,13 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=False,
         api_base_url="https://api.feeld.co",
-        anti_bot_notes="GraphQL API с жесткой привязкой к устройству; безопаснее свайпать через Appium.",
+        anti_bot_notes="UI-Vision (ADB/Appium) + Soft Face-Gate.",
+        android_package="co.feeld",
+        ios_bundle_id="co.feeld.app",
+        web_url="https://feeld.co/",
     ),
-    # ================= США, ЕВРОПА И ЛАТАМ =================
+
+    # ================= США, ЕВРОПА И МИР =================
     "tinder": PlatformSpec(
         id="tinder",
         name="Tinder",
@@ -214,7 +271,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.gotinder.com/v2",
-        anti_bot_notes="Cloudflare + Device Check; API свайпы через curl_cffi, капча и логин через Appium.",
+        anti_bot_notes="Web-Vision (tinder.com) или UI-Vision (ADB/Appium) с VLM-граундингом кнопок.",
+        android_package="com.tinder",
+        ios_bundle_id="com.cardify.tinder",
+        web_url="https://tinder.com/app/recs",
     ),
     "badoo": PlatformSpec(
         id="badoo",
@@ -224,7 +284,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://badoo.com/api/rest.phtml",
-        anti_bot_notes="JSON-RPC протокол с подписью X-Pingback и проверкой репутации IP.",
+        anti_bot_notes="Web-Vision (badoo.com/encounters) или UI-Vision.",
+        android_package="com.badoo.mobile",
+        ios_bundle_id="com.badoo.Badoo",
+        web_url="https://badoo.com/encounters",
     ),
     "bumble": PlatformSpec(
         id="bumble",
@@ -234,7 +297,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://bumble.com/mwebapi.phtml",
-        anti_bot_notes="Akamai Bot Manager + контроль паттернов свайпов -> только Appium/Playwright драйвер.",
+        anti_bot_notes="Web-Vision (bumble.com/app) или UI-Vision (Appium/ADB) — обходит Akamai.",
+        android_package="com.bumble.app",
+        ios_bundle_id="com.bumble.app",
+        web_url="https://bumble.com/app",
     ),
     "hinge": PlatformSpec(
         id="hinge",
@@ -244,7 +310,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://prod-api.hingeaws.net",
-        anti_bot_notes="Apple App Attest / Play Integrity -> прямые API-запросы банятся, нужен UI-драйвер.",
+        anti_bot_notes="App Attest / Play Integrity -> только UI-Vision с VLM-тапом по кнопке лайка.",
+        android_package="co.hinge.app",
+        ios_bundle_id="co.hinge.mobile.ios",
+        web_url="https://hinge.co/",
     ),
     "okcupid": PlatformSpec(
         id="okcupid",
@@ -254,7 +323,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=True,
         requires_face_on_primary_photo=True,
         api_base_url="https://www.okcupid.com/1/apitun",
-        anti_bot_notes="Отдает нативный Match % по ответам на вопросы анкеты.",
+        anti_bot_notes="Нативный Match %; Web-Vision (okcupid.com/discover) или HAR API.",
+        android_package="com.okcupid.okcupid",
+        ios_bundle_id="com.okcupid.app",
+        web_url="https://www.okcupid.com/discover",
     ),
     "happn": PlatformSpec(
         id="happn",
@@ -264,7 +336,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.happn.fr/api/v1",
-        anti_bot_notes="Геолокационные пересечения (crossings); требуется спуфинг координат.",
+        anti_bot_notes="UI-Vision (ADB/Appium).",
+        android_package="com.ftw_and_co.happn",
+        ios_bundle_id="com.ftw-and-co.happn",
+        web_url="https://www.happn.com/",
     ),
     "lovoo": PlatformSpec(
         id="lovoo",
@@ -274,8 +349,12 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.lovoo.com/v1",
-        anti_bot_notes="Популярен в Германии/Австрии/Швейцарии; требуется EU резидентский прокси.",
+        anti_bot_notes="Web-Vision или UI-Vision с EU-прокси.",
+        android_package="net.lovoo.android",
+        ios_bundle_id="net.lovoo.ios",
+        web_url="https://www.lovoo.com/match",
     ),
+
     # ================= ВОСТОЧНАЯ АЗИЯ =================
     "tantan": PlatformSpec(
         id="tantan",
@@ -285,7 +364,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.tantanapp.com/v2",
-        anti_bot_notes="Лидер Китая и ЮВА; обязательны азиатские прокси и локаль zh-Hans.",
+        anti_bot_notes="UI-Vision + азиатский прокси.",
+        android_package="com.p1.mobile.putong",
+        ios_bundle_id="com.p1.mobile.putong",
+        web_url="https://tantanapp.com/",
     ),
     "pairs": PlatformSpec(
         id="pairs",
@@ -295,7 +377,10 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.pairs.lv/v2",
-        anti_bot_notes="Лидер Японии; строгий антифрод и KYC -> только UI-драйвер с японским IP.",
+        anti_bot_notes="Web-Vision (pairs.lv) или UI-Vision с японским IP.",
+        android_package="jp.eure.android.pairs",
+        ios_bundle_id="jp.eure.pairs",
+        web_url="https://pairs.lv/",
     ),
     "wippy": PlatformSpec(
         id="wippy",
@@ -305,6 +390,18 @@ GLOBAL_DATING_REGISTRY: dict[str, PlatformSpec] = {
         has_native_compatibility=False,
         requires_face_on_primary_photo=True,
         api_base_url="https://api.wippy.io",
-        anti_bot_notes="Популярный дейтинг в Южной Корее; автоматизация через Appium.",
+        anti_bot_notes="UI-Vision (ADB/Appium) с корейским IP.",
+        android_package="com.nrise.wippy",
+        ios_bundle_id="com.nrise.wippy",
+        web_url="https://wippy.io/",
     ),
 }
+
+
+def resolve_platform_defaults(platform_id: str, device_os: str = "Android") -> tuple[str, str]:
+    """Возвращает (app_package_or_bundle, web_url) для любой платформы из реестра."""
+    spec = GLOBAL_DATING_REGISTRY.get(platform_id.lower().strip())
+    if not spec:
+        return ("com.twinby.app", "https://www.mamba.ru/rating")
+    pkg = spec.ios_bundle_id if device_os.lower() == "ios" else spec.android_package
+    return (pkg or "com.twinby.app", spec.web_url or "https://www.mamba.ru/rating")

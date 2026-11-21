@@ -2,7 +2,6 @@ import json
 from typing import Any
 from fastapi import WebSocket
 
-
 class RealtimeEventBus:
     def __init__(self) -> None:
         self._connections: set[WebSocket] = set()
@@ -15,14 +14,12 @@ class RealtimeEventBus:
         self._connections.discard(websocket)
 
     async def publish(self, event_type: str, payload: dict[str, Any]) -> None:
-        if not self._connections:
-            return
+        if not self._connections: return
         msg = json.dumps({"type": event_type, "data": payload}, ensure_ascii=False)
         for ws in list(self._connections):
             try:
                 await ws.send_text(msg)
             except Exception:
                 self._connections.discard(ws)
-
 
 event_bus = RealtimeEventBus()
