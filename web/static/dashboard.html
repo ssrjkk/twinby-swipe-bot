@@ -10,77 +10,105 @@
   <style>
     :root {
       --bg: #fffbfc;
-      --surface: rgba(255, 255, 255, 0.84);
+      --surface: rgba(255, 255, 255, 0.78);
       --text: #1c1015;
       --muted: #6e5660;
       --rose: #e11d48;
       --rose-soft: #ffe4e6;
-      --border: rgba(225, 29, 72, 0.16);
+      --rose-border: rgba(225, 29, 72, 0.16);
+      --border: var(--rose-border);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-      background: var(--bg);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.6;
       overflow-x: hidden;
+      position: relative;
     }
     .blobs { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
-    .blob { position: absolute; border-radius: 50%; filter: blur(48px); }
-    .b1 { width: 460px; height: 460px; top: -110px; left: -90px; background: radial-gradient(circle, rgba(255,182,193,.85), rgba(244,63,94,.22) 70%, transparent); }
-    .b2 { width: 520px; height: 520px; bottom: -120px; right: -120px; background: radial-gradient(circle, rgba(251,207,232,.9), rgba(225,29,72,.18) 70%, transparent); }
-    .orb {
-      position: absolute; border-radius: 50%;
-      background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.92) 0%, rgba(255,192,203,.5) 32%, rgba(244,63,94,.18) 76%, transparent 100%);
-      border: 1px solid rgba(255,255,255,.75);
-      box-shadow: inset -6px -6px 16px rgba(225,29,72,.12), 0 10px 24px rgba(244,63,94,.06);
-    }
-    .o1 { width: 120px; height: 120px; top: 14%; right: 8%; }
-    .o2 { width: 78px; height: 78px; bottom: 16%; left: 6%; }
+    .blob { position: absolute; border-radius: 50%; animation: floatOrb 15s ease-in-out infinite alternate; }
+    .blob-1 { width: 480px; height: 480px; top: -110px; left: -90px; background: radial-gradient(circle at 35% 35%, rgba(255, 182, 193, 0.9), rgba(244, 63, 94, 0.28) 65%, transparent 100%); filter: blur(45px); }
+    .blob-2 { width: 540px; height: 540px; top: 16%; right: -140px; background: radial-gradient(circle at 40% 40%, rgba(251, 207, 232, 0.95), rgba(225, 29, 72, 0.22) 68%, transparent 100%); filter: blur(50px); animation-delay: -5s; }
+    .blob-3 { width: 420px; height: 420px; bottom: -90px; left: 15%; background: radial-gradient(circle at 30% 30%, rgba(254, 205, 211, 0.9), rgba(244, 63, 94, 0.25) 70%, transparent 100%); filter: blur(45px); animation-delay: -9s; }
+    .orb { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 192, 203, 0.55) 28%, rgba(244, 63, 94, 0.22) 72%, rgba(225, 29, 72, 0.08) 100%); box-shadow: inset -8px -8px 20px rgba(225, 29, 72, 0.14), inset 6px 6px 14px rgba(255, 255, 255, 0.85), 0 12px 30px rgba(244, 63, 94, 0.08); border: 1px solid rgba(255, 255, 255, 0.75); animation: riseBubble 18s ease-in-out infinite alternate; }
+    .orb-1 { width: 130px; height: 130px; top: 14%; left: 11%; animation-duration: 13s; }
+    .orb-2 { width: 84px; height: 84px; top: 28%; right: 14%; animation-duration: 16s; animation-delay: -3s; }
+    .orb-3 { width: 165px; height: 165px; top: 58%; right: 7%; animation-duration: 20s; animation-delay: -7s; }
+    .orb-4 { width: 64px; height: 64px; top: 46%; left: 6%; animation-duration: 12s; animation-delay: -2s; }
+    .orb-5 { width: 110px; height: 110px; bottom: 12%; left: 32%; animation-duration: 17s; animation-delay: -6s; }
+    @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(32px, -38px) scale(1.07); } }
+    @keyframes riseBubble { 0% { transform: translateY(0px) translateX(0px) scale(1); } 50% { transform: translateY(-28px) translateX(14px) scale(1.04); } 100% { transform: translateY(18px) translateX(-12px) scale(0.97); } }
+    @media (prefers-reduced-motion: reduce) { .blob, .orb { animation: none; } }
 
     .container { max-width: 1120px; margin: 0 auto; padding: 24px; }
-    header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
-    .logo { font-weight: 700; font-size: 1.2rem; text-decoration: none; color: var(--text); }
-    .pill { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; padding: 5px 12px; border-radius: 999px; background: var(--rose-soft); color: var(--rose); border: 1px solid var(--border); }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--rose-border); margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
+    .logo { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.15rem; color: var(--text); text-decoration: none; }
+    .logo em { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; color: var(--rose); font-size: 1.08em; }
+    .pill { padding: 3px 9px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: .73rem; font-weight: 600; background: var(--rose-soft); color: #9f1239; }
+    .back-link { font-size: .88rem; font-weight: 600; color: var(--rose); background: var(--rose-soft); padding: 8px 16px; border-radius: 999px; border: 1px solid var(--rose-border); text-decoration: none; transition: all 0.2s; }
+    .back-link:hover { background: var(--rose); color: #fff; }
+    button.token-btn { padding: 5px 12px; font-size: .76rem; }
+    button.mini-btn { padding: 4px 10px; font-size: .76rem; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .card { background: var(--surface); backdrop-filter: blur(14px); border: 1px solid var(--border); border-radius: 22px; padding: 20px; }
+    .card { background: var(--surface); backdrop-filter: blur(14px); border: 1px solid var(--rose-border); border-radius: 24px; padding: 26px; }
     .kpi-label { font-size: 0.76rem; color: var(--muted); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
-    .kpi-val { font-size: 1.85rem; font-weight: 700; color: var(--rose); margin-top: 4px; }
+    .kpi-val { font-size: 1.85rem; font-weight: 700; color: var(--rose); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     button {
-      border: 1px solid var(--border); background: #fff; color: var(--text);
-      padding: 9px 16px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: .15s;
+      background: var(--rose); color: #fff; border: none;
+      padding: 9px 16px; border-radius: 999px; font-family: inherit; font-weight: 600; font-size: .84rem;
+      cursor: pointer; box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35); transition: transform .15s;
     }
-    button.primary { background: var(--rose); color: #fff; border-color: var(--rose); }
-    button:hover { transform: translateY(-1px); }
-    textarea, input {
-      width: 100%; border: 1px solid var(--border); border-radius: 13px; padding: 9px 13px;
+    button.primary { background: var(--rose); color: #fff; border: none; }
+    button.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--rose-border); box-shadow: none; backdrop-filter: blur(12px); }
+    button.danger { background: #fff; color: #9f1239; border: 1px solid var(--rose-border); box-shadow: none; }
+    button:hover { transform: translateY(-2px); }
+    textarea, input, select {
+      width: 100%; border: 1px solid var(--rose-border); border-radius: 12px; padding: 9px 13px;
       font-family: inherit; font-size: 0.88rem; background: #fff; color: var(--text);
     }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    .platform-select { width: auto; border: 1px solid var(--rose-border); border-radius: 999px; padding: 8px 14px; background: #fff; color: var(--text); font-weight: 600; font-size: .84rem; }
     label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
     .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; margin-bottom: 20px; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 10px; margin-bottom: 10px; }
-    h3 { font-size: 1.03rem; margin-bottom: 12px; }
+    h3 { font-size: 1.03rem; margin-bottom: 12px; font-weight: 700; letter-spacing: -0.02em; }
+    .sec-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--rose); margin-bottom: 8px; }
     .log-list { max-height: 310px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 0.84rem; }
-    .log-item { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 10px 13px; }
+    .log-item { background: #fff; border: 1px solid var(--rose-border); border-radius: 14px; padding: 10px 13px; }
     .like { color: #166534; font-weight: 700; }
     .pass { color: #9f1239; font-weight: 700; }
-    .shot-preview { width: 100%; max-height: 320px; object-fit: contain; border-radius: 14px; border: 1px solid var(--border); background: #fff; }
+    .shot-preview { width: 100%; max-height: 320px; object-fit: contain; border-radius: 14px; border: 1px solid var(--rose-border); background: #fff; }
+    label.check { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: .8rem; color: var(--muted); }
+    label.check input { width: auto; }
+    input[type="file"] { padding: 7px 10px; font-size: .8rem; }
+    .mono-note { margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: .74rem; color: var(--muted); word-break: break-word; line-height: 1.5; }
+    .mono-note b { color: #9f1239; }
+    footer { border-top: 1px solid var(--rose-border); padding: 32px 0; margin-top: 48px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: .88rem; color: var(--muted); }
+    footer a { color: var(--rose); text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="blobs">
-    <div class="blob b1"></div><div class="blob b2"></div>
-    <div class="orb o1"></div><div class="orb o2"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="orb orb-5"></div>
   </div>
   <div class="container">
     <header>
-      <a href="/" class="logo">💌 &lt;3 · Control Panel</a>
+      <a href="/" class="logo">&lt;3 · <em>Control Panel</em></a>
       <div class="row">
         <span class="pill" id="wsBadge">WS: ...</span>
         <span class="pill" id="modeBadge">загрузка...</span>
-        <button onclick="setApiToken()" style="padding:5px 12px;font-size:.76rem;">🔑 API Token</button>
-        <a href="/" style="font-size:.86rem;color:var(--rose);text-decoration:none;font-weight:600;">← На лендинг</a>
+        <button onclick="setApiToken()" class="token-btn">API Token</button>
+        <a href="/" class="back-link">← На лендинг</a>
       </div>
     </header>
 
@@ -92,17 +120,18 @@
     </div>
 
     <div class="card" style="margin-bottom:20px;">
+      <div class="sec-eyebrow">воркер</div>
       <h3>Управление воркером</h3>
       <div class="row">
-        <button class="primary" onclick="apiPost('/api/v1/worker/start')">▶️ Запустить</button>
-        <button onclick="apiPost('/api/v1/worker/stop')">⏸ Остановить</button>
-        <button onclick="apiPost('/api/v1/worker/dry-run')" id="dryBtn">🧪 DRY_RUN</button>
-        <button onclick="runStep()">📸 1 шаг (анкета → VLM)</button>
-        <button onclick="captureChat()">💬 Прочитать чат с экрана</button>
-        <button onclick="testAI()">🤖 Проверить AI-ключ</button>
-        <button onclick="apiPost('/api/v1/backup')">📦 Бэкап БД</button>
-        <button onclick="checkCalendar()">📅 Слоты календаря</button>
-        <select id="platformSelect" onchange="switchPlatform()" style="border:1px solid var(--border);border-radius:999px;padding:8px 14px;background:#fff;font-weight:600;font-size:.84rem;">
+        <button class="primary" onclick="apiPost('/api/v1/worker/start')">Запустить</button>
+        <button onclick="apiPost('/api/v1/worker/stop')">Остановить</button>
+        <button onclick="apiPost('/api/v1/worker/dry-run')" id="dryBtn">DRY_RUN</button>
+        <button onclick="runStep()">1 шаг (анкета → VLM)</button>
+        <button onclick="captureChat()">Прочитать чат с экрана</button>
+        <button onclick="testAI()">Проверить AI-ключ</button>
+        <button onclick="apiPost('/api/v1/backup')">Бэкап БД</button>
+        <button onclick="checkCalendar()">Слоты календаря</button>
+        <select id="platformSelect" onchange="switchPlatform()" class="platform-select">
           <option value="twinby">Twinby</option>
           <option value="pure">Pure</option>
           <option value="mamba">Mamba</option>
@@ -120,7 +149,61 @@
 
     <div class="two-col">
       <div class="card">
-        <h3>🎛️ Фильтры и критерии (на лету)</h3>
+        <div class="sec-eyebrow">коннект</div>
+        <h3>Подключение и платформа</h3>
+        <div class="form-grid">
+          <div><label>Режим</label><select id="connMode" onchange="onConnModeChange()"></select></div>
+          <div><label>Драйвер</label><select id="connDriver" onchange="onConnModeChange()"></select></div>
+          <div><label>Платформа (28)</label><select id="connPlatform" onchange="onConnModeChange()"></select></div>
+          <div id="wrapOs"><label>ОС устройства</label><select id="connOs" onchange="onConnModeChange()"><option value="Android">Android</option><option value="iOS">iOS</option></select></div>
+        </div>
+        <div class="form-grid">
+          <div id="wrapUdid"><label>DEVICE_UDID</label><input id="connUdid" placeholder="эмулятор/телефон по adb devices"></div>
+          <div id="wrapAppium"><label>Appium URL</label><input id="connAppium" placeholder="http://localhost:4723"></div>
+          <div id="wrapPkg"><label>Пакет / бандл</label><input id="connPkg" placeholder="авто из реестра"></div>
+          <div id="wrapWebUrl"><label>URL веб-версии</label><input id="connWebUrl" placeholder="авто из реестра"></div>
+          <div id="wrapToken"><label>Токен платформы (API)</label><input id="connToken" type="password" placeholder="из .env, если пусто"></div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <button class="primary" onclick="applyConnection()">Подключить</button>
+          <label class="check"><input type="checkbox" id="connSaveEnv"> Сохранить в .env</label>
+          <label class="check" id="wrapHeadless"><input type="checkbox" id="connHeadless"> headless</label>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <input type="file" id="connHarFile" accept=".har,application/json">
+          <button class="secondary" onclick="uploadHar()">Импорт .har в API-профиль</button>
+        </div>
+        <div id="connState" class="mono-note">Загружаю текущее подключение...</div>
+      </div>
+
+      <div class="card">
+        <div class="sec-eyebrow">ии</div>
+        <h3>нейросеть и ключ любого формата</h3>
+        <div class="form-grid">
+          <div><label>Провайдер</label><select id="aiProvider" onchange="onAiProviderChange()"></select></div>
+          <div><label>Модель</label><input id="aiModel" placeholder="gpt-4o-mini"></div>
+        </div>
+        <label>Base URL</label><input id="aiBaseUrl" placeholder="https://api.openai.com/v1">
+        <label style="margin-top:8px;">API-ключ (пусто = оставить текущий)</label>
+        <input id="aiKey" type="password" autocomplete="off" placeholder="sk-... / Bearer ... / без префикса">
+        <div class="form-grid" style="margin-top:8px;">
+          <div><label>Свой заголовок</label><input id="aiHeader" placeholder="x-api-key"></div>
+          <div><label>Префикс Authorization</label><input id="aiPrefix" placeholder="Bearer "></div>
+          <div><label>Ключ в query</label><input id="aiQuery" placeholder="key / api_key"></div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <button class="primary" onclick="saveAiConfig()">Применить ко всем</button>
+          <button class="secondary" onclick="testAI()">Проверить подключение</button>
+          <label class="check"><input type="checkbox" id="aiSaveEnv"> Сохранить в .env</label>
+        </div>
+        <div id="aiState" class="mono-note">Загружаю конфиг ИИ...</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="sec-eyebrow">фильтры</div>
+        <h3>Фильтры и критерии (на лету)</h3>
         <div class="form-grid">
           <div><label>Мин. совм. %</label><input type="number" id="fCompat" min="0" max="100"></div>
           <div><label>Порог Score</label><input type="number" id="fScore" min="0" max="100"></div>
@@ -137,14 +220,16 @@
       </div>
 
       <div class="card">
-        <h3>📸 Последний экран VLM</h3>
-        <div id="shotWrap" style="color:var(--muted);font-size:.86rem;">Нажмите «📸 1 шаг», чтобы увидеть скриншот и вердикт модели.</div>
+        <div class="sec-eyebrow">зрение</div>
+        <h3>Последний экран VLM</h3>
+        <div id="shotWrap" style="color:var(--muted);font-size:.86rem;">Нажмите «1 шаг (анкета → VLM)", чтобы увидеть скриншот и вердикт модели.</div>
       </div>
     </div>
 
     <div class="two-col">
       <div class="card">
-        <h3>💬 Помощник переписки (с памятью диалога)</h3>
+        <div class="sec-eyebrow">переписка</div>
+        <h3>Помощник переписки (с памятью диалога)</h3>
         <div style="margin-bottom:8px;">
           <label>Имя собеседницы (для сохранения истории)</label>
           <input id="girlName" value="Алина" placeholder="Например: Соня">
@@ -153,23 +238,30 @@
         <textarea id="girlMsg" rows="3" placeholder="Вставьте сообщение от девушки..."></textarea>
         <div class="row" style="margin-top:10px;">
           <button class="primary" onclick="previewReply()">Сгенерировать ответ</button>
-          <button onclick="rewardLastArm(true)" id="btnGood" style="display:none;">👍 Сработало</button>
-          <button onclick="rewardLastArm(false)" id="btnBad" style="display:none;">👎 Игнор</button>
-          <button class="primary" onclick="sendVisualDraft()" id="btnSendScreen" style="display:none;">🚀 Отправить прямо в чат</button>
+          <button onclick="rewardLastArm(true)" id="btnGood" style="display:none;">Сработало</button>
+          <button onclick="rewardLastArm(false)" id="btnBad" style="display:none;">Игнор</button>
+          <button class="primary" onclick="sendVisualDraft()" id="btnSendScreen" style="display:none;">Отправить прямо в чат</button>
         </div>
         <div id="replyBox" style="margin-top:12px;font-size:.9rem;"></div>
       </div>
 
       <div class="card">
-        <h3>📋 Последние анкеты</h3>
+        <div class="sec-eyebrow">лента</div>
+        <h3>Последние анкеты</h3>
         <div class="log-list" id="swipesList">Загрузка...</div>
       </div>
     </div>
 
     <div class="card">
-      <h3>🗂️ Сохранённые диалоги (SQLite)</h3>
+      <div class="sec-eyebrow">память</div>
+      <h3>Сохранённые диалоги (SQLite)</h3>
       <div class="log-list" id="threadsList" style="max-height:220px;">Загрузка...</div>
     </div>
+
+    <footer>
+      <span>&lt;3 · ваши критерии. осмысленный выбор.</span>
+      <span><a href="https://github.com/ssrjkk/twinby-swipe-bot">GitHub ↗</a> · <a href="https://ssrjkk.github.io/">все проекты ↗</a></span>
+    </footer>
   </div>
 
   <script>
@@ -242,7 +334,7 @@
           }
         }
         const ps = document.getElementById('platformSelect'); if (ps && ps.value !== w.platform) ps.value = w.platform;
-        document.getElementById('dryBtn').textContent = `🧪 DRY_RUN: ${w.dry_run ? 'ВКЛ' : 'ВЫКЛ'}`;
+        document.getElementById('dryBtn').textContent = `DRY_RUN: ${w.dry_run ? 'ВКЛ' : 'ВЫКЛ'}`;
 
         if (!filtersLoaded) {
           document.getElementById('fCompat').value = ov.filters.min_compatibility;
@@ -268,7 +360,7 @@
           tbox.innerHTML = threads.length ? threads.map(t => `
             <div class="log-item" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
               <div><strong>${escapeHtml(t.girl_name)}</strong> (${escapeHtml(t.platform)}) · стадия: <code>${escapeHtml(t.stage)}</code> ${t.bandit_arm ? '· arm: ' + escapeHtml(t.bandit_arm) : ''}</div>
-              <button style="padding:4px 10px;font-size:.76rem;" onclick="resetThread(${Number(t.id)})">🗑 Сбросить</button>
+              <button class="mini-btn" onclick="resetThread(${Number(t.id)})">Сбросить</button>
             </div>
           `).join('') : '<div style="color:var(--muted)">Пока нет сохранённых диалогов.</div>';
         }
@@ -283,7 +375,7 @@
           </div>
         `).join('') : '<div style="color:var(--muted)">Пока нет обработанных анкет.</div>';
       } catch (err) {
-        document.getElementById('actionOut').textContent = '⚠️ ' + err.message;
+        document.getElementById('actionOut').textContent = '· ' + err.message;
       }
     }
 
@@ -304,7 +396,7 @@
         document.getElementById('filterSaved').textContent = '✓ Сохранено';
         setTimeout(() => document.getElementById('filterSaved').textContent = '', 2000);
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
       }
     }
 
@@ -314,7 +406,7 @@
         document.getElementById('actionOut').textContent = JSON.stringify(r);
         await refresh();
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
       }
     }
     async function switchPlatform() {
@@ -327,7 +419,7 @@
         document.getElementById('actionOut').textContent = `Платформа переключена: ${r.platform} (${r.package})`;
         await refresh();
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
       }
     }
     async function checkCalendar() {
@@ -336,7 +428,7 @@
         const r = await fetchJson('/api/v1/calendar/slots?days_ahead=3');
         document.getElementById('actionOut').textContent = r.slots || 'OK';
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
       }
     }
     async function runStep() {
@@ -347,9 +439,16 @@
       document.getElementById('actionOut').textContent = 'Проверяю ИИ-шлюз...';
       try {
         const r = await fetchJson('/api/v1/ai/test', { method: 'POST' });
-        document.getElementById('actionOut').textContent = (r.ok ? '✅ ' : '❌ ') + r.message;
+        document.getElementById('actionOut').textContent = (r.ok ? '✓ ' : '✗ ') + r.message;
+        if (r.config) {
+          showAiState(
+            `${r.ok ? '✓' : '✗'} ${escapeHtml(r.config.provider)} · ${escapeHtml(r.config.model)} · ${escapeHtml(r.config.auth)}` +
+            `<br>${escapeHtml(r.message)}`
+          );
+        }
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
+        showAiState('✗ ' + escapeHtml(err.message));
       }
     }
     async function previewReply() {
@@ -369,7 +468,7 @@
           `<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">Стадия: ${escapeHtml(r.stage)} · сообщений в памяти: ${escapeHtml(r.history_len)}</div>` +
           (r.chunks || []).map(c => `<div class="log-item" style="margin-bottom:6px;">${escapeHtml(c)}</div>`).join('');
       } catch (err) {
-        document.getElementById('replyBox').textContent = '❌ ' + err.message;
+        document.getElementById('replyBox').textContent = '✗ ' + err.message;
       }
     }
     async function captureChat() {
@@ -377,7 +476,7 @@
       try {
         const r = await fetchJson('/api/v1/visual-chat/capture', { method: 'POST' });
         if (!r.ok) {
-          document.getElementById('actionOut').textContent = '⚠️ ' + (r.error || 'Чат не распознан');
+          document.getElementById('actionOut').textContent = '· ' + (r.error || 'Чат не распознан');
           return;
         }
         lastVisualDraftId = r.draft_id;
@@ -389,9 +488,9 @@
         document.getElementById('replyBox').innerHTML =
           `<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">Чат с <strong>${escapeHtml(r.girl_name)}</strong> · стадия: ${escapeHtml(r.stage)} · сообщений: ${escapeHtml(r.messages_seen)}</div>` +
           (r.chunks || []).map(c => `<div class="log-item" style="margin-bottom:6px;">${escapeHtml(c)}</div>`).join('');
-        document.getElementById('actionOut').textContent = '✅ Черновик готов — проверьте и нажмите «🚀 Отправить прямо в чат».';
+        document.getElementById('actionOut').textContent = '✓ Черновик готов — проверьте и нажмите «Отправить прямо в чат».';
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
       }
     }
     async function sendVisualDraft() {
@@ -401,9 +500,9 @@
         const r = await fetchJson(`/api/v1/visual-chat/send/${encodeURIComponent(lastVisualDraftId)}`, { method: 'POST' });
         lastVisualDraftId = null;
         document.getElementById('btnSendScreen').style.display = 'none';
-        document.getElementById('actionOut').textContent = `✅ Отправлено для ${r.girl_name}`;
+        document.getElementById('actionOut').textContent = `✓ Отправлено для ${r.girl_name}`;
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
       }
     }
     async function resetThread(threadId) {
@@ -411,7 +510,7 @@
         await fetchJson(`/api/v1/dialogues/${threadId}`, { method: 'DELETE' });
         await refresh();
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
       }
     }
     async function rewardLastArm(success) {
@@ -423,11 +522,205 @@
         });
         document.getElementById('actionOut').textContent = `Bandit обновлён: ${lastBanditArm} (${success ? '+1 успех' : '+1 игнор'})`;
       } catch (err) {
-        document.getElementById('actionOut').textContent = '❌ ' + err.message;
+        document.getElementById('actionOut').textContent = '✗ ' + err.message;
+      }
+    }
+
+    let connPlatforms = [];
+    let connDriversByMode = {};
+    let connPrefilled = false;
+    let aiPresets = [];
+    let aiPrefilled = false;
+
+    function el(id) { return document.getElementById(id); }
+    function showConnState(html) { const node = el('connState'); if (node) node.innerHTML = html; }
+    function showAiState(html) { const node = el('aiState'); if (node) node.innerHTML = html; }
+
+    const MODE_TITLES = { ui_vision: 'UI-Vision · телефон', web_vision: 'Web-Vision · браузер', api: 'API · прямой REST' };
+    const DRIVER_TITLES = {
+      adb: 'ADB (без Appium)', appium: 'Appium (UiAutomator2 / XCUITest)',
+      playwright: 'Playwright (Chromium)', rest_api: 'REST / HAR-профиль',
+    };
+
+    function fillConnDrivers(mode, preferred) {
+      const drivers = connDriversByMode[mode] || [];
+      el('connDriver').innerHTML = drivers.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(DRIVER_TITLES[d] || d)}</option>`).join('');
+      if (drivers.includes(preferred)) el('connDriver').value = preferred;
+    }
+
+    function onConnModeChange() {
+      const mode = el('connMode').value;
+      const drivers = connDriversByMode[mode] || [];
+      if (!drivers.includes(el('connDriver').value)) fillConnDrivers(mode, drivers[0]);
+      const driver = el('connDriver').value;
+      const visual = mode !== 'api';
+      el('wrapOs').style.display = visual ? '' : 'none';
+      el('wrapUdid').style.display = visual && driver !== 'playwright' ? '' : 'none';
+      el('wrapAppium').style.display = driver === 'appium' ? '' : 'none';
+      el('wrapPkg').style.display = mode === 'ui_vision' ? '' : 'none';
+      el('wrapWebUrl').style.display = mode === 'web_vision' ? '' : 'none';
+      el('wrapHeadless').style.display = mode === 'web_vision' ? '' : 'none';
+      el('wrapToken').style.display = mode === 'api' ? '' : 'none';
+      const spec = connPlatforms.find(p => p.id === el('connPlatform').value) || {};
+      el('connPkg').placeholder = (el('connOs').value === 'iOS' ? spec.ios_bundle_id : spec.android_package) || 'авто из реестра';
+      el('connWebUrl').placeholder = spec.web_url || 'авто из реестра';
+    }
+
+    async function loadConnection() {
+      try {
+        const c = await fetchJson('/api/v1/connection');
+        if (!connPlatforms.length) {
+          connPlatforms = c.options.platforms;
+          c.options.modes.forEach(m => { connDriversByMode[m.mode] = m.drivers; });
+          el('connMode').innerHTML = c.options.modes.map(m => `<option value="${escapeHtml(m.mode)}">${escapeHtml(MODE_TITLES[m.mode] || m.mode)}</option>`).join('');
+          el('connPlatform').innerHTML = connPlatforms.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} · ${escapeHtml(p.region)}</option>`).join('');
+        }
+        el('connMode').value = c.mode;
+        fillConnDrivers(c.mode, c.driver === 'none' ? undefined : c.driver);
+        el('connPlatform').value = c.platform;
+        if (!connPrefilled) {
+          el('connOs').value = c.visual.device_os || 'Android';
+          el('connUdid').value = c.visual.device_udid || '';
+          el('connAppium').value = c.visual.appium_url || '';
+          el('connHeadless').checked = !!c.visual.web_headless;
+          connPrefilled = true;
+        }
+        onConnModeChange();
+        const harNote = c.api.har_profiles.length
+          ? ` · HAR-профили: ${escapeHtml(c.api.har_profiles.join(', '))}`
+          : ' · HAR-профилей в ./data/api_profiles пока нет';
+        showConnState(
+          `сейчас: <b>${escapeHtml(c.mode)}</b> · ${escapeHtml(c.driver)} · ${escapeHtml(c.platform_name)}` +
+          ` · ${c.connected ? 'подключено' : 'нет активного подключения'}${harNote}` +
+          (c.api.token_from_env ? ' · токен платформы взят из .env' : '')
+        );
+      } catch (err) {
+        showConnState('· ' + escapeHtml(err.message));
+      }
+    }
+
+    async function applyConnection() {
+      const mode = el('connMode').value;
+      const body = {
+        mode: mode,
+        platform: el('connPlatform').value,
+        driver: el('connDriver').value,
+        device_os: el('connOs').value,
+        device_udid: el('connUdid').value.trim(),
+        save_to_env: el('connSaveEnv').checked,
+      };
+      if (el('connAppium').value.trim()) body.appium_url = el('connAppium').value.trim();
+      if (el('connPkg').value.trim()) body.app_package = el('connPkg').value.trim();
+      if (el('connWebUrl').value.trim()) body.web_target_url = el('connWebUrl').value.trim();
+      if (el('connToken').value.trim()) body.api_token = el('connToken').value.trim();
+      if (mode === 'web_vision') body.web_headless = el('connHeadless').checked;
+      showConnState('Поднимаю новое подключение — прежнее ещё живо...');
+      try {
+        const r = await fetchJson('/api/v1/connection', {
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+        });
+        connPrefilled = false;
+        await refresh();
+        await loadConnection();
+        showConnState(
+          `✓ ${escapeHtml(r.mode)} · ${escapeHtml(r.driver)} · ${escapeHtml(r.platform)}` +
+          ` · пакет ${escapeHtml(r.package || '—')} · ${escapeHtml(r.web_url || '—')}` +
+          (r.worker_was_running ? '<br>· Воркер был остановлен — нажмите «Запустить».' : '') +
+          (r.env_saved ? ` · записано в ${escapeHtml(r.env_saved)}` : '')
+        );
+      } catch (err) {
+        showConnState('✗ ' + escapeHtml(err.message));
+      }
+    }
+
+    async function uploadHar() {
+      const file = el('connHarFile').files[0];
+      if (!file) { showConnState('· Сначала выберите .har дамп (mitmproxy / Proxyman).'); return; }
+      const form = new FormData();
+      form.append('file', file);
+      form.append('platform', el('connPlatform').value);
+      form.append('host', '');
+      showConnState('Разбираю ' + escapeHtml(file.name) + ' ...');
+      try {
+        const r = await fetchJson('/api/v1/connection/har-import', { method: 'POST', body: form });
+        showConnState(
+          `✓ Декларативный профиль: <b>${escapeHtml(r.profile_path)}</b>` +
+          `<br>Дальше: режим «${escapeHtml(r.apply.mode)}» + драйвер «${escapeHtml(r.apply.driver)}» — нажмите «Подключить».`
+        );
+      } catch (err) {
+        showConnState('✗ ' + escapeHtml(err.message));
+      }
+    }
+
+    function onAiProviderChange() {
+      const preset = aiPresets.find(p => p.provider === el('aiProvider').value);
+      if (!preset) return;
+      el('aiBaseUrl').value = preset.base_url;
+      el('aiModel').value = preset.model;
+    }
+
+    async function loadAiConfig() {
+      try {
+        const c = await fetchJson('/api/v1/ai/config');
+        aiPresets = c.presets;
+        if (!aiPrefilled) {
+          el('aiProvider').innerHTML = aiPresets.map(p =>
+            `<option value="${escapeHtml(p.provider)}">${escapeHtml(p.provider)}${p.requires_key ? '' : ' · без ключа'}</option>`).join('');
+          el('aiBaseUrl').value = c.current.base_url;
+          el('aiModel').value = c.current.model;
+          el('aiHeader').value = c.current.custom_auth_header || '';
+          el('aiPrefix').value = c.current.auth_prefix || '';
+          el('aiQuery').value = c.current.api_key_query_param || '';
+          aiPrefilled = true;
+        }
+        if (![...el('aiProvider').options].some(o => o.value === c.current.provider)) {
+          el('aiProvider').insertAdjacentHTML('afterbegin', `<option value="${escapeHtml(c.current.provider)}">${escapeHtml(c.current.provider)} · текущий</option>`);
+        }
+        el('aiProvider').value = c.current.provider;
+        const cur = c.current;
+        showAiState(
+          `${escapeHtml(cur.auth)} · ключ: <b>${escapeHtml(cur.api_key_masked || (cur.keyless_ok ? 'не требуется' : 'не задан'))}</b>` +
+          `<br>живых шлюзов: ${escapeHtml(String(c.gateway_paths.length))} (${escapeHtml(c.gateway_paths.join(', '))})` +
+          (c.gateways_in_sync ? '' : ' · конфиги разошлись, «Применить» синхронизирует')
+        );
+      } catch (err) {
+        showAiState('· ' + escapeHtml(err.message));
+      }
+    }
+
+    async function saveAiConfig() {
+      const body = {
+        provider: el('aiProvider').value,
+        base_url: el('aiBaseUrl').value.trim(),
+        model: el('aiModel').value.trim(),
+        custom_auth_header: el('aiHeader').value.trim(),
+        auth_prefix: el('aiPrefix').value,
+        api_key_query_param: el('aiQuery').value.trim(),
+        save_to_env: el('aiSaveEnv').checked,
+      };
+      if (!body.base_url || !body.model) { showAiState('· Нужны и base_url, и модель.'); return; }
+      const key = el('aiKey').value.trim();
+      if (key) body.api_key = key;
+      showAiState('Применяю ко всем живым шлюзам...');
+      try {
+        const r = await fetchJson('/api/v1/ai/config', {
+          method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+        });
+        el('aiKey').value = '';
+        aiPrefilled = false;
+        await loadAiConfig();
+        showAiState(
+          `✓ ${escapeHtml(r.config.provider)} · ${escapeHtml(r.config.model)} · ${escapeHtml(r.config.auth)}` +
+          ` · обновлено ${escapeHtml(String(r.rewired.length))} шлюзов${r.env_saved ? ' · записано в ' + escapeHtml(r.env_saved) : ''}`
+        );
+      } catch (err) {
+        showAiState('✗ ' + escapeHtml(err.message));
       }
     }
 
     refresh();
+    loadConnection();
+    loadAiConfig();
     connectWS();
     setInterval(refresh, 8000);
   </script>

@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from ai.chat_agent import AutonomousChatAgent
-from ai.universal_llm import UniversalAIGateway
+from ai.universal_llm import PROVIDER_PRESETS, UniversalAIGateway
 from config import configure_utf8_console, settings
 from core.adapters_registry import GLOBAL_DATING_REGISTRY, resolve_platform_defaults
 from core.factory import list_verified_api_profiles
@@ -19,16 +19,6 @@ from tools.har_importer import export_api_profile_from_har, inspect_har
 # Every subcommand prints Russian copy with emoji, so the console encoding is settled at import time:
 # that covers `heart3 <cmd>` through main() and direct calls like cli._cmd_setup() alike.
 configure_utf8_console()
-
-
-PROVIDER_DEFAULTS: dict[str, tuple[str, str]] = {
-    "openai": ("https://api.openai.com/v1", "gpt-4o-mini"),
-    "anthropic": ("https://api.anthropic.com/v1", "claude-3-5-sonnet-latest"),
-    "gemini": ("https://generativelanguage.googleapis.com/v1beta", "gemini-2.5-flash"),
-    "openrouter": ("https://openrouter.ai/api/v1", "openai/gpt-4o-mini"),
-    "deepseek": ("https://api.deepseek.com/v1", "deepseek-chat"),
-    "ollama": ("http://localhost:11434/v1", "llama3.2-vision"),
-}
 
 
 def _resolve_visual_backend() -> str:
@@ -55,8 +45,11 @@ def _cmd_setup() -> int:
     print("=== <3 Setup Wizard ===")
     mode = input("Режим работы [ui_vision / web_vision / api] (по умолчанию ui_vision): ").strip() or "ui_vision"
     platform = input("Платформа [twinby / pure / mamba / vk_dating / tinder / hinge / ...] (twinby): ").strip() or "twinby"
-    provider = input("Провайдер ИИ [openai / anthropic / gemini / openrouter / deepseek / ollama / custom] (openai): ").strip().lower() or "openai"
-    def_url, def_model = PROVIDER_DEFAULTS.get(provider, ("https://api.openai.com/v1", "gpt-4o-mini"))
+    provider = input(
+        "Провайдер ИИ [openai / groq / anthropic / gemini / openrouter / deepseek / mistral / "
+        "together / xai / ollama / vllm / lmstudio / custom] (openai): "
+    ).strip().lower() or "openai"
+    def_url, def_model = PROVIDER_PRESETS.get(provider, PROVIDER_PRESETS["openai"])
     base_url = input(f"LLM_BASE_URL ({def_url}): ").strip() or def_url
     model = input(f"LLM_MODEL ({def_model}): ").strip() or def_model
     api_key = input("LLM_API_KEY (можно оставить пустым для Ollama): ").strip()

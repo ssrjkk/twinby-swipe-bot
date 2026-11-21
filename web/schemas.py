@@ -40,6 +40,40 @@ class SwitchPlatformRequest(BaseModel):
     launch_on_device: bool = Field(default=False)
 
 
+class ApplyConnectionRequest(BaseModel):
+    """Одна кнопка «Подключить»: режим + платформа + драйвер, всё остальное — автоподбор по реестру."""
+
+    mode: str = Field(min_length=1, description="ui_vision | web_vision | api")
+    platform: str = Field(min_length=1, description="id из GLOBAL_DATING_REGISTRY")
+    driver: str | None = Field(default=None, description="adb | appium | playwright | rest_api; пусто = первый для режима")
+    device_os: str = Field(default="Android")
+    device_udid: str = Field(default="")
+    appium_url: str | None = None
+    app_package: str | None = Field(default=None, description="Пусто = пакет/бандл из реестра")
+    web_target_url: str | None = Field(default=None, description="Пусто = web_url из реестра")
+    web_headless: bool | None = None
+    api_token: str = Field(default="", description="Только для MODE=api; в ответе никогда не возвращается")
+    launch: bool = Field(default=True, description="Сразу открыть приложение/сайт платформы на новом драйвере")
+    save_to_env: bool = Field(default=False)
+
+
+class AIConfigPatchRequest(BaseModel):
+    """Частичное обновление живого шлюза: не указанные поля остаются как есть.
+
+    `auth_prefix=""` осознанно отличается от «не передано» — это «ключ без схемы».
+    """
+
+    provider: str | None = None
+    base_url: str | None = None
+    api_key: str | None = None
+    model: str | None = None
+    custom_auth_header: str | None = None
+    auth_prefix: str | None = None
+    api_key_query_param: str | None = None
+    save_to_env: bool = Field(default=False)
+    test_after: bool = Field(default=False)
+
+
 class BookCalendarRequest(BaseModel):
     slot_iso_string: str = Field(min_length=10)
     venue_name: str = Field(min_length=1)

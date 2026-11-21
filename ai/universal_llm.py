@@ -11,6 +11,46 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
+PROVIDER_PRESETS: dict[str, tuple[str, str]] = {
+    "openai": ("https://api.openai.com/v1", "gpt-4o-mini"),
+    "groq": ("https://api.groq.com/openai/v1", "llama-3.3-70b-versatile"),
+    "anthropic": ("https://api.anthropic.com/v1", "claude-3-5-sonnet-latest"),
+    "gemini": ("https://generativelanguage.googleapis.com/v1beta", "gemini-2.5-flash"),
+    "openrouter": ("https://openrouter.ai/api/v1", "openai/gpt-4o-mini"),
+    "deepseek": ("https://api.deepseek.com/v1", "deepseek-chat"),
+    "mistral": ("https://api.mistral.ai/v1", "mistral-small-latest"),
+    "together": ("https://api.together.xyz/v1", "meta-llama/Llama-3.3-70B-Instruct-Turbo"),
+    "xai": ("https://api.x.ai/v1", "grok-2-latest"),
+    "ollama": ("http://localhost:11434/v1", "llama3.2-vision"),
+    "vllm": ("http://localhost:8000/v1", "Qwen2.5-VL-7B-Instruct"),
+    "lmstudio": ("http://localhost:1234/v1", "local-model"),
+    "custom": ("http://localhost:8000/v1", "local-model"),
+}
+
+# Провайдеры, которые штатно работают без ключа вообще.
+KEYLESS_PROVIDERS: tuple[str, ...] = ("ollama", "vllm", "lmstudio")
+
+# Если ключ уже содержит схему, вторую не добавляем никогда.
+AUTH_SCHEMES: tuple[str, ...] = ("bearer ", "token ", "api-key ", "apikey ", "basic ", "key ")
+
+
+def mask_api_key(value: str) -> str:
+    """Внешне безопасное представление секрета: виден только хвост, сырой ключ не уходит наружу."""
+    raw = (value or "").strip()
+    if not raw or raw == "sk-dummy":
+        return ""
+    if len(raw) <= 8:
+        return "*" * len(raw)
+    return f"{'*' * (len(raw) - 7)}{raw[-7:]}"
+
+
+def list_provider_presets() -> list[dict[str, Any]]:
+    """Пресеты для мастера, панели и `heart3 setup`: (URL, модель) на каждого провайдера."""
+    return [
+        {"provider": name, "base_url": url, "model": model, "requires_key": name not in KEYLESS_PROVIDERS}
+        for name, (url, model) in PROVIDER_PRESETS.items()
+    ]
+
 
 def extract_json_object(raw_text: str) -> dict[str, Any]:
     """Надёжно извлекает первый валидный JSON-объект из ответа LLM
@@ -57,6 +97,8 @@ class UniversalAIGateway:
         model: str | None = None,
         custom_header: str | None = None,
         max_retries: int = 3,
+        auth_prefix: str | None = None,
+        api_key_query_param: str | None = None,
     ) -> None:
         self.provider = (provider or settings.ai_provider).lower().strip()
         self.base_url = (base_url or settings.llm_base_url).rstrip("/")
@@ -64,13 +106,26 @@ class UniversalAIGateway:
         self.model = (model or settings.llm_model).strip()
         self.custom_header = custom_header if custom_header is not None else settings.custom_auth_header
         self.max_retries = max_retries
+        self.auth_prefix = auth_prefix if auth_prefix is not None else settings.llm_auth_prefix
+        self.api_key_query_param = (
+            api_key_query_param if api_key_query_param is not None else settings.llm_api_key_query_param
+        )
 
     def _is_native_gemini(self) -> bool:
         return self.provider == "gemini" and "/openai" not in self.base_url
 
+    def _has_key(self) -> bool:
+        return bool(self.api_key) and self.api_key != "sk-dummy"
+
+    def _uses_query_key(self) -> bool:
+        return bool(self.api_key_query_param)
+
+    def _key_carries_scheme(self) -> bool:
+        return self.api_key.lower().startswith(AUTH_SCHEMES)
+
     def _build_headers(self) -> dict[str, str]:
         headers = {"Content-Type": "application/json"}
-        if not self.api_key or self.api_key in ("sk-dummy", ""):
+        if not self._has_key():
             return headers
 
         if self.custom_header:
@@ -78,15 +133,57 @@ class UniversalAIGateway:
         elif self.provider == "anthropic":
             headers["x-api-key"] = self.api_key
             headers["anthropic-version"] = "2023-06-01"
+        elif self._uses_query_key():
+            pass
         elif self.provider == "gemini":
             headers["x-goog-api-key"] = self.api_key
+        elif self._key_carries_scheme():
+            headers["Authorization"] = self.api_key
         else:
-            if self.api_key.lower().startswith("bearer "):
-                headers["Authorization"] = self.api_key
-            else:
-                headers["Authorization"] = f"Bearer {self.api_key}"
+            headers["Authorization"] = f"{self.auth_prefix if self.auth_prefix is not None else 'Bearer '}{self.api_key}"
 
         return headers
+
+    def _with_query_key(self, url: str) -> str:
+        if not self._uses_query_key() or not self._has_key():
+            return url
+        sep = "&" if "?" in url else "?"
+        return f"{url}{sep}{self.api_key_query_param}={self.api_key}"
+
+    def auth_scheme(self) -> str:
+        """Как именно ключ уйдёт провайдеру — для отображения в панели (без самого ключа)."""
+        if not self._has_key():
+            return "none"
+        if self.custom_header:
+            return f"header: {self.custom_header}"
+        if self._uses_query_key():
+            return f"query: {self.api_key_query_param}"
+        if self.provider == "anthropic":
+            return "x-api-key"
+        if self.provider == "gemini":
+            return "x-goog-api-key"
+        if self._key_carries_scheme():
+            return "как задан в ключе"
+        if self.auth_prefix == "":
+            return "Authorization (raw)"
+        if self.auth_prefix:
+            return f"Authorization: {self.auth_prefix.strip()}"
+        return "Authorization: Bearer"
+
+    def describe(self) -> dict[str, Any]:
+        """Состояние шлюза для панели: секрета здесь нет — только маска ключа и способ авторизации."""
+        return {
+            "provider": self.provider,
+            "base_url": self.base_url,
+            "model": self.model,
+            "auth": self.auth_scheme(),
+            "key_configured": self._has_key(),
+            "api_key_masked": mask_api_key(self.api_key),
+            "keyless_ok": self.provider in KEYLESS_PROVIDERS,
+            "custom_auth_header": self.custom_header or "",
+            "auth_prefix": self.auth_prefix if self.auth_prefix is not None else "Bearer ",
+            "api_key_query_param": self.api_key_query_param or "",
+        }
 
     def _build_anthropic_payload(
         self,
@@ -257,6 +354,7 @@ class UniversalAIGateway:
     ) -> str:
         headers = self._build_headers()
         url, payload = self._resolve_endpoint_and_payload(messages, temperature, json_mode, images=images)
+        url = self._with_query_key(url)
 
         last_exc: Exception | None = None
         async with httpx.AsyncClient(timeout=45.0) as client:

@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 from typing import Literal
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -13,6 +14,28 @@ def configure_utf8_console() -> None:
                 stream.reconfigure(encoding="utf-8", errors="replace")
             except (ValueError, OSError):
                 pass
+
+
+def upsert_env_values(values: dict[str, str], path: str | Path = ".env") -> Path:
+    """Point-update `KEY=VALUE` lines in .env, leaving every other line (and its order) alone.
+
+    The Control Panel's «Сохранить в .env» buttons go through here, so a change made in the browser
+    survives the next restart without ever rewriting the whole file.
+    """
+    env_path = Path(path)
+    lines = env_path.read_text(encoding="utf-8").splitlines() if env_path.exists() else []
+    pending = dict(values)
+    for idx, line in enumerate(lines):
+        key = line.split("=", 1)[0].strip()
+        if key in pending and not line.lstrip().startswith("#"):
+            lines[idx] = f"{key}={_one_line(pending.pop(key))}"
+    lines.extend(f"{key}={_one_line(val)}" for key, val in pending.items())
+    env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return env_path
+
+
+def _one_line(value: str) -> str:
+    return str(value).replace("\r", "").replace("\n", "")
 
 
 class Settings(BaseSettings):
@@ -80,6 +103,14 @@ class Settings(BaseSettings):
     llm_api_key: SecretStr = Field(default=SecretStr("sk-dummy"))
     llm_model: str = Field(default="gpt-4o-mini")
     custom_auth_header: str | None = Field(default=None)
+    llm_auth_prefix: str | None = Field(
+        default=None,
+        description="Префикс Authorization: '' = ключ без схемы, 'Token ' и т.п.; None = авто (Bearer)",
+    )
+    llm_api_key_query_param: str | None = Field(
+        default=None,
+        description="Имя query-параметра для ключа (key / api_key), если провайдер не читает заголовки",
+    )
 
     database_url: str = Field(default="sqlite+aiosqlite:///./data/heart3.db")
     backup_interval_hours: int = Field(default=24, ge=1, le=168)

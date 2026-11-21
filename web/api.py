@@ -1,26 +1,63 @@
+import logging
+import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, WebSocket, WebSocketDisconnect, status
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Response, UploadFile, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from pydantic import SecretStr
 
 from ai.calendar_tool import book_dating_event, list_busy_slots
 from ai.chat_agent import AutonomousChatAgent
-from ai.universal_llm import UniversalAIGateway
-from config import settings
+from ai.universal_llm import PROVIDER_PRESETS, UniversalAIGateway, list_provider_presets
+from config import settings, upsert_env_values
 from core.adapters_registry import GLOBAL_DATING_REGISTRY, resolve_platform_defaults
 from core.backup_service import DatabaseBackupService
-from core.factory import list_verified_api_profiles
+from core.factory import create_dating_client, list_verified_api_profiles
+from core.ui_driver import MobileUIDriverFallback
 from core.visual_chat_worker import VisualChatAssistant
 from core.proxy.manager import GeoProxyManager
 from core.worker import SwipeWorker
 from database.repository import DatabaseManager
 from filters.engine import ProfileFilterEngine
+from tools.har_importer import export_api_profile_from_har
 from web.events import event_bus
-from web.schemas import BanditRewardRequest, BookCalendarRequest, FilterUpdateRequest, ReplyPreviewRequest, SwitchPlatformRequest, WorkerStatusResponse
+from web.schemas import (
+    AIConfigPatchRequest,
+    ApplyConnectionRequest,
+    BanditRewardRequest,
+    BookCalendarRequest,
+    FilterUpdateRequest,
+    ReplyPreviewRequest,
+    SwitchPlatformRequest,
+    WorkerStatusResponse,
+)
 
 STATIC_DIR = Path(__file__).parent / "static"
+logger = logging.getLogger(__name__)
+
+# Какие драйверы имеет смысл предлагать панель для каждого режима (первый = значение по умолчанию).
+MODE_DRIVERS: dict[str, tuple[str, ...]] = {
+    "ui_vision": ("adb", "appium"),
+    "web_vision": ("playwright",),
+    "api": ("rest_api",),
+}
+
+LIVE_GATEWAY_PATHS: tuple[str, ...] = (
+    "worker.vision_parser",
+    "worker.synthetic_scorer",
+    "chat_agent.engine",
+    "visual_chat.vision_parser",
+)
+
+
+def _api_token_from_settings(platform: str) -> str:
+    """Токен для MODE=api из уже загруженного .env — чтобы перезапуск панели не требовал ввода ключа платформы."""
+    if platform == "twinby" and settings.twinby_access_token:
+        return settings.twinby_access_token.get_secret_value()
+    return settings.api_platform_token.get_secret_value() if settings.api_platform_token else ""
 
 
 def _expected_api_token() -> str:
@@ -53,6 +90,38 @@ def create_web_app(
     agent = chat_agent or AutonomousChatAgent()
     vchat = visual_chat or VisualChatAssistant(ui_driver=worker.ui_driver, db=db, chat_agent=agent, platform=worker.platform, user_preferences=worker.user_preferences)
     auth = [Depends(_verify_api_token)]
+
+    def _live_gateways() -> dict[str, UniversalAIGateway]:
+        """Живые шлюзы ИИ текущей сборки: путь -> экземпляр. PATCH /ai/config обязан обновить каждый."""
+        holders = (worker.vision_parser, worker.synthetic_scorer, agent.engine, vchat.vision_parser)
+        seen: set[int] = set()
+        found: dict[str, UniversalAIGateway] = {}
+        for path_name, holder in zip(LIVE_GATEWAY_PATHS, holders):
+            gw = getattr(holder, "gateway", None)
+            if isinstance(gw, UniversalAIGateway) and id(gw) not in seen:
+                seen.add(id(gw))
+                found[path_name] = gw
+        return found
+
+    def _active_driver_name() -> str:
+        if worker.client is not None:
+            return "rest_api"
+        if worker.ui_driver is not None:
+            return worker.ui_driver.backend
+        return "none"
+
+    async def _close_quietly(drv: MobileUIDriverFallback | None, client: Any | None) -> None:
+        """Обрываем старое подключение; ошибка здесь не должна отменять уже успешное переключение."""
+        if drv is not None:
+            try:
+                await drv.disconnect()
+            except Exception as exc:
+                logger.warning("[Connection] Не удалось корректно закрыть визуальный драйвер: %s", exc)
+        if client is not None:
+            try:
+                await client.__aexit__(None, None, None)
+            except Exception as exc:
+                logger.warning("[Connection] Не удалось корректно закрыть API-клиент: %s", exc)
 
     @app.get("/", response_class=HTMLResponse)
     async def serve_landing() -> HTMLResponse:
@@ -196,8 +265,90 @@ def create_web_app(
 
     @app.post("/api/v1/ai/test", dependencies=auth)
     async def test_ai_connection() -> dict[str, Any]:
-        ok, msg = await UniversalAIGateway().health_check()
-        return {"ok": ok, "message": msg}
+        gateway = next(iter(_live_gateways().values()), None) or UniversalAIGateway()
+        ok, msg = await gateway.health_check()
+        return {"ok": ok, "message": msg, "config": gateway.describe()}
+
+    @app.get("/api/v1/ai/config", dependencies=auth)
+    async def get_ai_config() -> dict[str, Any]:
+        gateways = _live_gateways()
+        if not gateways:
+            raise HTTPException(status_code=503, detail="Живой шлюз ИИ не найден: воркер собран без VLM-компонентов.")
+        signatures = {(gw.provider, gw.base_url, gw.model) for gw in gateways.values()}
+        return {
+            "current": next(iter(gateways.values())).describe(),
+            "gateways_in_sync": len(signatures) == 1,
+            "gateway_paths": list(gateways),
+            "presets": list_provider_presets(),
+        }
+
+    @app.patch("/api/v1/ai/config", dependencies=auth)
+    async def patch_ai_config(payload: AIConfigPatchRequest) -> dict[str, Any]:
+        gateways = _live_gateways()
+        if not gateways:
+            raise HTTPException(status_code=503, detail="Живой шлюз ИИ не найден: воркер собран без VLM-компонентов.")
+        current = next(iter(gateways.values()))
+        provided = payload.model_fields_set
+
+        provider = (payload.provider or current.provider).strip().lower()
+        if provider not in PROVIDER_PRESETS and not (payload.base_url and payload.model):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Провайдер «{provider}» не среди пресетов ({', '.join(PROVIDER_PRESETS)}) — "
+                    "пришлите вместе с ним base_url и model."
+                ),
+            )
+        preset_url, preset_model = PROVIDER_PRESETS.get(provider, (current.base_url, current.model))
+        switched = provider != current.provider
+        base_url = (payload.base_url or (preset_url if switched else current.base_url)).strip().rstrip("/")
+        model = (payload.model or (preset_model if switched else current.model)).strip()
+        api_key = current.api_key if "api_key" not in provided else (payload.api_key or "").strip()
+        custom_header = current.custom_header if "custom_auth_header" not in provided else (payload.custom_auth_header or "").strip()
+        auth_prefix = current.auth_prefix if "auth_prefix" not in provided else (payload.auth_prefix or "")
+        query_param = current.api_key_query_param if "api_key_query_param" not in provided else (payload.api_key_query_param or None)
+
+        for gw in gateways.values():
+            gw.provider, gw.base_url, gw.model = provider, base_url, model
+            gw.api_key, gw.custom_header = api_key, custom_header
+            gw.auth_prefix, gw.api_key_query_param = auth_prefix, query_param
+
+        # Единая точка истины для всего процесса: компоненты, созданные позже (бот, рестарт воркера),
+        # должны увидеть тот же конфиг, что только что выставила панель.
+        settings.ai_provider = provider
+        settings.llm_base_url = base_url
+        settings.llm_model = model
+        settings.llm_api_key = SecretStr(api_key)
+        settings.custom_auth_header = custom_header or None
+        settings.llm_auth_prefix = auth_prefix if "auth_prefix" in provided else settings.llm_auth_prefix
+        settings.llm_api_key_query_param = query_param
+
+        env_saved: str | None = None
+        if payload.save_to_env:
+            env_saved = str(
+                upsert_env_values(
+                    {
+                        "AI_PROVIDER": provider,
+                        "LLM_BASE_URL": base_url,
+                        "LLM_MODEL": model,
+                        "LLM_API_KEY": api_key,
+                        "CUSTOM_AUTH_HEADER": custom_header,
+                        "LLM_AUTH_PREFIX": auth_prefix,
+                        "LLM_API_KEY_QUERY_PARAM": query_param or "",
+                    }
+                )
+            )
+
+        result: dict[str, Any] = {
+            "ok": True,
+            "config": current.describe(),
+            "rewired": list(gateways),
+            "env_saved": env_saved,
+        }
+        if payload.test_after:
+            ok, msg = await current.health_check()
+            result["test"] = {"ok": ok, "message": msg}
+        return result
 
     @app.get("/api/v1/dialogues", dependencies=auth)
     async def list_dialogues() -> list[dict]:
@@ -297,6 +448,175 @@ def create_web_app(
             except Exception as exc:
                 raise HTTPException(status_code=502, detail=f"Не удалось открыть {plat} на устройстве: {exc}") from exc
         return {"platform": plat, "package": pkg, "web_url": web_url, "launched": payload.launch_on_device}
+
+    @app.get("/api/v1/connection", dependencies=auth)
+    async def get_connection() -> dict[str, Any]:
+        spec = GLOBAL_DATING_REGISTRY.get(worker.platform)
+        drv = worker.ui_driver
+        return {
+            "mode": worker.mode,
+            "platform": worker.platform,
+            "platform_name": spec.name if spec else worker.platform,
+            "region": spec.region if spec else "",
+            "driver": _active_driver_name(),
+            "connected": worker.client is not None or drv is not None,
+            "worker_running": worker.is_running,
+            "visual": {
+                "device_udid": drv.device_udid if drv else settings.device_udid,
+                "device_os": drv.device_os if drv else settings.device_os,
+                "platform_package": drv.platform_package if drv else settings.app_package,
+                "appium_url": drv.appium_url if drv else settings.appium_url,
+                "web_target_url": drv.web_target_url if drv else settings.web_target_url,
+                "web_headless": drv.web_headless if drv else settings.web_headless,
+            },
+            "api": {
+                "client_active": worker.client is not None,
+                "har_profiles": list_verified_api_profiles(),
+                "registry_base_url": spec.api_base_url if spec else "",
+                "token_from_env": bool(_api_token_from_settings(worker.platform)),
+            },
+            "options": {
+                "modes": [{"mode": m, "drivers": list(d)} for m, d in MODE_DRIVERS.items()],
+                "platforms": [
+                    {
+                        "id": s.id,
+                        "name": s.name,
+                        "region": s.region,
+                        "android_package": s.android_package,
+                        "ios_bundle_id": s.ios_bundle_id,
+                        "web_url": s.web_url,
+                        "api_base_url": s.api_base_url,
+                    }
+                    for s in GLOBAL_DATING_REGISTRY.values()
+                ],
+            },
+        }
+
+    @app.post("/api/v1/connection", dependencies=auth)
+    async def apply_connection(payload: ApplyConnectionRequest) -> dict[str, Any]:
+        mode = payload.mode.strip().lower()
+        plat = payload.platform.strip().lower()
+        if mode not in MODE_DRIVERS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Неизвестный режим «{mode}». Доступны: {', '.join(MODE_DRIVERS)}.",
+            )
+        if plat not in GLOBAL_DATING_REGISTRY:
+            raise HTTPException(status_code=404, detail=f"Неизвестная платформа: {plat}")
+        driver = (payload.driver or MODE_DRIVERS[mode][0]).strip().lower()
+        if driver not in MODE_DRIVERS[mode]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Драйвер «{driver}» недоступен в режиме «{mode}». Доступны: {', '.join(MODE_DRIVERS[mode])}.",
+            )
+
+        was_running = worker.is_running
+        if was_running:
+            await worker.stop()
+
+        default_pkg, default_url = resolve_platform_defaults(plat, payload.device_os)
+        pkg = (payload.app_package or "").strip() or default_pkg
+        web_url = (payload.web_target_url or "").strip() or default_url
+        old_driver, old_client = worker.ui_driver, worker.client
+        new_driver: MobileUIDriverFallback | None = None
+        new_client: Any | None = None
+        # Новое подключение поднимается ДО разрыва старого: иначе сорванная кнопка оставила бы панель без связи.
+        try:
+            if mode == "api":
+                new_client = create_dating_client(
+                    platform=plat,
+                    session_id=f"panel_{plat}",
+                    credentials={"token": payload.api_token or _api_token_from_settings(plat)},
+                    proxy_manager=proxy_manager,
+                )
+                await new_client.__aenter__()
+            else:
+                new_driver = MobileUIDriverFallback(
+                    device_udid=payload.device_udid.strip(),
+                    platform_package=pkg,
+                    appium_url=(payload.appium_url or settings.appium_url).strip(),
+                    backend="playwright" if mode == "web_vision" else driver,
+                    device_os=payload.device_os,
+                    platform_id=plat,
+                    web_target_url=web_url,
+                    web_profile_dir=settings.web_profile_dir,
+                    web_headless=settings.web_headless if payload.web_headless is None else payload.web_headless,
+                )
+                await new_driver.connect()
+                if payload.launch:
+                    await new_driver.switch_platform(plat, pkg, web_url)
+        except Exception as exc:
+            await _close_quietly(new_driver, new_client)
+            raise HTTPException(
+                status_code=502,
+                detail=f"Не удалось подключить {mode}/{driver} для «{plat}»: {exc}. Прежнее подключение сохранено.",
+            ) from exc
+
+        await _close_quietly(old_driver, old_client)
+        worker.mode, worker.platform = mode, plat
+        worker.ui_driver, worker.client = new_driver, new_client
+        vchat.ui_driver, vchat.platform = new_driver, plat
+
+        env_saved: str | None = None
+        if payload.save_to_env:
+            env = {"MODE": mode, "PLATFORM": plat}
+            if new_driver is not None:
+                env["DEVICE_DRIVER"] = "playwright" if mode == "web_vision" else driver
+                env["DEVICE_OS"] = payload.device_os
+                env["DEVICE_UDID"] = payload.device_udid.strip()
+                if driver == "appium":
+                    env["APPIUM_URL"] = new_driver.appium_url
+                if mode == "web_vision":
+                    env["WEB_HEADLESS"] = "true" if new_driver.web_headless else "false"
+            if (payload.app_package or "").strip():
+                env["APP_PACKAGE"] = pkg
+            if (payload.web_target_url or "").strip():
+                env["WEB_TARGET_URL"] = web_url
+            env_saved = str(upsert_env_values(env))
+
+        return {
+            "ok": True,
+            "mode": mode,
+            "platform": plat,
+            "driver": driver,
+            "package": pkg,
+            "web_url": web_url,
+            "connected": True,
+            "worker_was_running": was_running,
+            "env_saved": env_saved,
+        }
+
+    @app.post("/api/v1/connection/har-import", dependencies=auth)
+    async def import_connection_har(
+        file: UploadFile = File(...),
+        platform: str = Form(...),
+        host: str = Form(""),
+    ) -> dict[str, Any]:
+        plat = platform.strip().lower()
+        if plat not in GLOBAL_DATING_REGISTRY:
+            raise HTTPException(status_code=404, detail=f"Неизвестная платформа: {plat}")
+        raw = await file.read()
+        if not raw:
+            raise HTTPException(status_code=400, detail="Пустой .har файл.")
+        fd, tmp_name = tempfile.mkstemp(suffix=".har")
+        try:
+            with os.fdopen(fd, "wb") as fh:
+                fh.write(raw)
+            profile_path = export_api_profile_from_har(tmp_name, platform=plat, host_filter=host.strip())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=f"HAR не подошёл: {exc}") from exc
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Не удалось разобрать HAR: {exc}") from exc
+        finally:
+            Path(tmp_name).unlink(missing_ok=True)
+        return {
+            "ok": True,
+            "platform": plat,
+            "profile_path": str(profile_path),
+            "har_profiles": list_verified_api_profiles(),
+            "apply": {"mode": "api", "platform": plat, "driver": "rest_api"},
+        }
+
 
     @app.get("/api/v1/calendar/slots", dependencies=auth)
     async def calendar_slots(days_ahead: int = 3) -> dict[str, Any]:

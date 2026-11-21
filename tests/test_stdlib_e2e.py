@@ -422,6 +422,8 @@ class TestHeart3Comprehensive(unittest.TestCase):
                 else:
                     self._send(200, {"items": [], "data": []})
             def do_POST(self):
+                # HTTP/1.0-мок закрывает сокет сразу: непрочитанное тело -> RST -> httpx ReadError.
+                self.rfile.read(int(self.headers.get("Content-Length", "0")))
                 self._send(200, {"is_match": True, "is_matched": True, "is_mutual": True})
 
         srv = HTTPServer(("127.0.0.1", 0), _MultiHandler)

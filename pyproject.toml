@@ -15,7 +15,12 @@ dependencies = [
     "pydantic-settings>=2.7.0",
     "tenacity>=9.0.0",
     "fastapi>=0.115.6",
+    # FastAPI raises at route-registration time (not request time) without this: /api/v1/connection/har-import
+    # accepts a multipart .har upload, so the whole panel fails to build if it is missing.
+    "python-multipart>=0.0.20",
+    # Bare uvicorn ships no WebSocket implementation, and /ws/live is the dashboard's live feed.
     "uvicorn>=0.34.0",
+    "websockets>=12.0",
     "prometheus-client>=0.21.1",
     "pillow>=11.0.0",
 ]

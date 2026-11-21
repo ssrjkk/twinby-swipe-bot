@@ -303,6 +303,8 @@ class TestLiveEnvironments(unittest.TestCase):
                     self.end_headers()
 
             def do_POST(self):
+                # HTTP/1.0-мок закрывает сокет сразу: непрочитанное тело -> RST -> httpx ReadError.
+                self.rfile.read(int(self.headers.get("Content-Length", "0")))
                 if self.path == "/swipes/pass_204":
                     self.send_response(204)
                     self.end_headers()
