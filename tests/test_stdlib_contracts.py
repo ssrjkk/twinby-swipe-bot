@@ -138,6 +138,29 @@ class TestRepositoryContracts(unittest.TestCase):
         self.assertIn("/api/v1/platforms", dash)
         self.assertIn("/api/v1/calendar/slots", dash)
 
+    def test_10_startup_checks_bind_before_uvicorn_and_menu_before_polling(self) -> None:
+        """Порядок запуска в main(): защита bind'а раньше сервера, меню команд раньше polling'а.
+
+        Сами по себе guard_public_bind и register_bot_commands бесполезны, если их никто не зовёт,
+        поэтому проверяется именно вызов и его место, а не только существование функции.
+        """
+        tree = ast.parse((ROOT / "main.py").read_text(encoding="utf-8"))
+        calls: dict[str, int] = {}
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+            if name in {"guard_public_bind", "register_bot_commands", "Config", "start_polling"}:
+                calls.setdefault(name, node.lineno)
+        self.assertEqual(
+            sorted(calls),
+            ["Config", "guard_public_bind", "register_bot_commands", "start_polling"],
+            f"main() потерял обязательный вызов: нашлось {sorted(calls)}",
+        )
+        self.assertLess(calls["guard_public_bind"], calls["Config"], "открытый bind проверяется уже после сборки сервера")
+        self.assertLess(calls["register_bot_commands"], calls["start_polling"], "меню команд грузится после старта polling'а")
+
 
 if __name__ == "__main__":
     unittest.main()

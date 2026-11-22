@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>&lt;3 — AI Matchmaking Agent</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23e11d48' d='M16 28C8.5 22.7 3 18.2 3 12.9 3 9 6 6.2 9.6 6.2c2.2 0 4.3 1.1 5.4 3 1.1-1.9 3.2-3 5.4-3C24 6.2 27 9 27 12.9c0 5.3-5.5 9.8-13 15.1z'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -375,7 +376,7 @@
 
     <div class="stats">
       <div class="stat-card"><b>UI-Vision</b><span>рабочий контур: ADB / Appium + VLM</span></div>
-      <div class="stat-card"><b>4</b><span>LLM-бэкенда: Claude · OpenAI · Gemini · Local</span></div>
+      <div class="stat-card"><b>13</b><span>пресетов ИИ-провайдеров: OpenAI · Claude · Gemini · Groq · Local</span></div>
       <div class="stat-card"><b>API + UI</b><span>curl_cffi TLS-стелс + Appium/uiautomator2</span></div>
       <div class="stat-card"><b>InsightFace</b><span>сверка лиц + VLM-детали для icebreakers</span></div>
     </div>
@@ -417,8 +418,8 @@
         <div class="mode-content" id="mode-display">
           <strong>Алгоритм для Pure (Synthetic Vibe Score + TTL):</strong><br><br>
           1. <strong>Мягкий Face-Gate:</strong> В Pure пользователи часто выкладывают атмосферные фото без лица или арт-снимки. Для Pure в реестре выставлено <code>requires_face_on_primary_photo = False</code> — бот не отсекает такие анкеты, но блокирует стоковый спам и рекламу.<br>
-          2. <strong>Синтетическая оценка (60% LLM + 40% VLM):</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM оценивает эстетику и вайб снимка.<br>
-          3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>vibe_score &ge; 70</code> бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.
+          2. <strong>Синтетическая оценка:</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM-детали снимка подставляются в этот же промпт отдельной строкой.<br>
+          3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>compatibility_score &ge; MIN_COMPATIBILITY</code> (по умолчанию 70) бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.
         </div>
       </div>
     </section>
@@ -475,8 +476,8 @@
           <p>Сверка лиц на всех снимках анкеты (защита от фейков) + извлечение деталей с фото для персонализированного первого сообщения.</p>
         </div>
         <div class="card">
-          <h3>📅 Google Calendar + Temporal</h3>
-          <p>Проверка свободных слотов в календаре, создание встречи и durable-воркеры Temporal для деликатного пинга при молчании 24 часа.</p>
+          <h3>📅 Google Calendar</h3>
+          <p>Свободные слоты и бронь свидания: командой <code>/book</code> в Telegram, через <code>/api/v1/calendar/*</code> или кнопкой в панели. Встреча создаётся в основном календаре с заведением, таймзоной и напоминанием.</p>
         </div>
       </div>
 
@@ -496,8 +497,8 @@
     const modeTexts = {
       pure: `<strong>Алгоритм для Pure (Synthetic Vibe Score + TTL):</strong><br><br>
         1. <strong>Мягкий Face-Gate:</strong> В Pure пользователи часто выкладывают атмосферные фото без лица или арт-снимки. Для Pure в реестре выставлено <code>requires_face_on_primary_photo = False</code> — бот не отсекает такие анкеты, но блокирует стоковый спам и рекламу.<br>
-        2. <strong>Синтетическая оценка (60% LLM + 40% VLM):</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM оценивает эстетику и вайб снимка.<br>
-        3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>vibe_score &ge; 70</code> бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.`,
+        2. <strong>Синтетическая оценка:</strong> LLM анализирует текст объявления и теги желаний (<em>kinks / moods</em>) на совпадение с вашими критериями, а VLM-детали снимка подставляются в этот же промпт отдельной строкой.<br>
+        3. <strong>Учет времени жизни (TTL):</strong> Объявления в Pure живут ограниченное время, поэтому при <code>compatibility_score &ge; MIN_COMPATIBILITY</code> (по умолчанию 70) бот сразу ставит лайк и генерирует персонализированный icebreaker под конкретный запрос из карточки.`,
       rus: `<strong>Алгоритм для VK Знакомств, Мамбы, Табора, Фотостраны и ОК:</strong><br><br>
         1. <strong>Антиспам-щит:</strong> Мгновенно отсекает рекламные анкеты, ссылки на сторонние каналы и ботов.<br>
         2. <strong>InsightFace:</strong> Проверяет, что на всех фото один и тот же реальный человек (отсеиваются мемы, картинки из интернета и групповые фото).<br>
@@ -505,7 +506,7 @@
       native: `<strong>Алгоритм для Twinby, Теамо, RusDate и OkCupid:</strong><br><br>
         1. Платформа сама отдает базовый процент совместимости (например, <code>89%</code>).<br>
         2. <strong>InsightFace + VLM</strong> проверяют подлинность фото и находят детали для первого сообщения.<br>
-        3. Итоговый скор = <code>50% нативный % + 30% VLM-детали фото + 20% совпадение ключевых слов</code>.`
+        3. Итоговый скор = <code>35 + 0.45 × нативный %</code>, плюс по 6 за каждое ключевое слово (до +18), +5 за верификацию и +4 за био от 40 знаков.`
     };
     function switchMode(key, btn) {
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));

@@ -5,6 +5,7 @@
 - Telegram Bot: AdminOnlyMiddleware, /start, /step, /chatstep, /reply, /slots, /book, /backup, callbacks, HTML escaping
 """
 import asyncio
+import re
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -17,6 +18,7 @@ from starlette.websockets import WebSocketDisconnect
 from ai.bandits import PromptThompsonBandit
 from ai.chat_agent import AutonomousChatAgent
 from bot.telegram import (
+    BOT_COMMANDS,
     AdminOnlyMiddleware,
     cb_draft_regen,
     cb_draft_send,
@@ -35,6 +37,7 @@ from bot.telegram import (
     cmd_slots,
     cmd_start,
     cmd_step,
+    register_bot_commands,
     send_dry_run_preview,
     send_match_notification,
 )
@@ -294,3 +297,29 @@ async def test_telegram_middleware_commands_callbacks_and_html_escaping(tmp_path
         txt = call.kwargs["text"]
         assert "&lt;3" in txt and "a &lt; b" in txt
     await db.close()
+
+
+def test_telegram_command_menu_covers_handlers_and_default_scope() -> None:
+    """Меню команд: ни выдуманных пунктов, ни потерянных, и обязательно копия в default-скоупе.
+
+    Клиент Telegram показывает скоуп своего языка интерфейса, а при его отсутствии откатывается на
+    default-скоуп (set_my_commands без language_code) — без него меню пусто у всех, кто не ru/en.
+    """
+    source = Path("bot/telegram.py").read_text(encoding="utf-8")
+    handled = set()
+    for args in re.findall(r"Command\(([^)]*)\)", source):
+        handled.update(re.findall(r'"([a-z]+)"', args))
+    assert handled, "в handler'ах не нашлось ни одной команды"
+
+    for language, commands in BOT_COMMANDS.items():
+        names = {cmd.command for cmd in commands}
+        assert names == handled, f"меню {language} разошлось с handler'ами: {names ^ handled}"
+        assert all(cmd.description and len(cmd.description) <= 256 for cmd in commands)
+        assert all(cmd.command.islower() and len(cmd.command) <= 32 for cmd in commands)
+
+    bot = AsyncMock()
+    summary = asyncio.run(register_bot_commands(bot))
+    calls = bot.set_my_commands.await_args_list
+    assert [call.kwargs.get("language_code") for call in calls] == ["ru", "en", None]
+    assert calls[-1].args[0] == BOT_COMMANDS["ru"], "default-скоуп обязан повторять русское меню"
+    assert summary == {"ru": len(BOT_COMMANDS["ru"]), "en": len(BOT_COMMANDS["en"]), "default": len(BOT_COMMANDS["ru"])}

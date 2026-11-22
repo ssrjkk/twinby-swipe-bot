@@ -47,6 +47,8 @@ Control Panel на `http://127.0.0.1:8080/dashboard` — счётчики обн
 
 Все четыре эндпоинта требуют `X-API-Token` (или `?token=`), если в `.env` задан `WEB_API_TOKEN`.
 
+Поступь панели закрыта с трёх сторон. `WEB_HOST` вне `127.0.0.1`/`localhost`/`::1` без `WEB_API_TOKEN` останавливает запуск с `RuntimeError` — чужие анкеты не уезжают в локальную сеть по невнимательности ([`guard_public_bind`](web/api.py), вызывается из [`main.py`](main.py)). `WEB_CORS_ORIGINS` — явный список origin'ов через запятую (по умолчанию только loopback); wildcard не поддерживается. В HTTP-ответ ошибок попадает только классификация (`RuntimeError, код 401`), а не текст чужого исключения: драйверы и HTTP-клиенты кладут в сообщения абсолютные пути профиля и URL сессионных токенов. Полный traceback пишется в лог `web.api`.
+
 ![Control Panel: выбор режима, драйвера и платформы + форма ИИ-ключа любого формата](docs/screenshots/dashboard-connection.jpg)
 
 ## Быстрый старт
@@ -85,9 +87,9 @@ heart3 run
 
 У всех настроек есть значения по умолчанию ([`config.py`](config.py)), поэтому процесс стартует и с пустым `.env`. Для осмысленного запуска обязательна одна строка — `LLM_API_KEY`; без неё запросы уходят без заголовка авторизации, и `heart3 doctor` это покажет.
 
-Если провайдер отличается от OpenAI, правятся **четыре** строки (`AI_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`) — проще один раз запустить `heart3 setup`, он подставит `LLM_BASE_URL` и `LLM_MODEL` из `PROVIDER_DEFAULTS`. OpenAI-совместимые шлюзы (Groq, OpenRouter, DeepSeek, LM Studio) работают с `AI_PROVIDER=openai` и своим `LLM_BASE_URL`.
+Если провайдер отличается от OpenAI, правятся **четыре** строки (`AI_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`) — проще один раз запустить `heart3 setup`, он подставит `LLM_BASE_URL` и `LLM_MODEL` из `PROVIDER_PRESETS`. OpenAI-совместимые шлюзы (Groq, OpenRouter, DeepSeek, LM Studio) работают с `AI_PROVIDER=openai` и своим `LLM_BASE_URL`.
 
-Telegram-контур поднимается только парой: `TG_BOT_TOKEN` **и** `TG_ADMIN_ID > 0` — одного токена недостаточно ([`main.py`](main.py)).
+Telegram-контур поднимается только парой: `TG_BOT_TOKEN` **и** `TG_ADMIN_ID > 0` — одного токена недостаточно ([`main.py`](main.py)). При старте бот прогружает меню команд (`/start`, `/menu`, `/step`, `/chatstep`, `/slots`, `/book`, `/reply`, `/backup`) отдельно для `ru` и `en` и копией в default-скоуп: клиент показывает скоуп своего языка интерфейса, а без default-скоупа меню пусто у всех, чей язык не совпал ([`register_bot_commands`](bot/telegram.py)).
 
 | Extra | Когда нужен |
 |---|---|

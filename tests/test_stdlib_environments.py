@@ -7,6 +7,7 @@
 """
 import asyncio
 import base64
+import contextlib
 import io
 import json
 import os
@@ -501,7 +502,13 @@ class TestLiveEnvironments(unittest.TestCase):
         from filters.synthetic_scorer import SyntheticCompatibilityScorer
 
         # 1. cli._cmd_platforms() lists all 28 platforms and returns 0
-        self.assertEqual(cli_mod._cmd_platforms(), 0)
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            self.assertEqual(cli_mod._cmd_platforms(), 0)
+        listing = stdout.getvalue()
+        missing = [pid for pid in GLOBAL_DATING_REGISTRY if pid not in listing]
+        self.assertEqual(missing, [], f"CLI не показывает платформы реестра: {missing}")
+        self.assertEqual(len([ln for ln in listing.splitlines() if "|" in ln]), len(GLOBAL_DATING_REGISTRY))
 
         # 2. cli._cmd_setup() backs up existing .env to .env.bak
         old_cwd = os.getcwd()

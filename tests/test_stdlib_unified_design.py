@@ -63,6 +63,82 @@ def visible_text(chunk: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", chunk)).strip()
 
 
+# Вызовы, которые сами нейтрализуют подстановку: их аргументы проверять не нужно.
+ESCAPE_WRAPPERS = frozenset({"escapeHtml", "encodeURIComponent", "Number", "String", "rawOf", "JSON.stringify"})
+JS_LITERALS = frozenset({"true", "false", "null", "undefined", "NaN", "Infinity"})
+IDENT_RE = re.compile(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*")
+
+
+def skip_balanced(text: str, open_idx: int, pairs: str = "{}") -> int:
+    """Индекс пары к символу `pairs[0]`, стоящему на open_idx."""
+    depth, idx = 0, open_idx
+    while idx < len(text):
+        depth += text[idx] == pairs[0]
+        depth -= text[idx] == pairs[1]
+        if depth == 0:
+            return idx
+        idx += 1
+    raise AssertionError(f"неспаренный {pairs[0]!r} в фрагменте {text[:60]!r}")
+
+
+def js_interpolations(expr: str, base: int = 0) -> list[tuple[str, int]]:
+    """Пары `(содержимое, абсолютная позиция)` для каждого `${...}`, включая вложенные шаблоны.
+
+    `re.findall(r"\\$\\{([^{}]*)\\}")` теряет подстановки с фигурными скобками внутри — условие с
+    вложенным шаблоном как раз и прячет туда неэкранированную вставку.
+    """
+    out: list[tuple[str, int]] = []
+    idx = 0
+    while True:
+        start = expr.find("${", idx)
+        if start < 0:
+            return out
+        end = skip_balanced(expr, start + 1)
+        out.append((expr[start + 2:end], base + start + 2))
+        idx = end + 1
+
+
+def js_code_identifiers(expr: str, base: int = 0) -> list[tuple[str, int]]:
+    """Идентификаторы «кодового» контекста выражения с абсолютными позициями.
+
+    Текст строковых и шаблонных литералов (HTML-разметка) и аргументы безопасных обёрток не выдаются
+    за данные: в первом нет подстановок, во втором они уже экранированы.
+    """
+    ids: list[tuple[str, int]] = []
+    idx, n = 0, len(expr)
+    while idx < n:
+        ch = expr[idx]
+        if ch in "'\"":
+            idx += 1
+            while idx < n and expr[idx] != ch:
+                idx += 2 if expr[idx] == "\\" else 1
+            idx += 1
+        elif ch == "`":
+            idx += 1
+            while idx < n and expr[idx] != "`":
+                if expr[idx] == "$" and expr[idx + 1:idx + 2] == "{":
+                    end = skip_balanced(expr, idx + 1)
+                    ids.extend(js_code_identifiers(expr[idx + 2:end], base + idx + 2))
+                    idx = end + 1
+                else:
+                    idx += 1
+            idx += 1
+        else:
+            match = IDENT_RE.match(expr, idx)
+            if not match:
+                idx += 1
+                continue
+            token = match.group(0)
+            if token in ESCAPE_WRAPPERS:
+                paren = expr.find("(", match.end())
+                if paren >= 0 and expr[match.end():paren].strip() == "":
+                    idx = skip_balanced(expr, paren, "()") + 1  # аргументы обёртки уже экранированы
+                    continue
+            ids.append((token, base + match.end()))
+            idx = match.end()
+    return ids
+
+
 class TestUnifiedDesignLanguage(unittest.TestCase):
     def test_01_landing_and_dashboard_share_the_exact_palette(self) -> None:
         landing_vars, dash_vars = css_vars(LANDING), css_vars(DASH)
@@ -284,28 +360,32 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
             self.assertIn(f'id="{wrapper}"', DASH, f"нет контейнера поля {wrapper} — переключение режимов его не покажет")
 
     def test_16_dynamic_markup_is_always_escaped(self) -> None:
-        """Ни одной подстановки в innerHTML без escapeHtml: сырое `объект.поле` — провал гейта."""
+        """Ни одной подстановки в innerHTML без экранирования: `${объект.поле}` и `${переменная}` — провал гейта.
+
+        Проходят литералы, вызовы функций, обращения только внутри условия, `.length` (это число) и
+        имена с суффиксом `Html` — по соглашению это уже собранный фрагмент разметки, см. renderReply.
+        """
         statement_ends = re.compile(r"(?m)^\s*.*;\s*$")
         offenders: list[str] = []
         for match in re.finditer(r"\.innerHTML\s*=", DASH):
             tail = statement_ends.search(DASH, match.end())
             statement = DASH[match.start(): tail.end() if tail else match.end() + 400]
-            for expr in re.findall(r"\$\{([^{}]*)\}", statement):
-                # Безопасные обёртки и строковые литералы вырезаем, чтобы не проверять их содержимое.
-                cut = re.sub(
-                    r"(?:escapeHtml|encodeURIComponent|Number|String|rawOf|JSON\.stringify)\([^()]*(?:\([^()]*\)[^()]*)*\)",
-                    " ",
-                    expr,
-                )
-                cut = re.sub(r"'[^']*'|\"[^\"]*\"", " ", cut)
-                for member in re.finditer(r"\b[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", cut):
-                    rest = cut[member.end():].lstrip()
-                    if rest[:1] == "?" or rest[:2] in ("==", "!=", "&&", "||") or rest[:3] in ("===", "!=="):
-                        continue  # обращение участвует только в условии — в DOM оно не попадает
-                    offenders.append(member.group(0))
+            for expr, base in js_interpolations(statement):
+                for token, end in js_code_identifiers(expr, base):
+                    rest = statement[end:].lstrip()
+                    if rest[:1] == "(" or rest[:1] == "?" or rest[:2] in ("==", "!=", "&&", "||") or rest[:3] in ("===", "!=="):
+                        continue  # обращение участвует только в условии или в вызове — в DOM оно не попадает
+                    if token in JS_LITERALS or token.endswith(".length") or token.endswith("Html"):
+                        continue
+                    offenders.append(token)
         self.assertEqual(offenders, [], f"в innerHTML попало неэкранированное выражение: {sorted(set(offenders))}")
         self.assertIn("function escapeHtml(", DASH)
         self.assertGreaterEqual(DASH.count("escapeHtml("), 30, "экранирования в панели подозрительно мало")
+        self.assertEqual(js_code_identifiers("escapeHtml(a.b)", 0), [], "гейт слеп к аргументам обёртки")
+        sample = "a ? `<b>${a.c}</b>` : ''"
+        self.assertEqual([part for part, _ in js_interpolations(sample, 0)], ["a.c"], "гейт слеп к вложенным шаблонам")
+        self.assertEqual([token for token, _ in js_code_identifiers(sample, 0)], ["a", "a.c"],
+                         "обращение внутри вложенного шаблона обязано доходить до проверки")
 
     def test_17_each_mode_reveals_only_its_own_fields(self) -> None:
         """Переключатель прячет поля чужого канала: ОС — только у adb/appium, URL — только у web_vision."""

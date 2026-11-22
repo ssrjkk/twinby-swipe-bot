@@ -616,7 +616,7 @@
           </div>
 
           <div class="file-row">
-            <input type="file" id="connHarFile" accept=".har,application/json">
+            <input type="file" id="connHarFile" accept=".har,application/json" aria-label="HAR-файл для импорта в API-профиль">
             <button type="button" class="btn-secondary" onclick="uploadHar(this)">Импорт .har в API-профиль</button>
           </div>
 
@@ -1154,9 +1154,11 @@
 
     /* ---------- переписка ---------- */
 
-    function renderReply(meta, chunks) {
+    function renderReply(metaHtml, chunks) {
+      // metaHtml — уже собранный фрагмент разметки: вызывающий сам экранирует подстановки,
+      // иначе <strong> внутри строки превратится в текст (гейт test_16 разрешает такие аргументы по суффиксу Html).
       const box = el('replyBox');
-      box.innerHTML = `<p class="hint">${meta}</p>`
+      box.innerHTML = `<p class="hint">${metaHtml}</p>`
         + (chunks || []).map((c) => `<div class="list-item">${escapeHtml(c)}</div>`).join('');
     }
 
@@ -1514,7 +1516,7 @@
         const keyNote = cur.api_key_masked || (cur.keyless_ok ? 'ключ не требуется' : 'ключ не задан');
         setOut('aiState', cur.key_configured || cur.keyless_ok ? 'info' : 'warn',
           `${cur.auth} · ключ: ${keyNote} · живых шлюзов: ${c.gateway_paths.length} (${c.gateway_paths.join(', ')})`
-          + (c.gateways_in_sync ? '' : ' · конфиги разошлись, «Применить» синхронизирует'));
+          + (c.gateways_in_sync ? '' : ' · конфиги разошлись, «Применить ко всем» синхронизирует'));
       } catch (err) {
         setOut('aiState', 'err', 'Конфиг ИИ не прочитался: ' + err.message, rawOf(err.payload));
       }

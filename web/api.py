@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -66,6 +67,38 @@ def _expected_api_token() -> str:
     return ""
 
 
+_HTTP_CODE_RE = re.compile(r"\b([45]\d{2})\b")
+
+
+def safe_error_suffix(exc: BaseException) -> str:
+    """Кусок ошибки, который можно показать в HTTP-ответе: тип исключения и код ответа провайдера.
+
+    ADB/Appium/Playwright и httpx кладут в текст абсолютные пути профиля браузера и URL с токенами,
+    поэтому наружу идёт только классификация, а полный traceback пишется в лог.
+    """
+    name = type(exc).__name__
+    code = _HTTP_CODE_RE.search(str(exc))
+    return f"{name}, код {code.group(1)}" if code else name
+
+
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1", "::ffff:127.0.0.1"})
+
+
+def cors_origins() -> list[str]:
+    """Origin'ы для CORSMiddleware: только явно перечисленные в WEB_CORS_ORIGINS, wildcard не поддерживается."""
+    return [origin.strip() for origin in settings.web_cors_origins.split(",") if origin.strip()]
+
+
+def guard_public_bind(host: str) -> None:
+    """Панель на незакрытом интерфейсе без токена отдаёт чужие анкеты любому в сети."""
+    if host.strip() in LOOPBACK_HOSTS or _expected_api_token():
+        return
+    raise RuntimeError(
+        f"WEB_HOST={host!r} — не loopback, а WEB_API_TOKEN пуст. "
+        "Задайте WEB_API_TOKEN в .env или верните WEB_HOST=127.0.0.1."
+    )
+
+
 async def _verify_api_token(
     x_api_token: str | None = Header(default=None),
     token: str | None = Query(default=None),
@@ -86,7 +119,12 @@ def create_web_app(
     visual_chat: VisualChatAssistant | None = None,
 ) -> FastAPI:
     app = FastAPI(title="<3 AI Matchmaking Control Plane", version="3.9.0")
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins(),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     agent = chat_agent or AutonomousChatAgent()
     vchat = visual_chat or VisualChatAssistant(ui_driver=worker.ui_driver, db=db, chat_agent=agent, platform=worker.platform, user_preferences=worker.user_preferences)
     auth = [Depends(_verify_api_token)]
@@ -208,7 +246,8 @@ def create_web_app(
             res = await worker.process_single_visual_screen()
             return {"ok": True, "result": res}
         except Exception as exc:
-            raise HTTPException(status_code=502, detail=f"Ошибка визуального шага: {exc}") from exc
+            logger.warning("Визуальный шаг не выполнен", exc_info=True)
+            raise HTTPException(status_code=502, detail=f"Ошибка визуального шага: {safe_error_suffix(exc)}") from exc
 
     @app.get("/api/v1/worker/last-screenshot", dependencies=auth)
     async def get_last_screenshot() -> Response:
@@ -394,7 +433,8 @@ def create_web_app(
             result["history_len"] = len(history)
             return result
         except Exception as exc:
-            raise HTTPException(status_code=502, detail=f"Ошибка LLM-ответа: {exc}") from exc
+            logger.warning("LLM не ответил", exc_info=True)
+            raise HTTPException(status_code=502, detail=f"Ошибка LLM-ответа: {safe_error_suffix(exc)}") from exc
 
     @app.get("/api/v1/bandits", dependencies=auth)
     async def get_bandit_stats() -> dict[str, Any]:
@@ -422,16 +462,18 @@ def create_web_app(
         try:
             return await vchat.capture_and_draft(auto_send=False)
         except Exception as exc:
-            raise HTTPException(status_code=502, detail=f"Ошибка чтения чата: {exc}") from exc
+            logger.warning("Чат не прочитан", exc_info=True)
+            raise HTTPException(status_code=502, detail=f"Ошибка чтения чата: {safe_error_suffix(exc)}") from exc
 
     @app.post("/api/v1/visual-chat/send/{draft_id}", dependencies=auth)
     async def visual_chat_send(draft_id: str) -> dict[str, Any]:
         try:
             return await vchat.send_draft(draft_id)
         except KeyError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+            raise HTTPException(status_code=404, detail=f"Черновик {draft_id} не найден") from exc
         except Exception as exc:
-            raise HTTPException(status_code=502, detail=f"Ошибка отправки в чат: {exc}") from exc
+            logger.warning("Сообщение в чат не отправлено", exc_info=True)
+            raise HTTPException(status_code=502, detail=f"Ошибка отправки в чат: {safe_error_suffix(exc)}") from exc
 
 
     @app.post("/api/v1/worker/platform", dependencies=auth)
@@ -446,7 +488,11 @@ def create_web_app(
             try:
                 await worker.ui_driver.switch_platform(plat, pkg, web_url)
             except Exception as exc:
-                raise HTTPException(status_code=502, detail=f"Не удалось открыть {plat} на устройстве: {exc}") from exc
+                logger.warning("Платформа %s не открылась на устройстве", plat, exc_info=True)
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Не удалось открыть {plat} на устройстве: {safe_error_suffix(exc)}",
+                ) from exc
         return {"platform": plat, "package": pkg, "web_url": web_url, "launched": payload.launch_on_device}
 
     @app.get("/api/v1/connection", dependencies=auth)
@@ -547,9 +593,13 @@ def create_web_app(
                     await new_driver.switch_platform(plat, pkg, web_url)
         except Exception as exc:
             await _close_quietly(new_driver, new_client)
+            logger.warning("Подключение %s/%s для %s не удалось", mode, driver, plat, exc_info=True)
             raise HTTPException(
                 status_code=502,
-                detail=f"Не удалось подключить {mode}/{driver} для «{plat}»: {exc}. Прежнее подключение сохранено.",
+                detail=(
+                    f"Не удалось подключить {mode}/{driver} для «{plat}»: {safe_error_suffix(exc)}. "
+                    "Прежнее подключение сохранено."
+                ),
             ) from exc
 
         await _close_quietly(old_driver, old_client)
@@ -606,7 +656,8 @@ def create_web_app(
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=f"HAR не подошёл: {exc}") from exc
         except Exception as exc:
-            raise HTTPException(status_code=502, detail=f"Не удалось разобрать HAR: {exc}") from exc
+            logger.warning("HAR не разобран", exc_info=True)
+            raise HTTPException(status_code=502, detail=f"Не удалось разобрать HAR: {safe_error_suffix(exc)}") from exc
         finally:
             Path(tmp_name).unlink(missing_ok=True)
         return {

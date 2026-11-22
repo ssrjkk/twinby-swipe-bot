@@ -117,7 +117,11 @@ class Settings(BaseSettings):
     backup_retention_count: int = Field(default=7, ge=1, le=90)
     web_host: str = Field(default="127.0.0.1")
     web_port: int = Field(default=8080, ge=1024, le=65535)
-    web_api_token: SecretStr | None = Field(default=None, description="Опциональный токен защиты Web API и WebSocket (если биндите на 0.0.0.0)")
+    web_api_token: SecretStr | None = Field(default=None, description="Опциональный токен защиты Web API и WebSocket (обязателен, если биндите не на loopback)")
+    web_cors_origins: str = Field(
+        default="http://127.0.0.1:8080,http://localhost:8080",
+        description="Список origin'ов через запятую, которым разрешён кросс-доменный доступ к Web API",
+    )
     metrics_port: int = Field(default=8000, ge=0, le=65535)
     tg_bot_token: SecretStr = Field(default=SecretStr("000000:dummy"))
     tg_admin_id: int = Field(default=0)

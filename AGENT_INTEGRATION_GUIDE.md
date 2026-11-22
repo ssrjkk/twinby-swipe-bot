@@ -81,7 +81,7 @@ python heart3/scripts/sync_to_repo.py --target ./twinby-swipe-bot
 
 > Если нужен bash/PowerShell вариант:
 > - Linux/macOS: `./heart3/scripts/apply_to_repo.sh ./twinby-swipe-bot`
-> - Windows PowerShell: `.\heart3\scriptspply_to_repo.ps1 -TargetRepo .	winby-swipe-bot`
+> - Windows PowerShell: `\.\heart3\scripts\apply_to_repo.ps1 -TargetRepo \.\twinby-swipe-bot`
 
 ### Шаг 3. Чистое виртуальное окружение и установка
 

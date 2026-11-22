@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 
@@ -6,6 +7,8 @@ try:
 except ImportError:
     def tool(fn):  # type: ignore[misc]
         return fn
+
+logger = logging.getLogger(__name__)
 
 
 def _get_calendar_service():
@@ -50,6 +53,9 @@ async def list_busy_slots(days_ahead: int = 3) -> str:
         ]
         return "Занятые слоты:\n" + "\n".join(lines)
     except Exception as exc:
+        # Текст возвращается только владельцу (админ-telegram и авторизованная панель), поэтому
+        # подробности Google остаются в сообщении, а traceback дополнительно уходит в лог.
+        logger.exception("Google Calendar: список занятости не получен")
         return f"Ошибка чтения календаря: {exc}"
 
 
@@ -71,6 +77,7 @@ async def book_dating_event(slot_iso_string: str, venue_name: str, girl_name: st
         created = service.events().insert(calendarId="primary", body=event).execute()
         return f"Забронировано! Ссылка: {created.get('htmlLink')}"
     except Exception as exc:
+        logger.exception("Google Calendar: бронь не создана")
         return f"Ошибка календаря: {exc}"
 
 

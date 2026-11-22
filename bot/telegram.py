@@ -3,7 +3,7 @@ from typing import Any, Awaitable, Callable
 
 from aiogram import BaseMiddleware, Bot, Dispatcher, F, Router
 from aiogram.filters import Command
-from aiogram.types import BufferedInputFile, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, TelegramObject
+from aiogram.types import BufferedInputFile, BotCommand, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, TelegramObject
 
 from ai.calendar_tool import book_dating_event, list_busy_slots
 from ai.chat_agent import AutonomousChatAgent
@@ -18,6 +18,42 @@ from database.repository import DatabaseManager
 from filters.engine import ProfileFilterEngine
 
 router = Router()
+
+# Меню команд по языкам интерфейса Telegram. Клиент показывает скоуп своего языка, а при его отсутствии
+# откатывается на default-скоуп — поэтому его тоже заполняем, иначе у пользователя без ru/en в меню пусто.
+BOT_COMMANDS: dict[str, list[BotCommand]] = {
+    "ru": [
+        BotCommand(command="start", description="Панель управления"),
+        BotCommand(command="menu", description="Вернуться к панели"),
+        BotCommand(command="step", description="Свайп по текущему экрану"),
+        BotCommand(command="chatstep", description="Ответ по открытому чату"),
+        BotCommand(command="slots", description="Свободные слоты календаря"),
+        BotCommand(command="book", description="Забронировать свидание"),
+        BotCommand(command="reply", description="Черновик ответа мэтчу"),
+        BotCommand(command="backup", description="Бэкап базы SQLite"),
+    ],
+    "en": [
+        BotCommand(command="start", description="Control panel"),
+        BotCommand(command="menu", description="Back to the panel"),
+        BotCommand(command="step", description="Swipe the current screen"),
+        BotCommand(command="chatstep", description="Reply in the open chat"),
+        BotCommand(command="slots", description="Free calendar slots"),
+        BotCommand(command="book", description="Book a date"),
+        BotCommand(command="reply", description="Draft a reply to a match"),
+        BotCommand(command="backup", description="Back up the SQLite database"),
+    ],
+}
+
+
+async def register_bot_commands(bot: Bot) -> dict[str, int]:
+    """Загружает меню команд в Telegram: по скоупу на язык плюс копия в default-скоуп."""
+    registered: dict[str, int] = {}
+    for language, commands in BOT_COMMANDS.items():
+        await bot.set_my_commands(commands, language_code=language)
+        registered[language] = len(commands)
+    await bot.set_my_commands(BOT_COMMANDS["ru"])
+    registered["default"] = len(BOT_COMMANDS["ru"])
+    return registered
 
 
 class AdminOnlyMiddleware(BaseMiddleware):

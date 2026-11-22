@@ -4,6 +4,8 @@
 """
 import asyncio
 import json
+import os
+import re
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -25,12 +27,13 @@ from database.repository import DatabaseManager
 from filters.engine import ProfileFilterEngine
 from filters.synthetic_scorer import SyntheticCompatibilityScorer
 from filters.vision_card_parser import VisionProfileParser
-from web.api import MODE_DRIVERS, create_web_app
+from web.api import MODE_DRIVERS, create_web_app, guard_public_bind, safe_error_suffix
 
 # PATCH /ai/config намеренно обновляет настройки процесса, а коннектор — часть настроек устройства.
 MUTATED_SETTINGS = (
     "ai_provider", "llm_base_url", "llm_model", "llm_api_key", "custom_auth_header",
     "llm_auth_prefix", "llm_api_key_query_param", "web_api_token", "device_driver", "appium_url", "web_headless",
+    "web_cors_origins",
 )
 
 SECRET = "sk-live-secret-9977"
@@ -54,6 +57,7 @@ class FakeDriver:
 
     instances: list["FakeDriver"] = []
     raise_on_connect = False
+    default_error_text = error_text = "устройство не видно по adb"
 
     def __init__(self, **kwargs: Any) -> None:
         self.kwargs = kwargs
@@ -73,7 +77,7 @@ class FakeDriver:
 
     async def connect(self) -> None:
         if FakeDriver.raise_on_connect:
-            raise RuntimeError("устройство не видно по adb")
+            raise RuntimeError(FakeDriver.error_text)
         self.connected = True
 
     async def disconnect(self) -> None:
@@ -88,6 +92,7 @@ class FakeApiClient:
 
     instances: list["FakeApiClient"] = []
     raise_on_enter = False
+    default_error_text = error_text = "401 от платформы"
 
     def __init__(self, **kwargs: Any) -> None:
         self.kwargs = kwargs
@@ -97,7 +102,7 @@ class FakeApiClient:
 
     async def __aenter__(self) -> "FakeApiClient":
         if FakeApiClient.raise_on_enter:
-            raise RuntimeError("401 от платформы")
+            raise RuntimeError(FakeApiClient.error_text)
         self.entered += 1
         return self
 
@@ -119,6 +124,7 @@ class Harness:
             holder.instances.clear()
             holder.raise_on_connect = False
             holder.raise_on_enter = False
+            holder.error_text = holder.default_error_text
         monkeypatch.setattr(settings, "web_api_token", None)
         monkeypatch.setattr("web.api.MobileUIDriverFallback", FakeDriver)
         monkeypatch.setattr("web.api.create_dating_client", lambda **kw: FakeApiClient(**kw))
@@ -668,3 +674,118 @@ def test_upsert_env_values_creates_and_flattens(tmp_path: Path) -> None:
     assert target.read_text(encoding="utf-8") == "A=1\nB=multiline\n"
     upsert_env_values({"A": "2", "C": "3"}, path=target)
     assert target.read_text(encoding="utf-8") == "A=2\nB=multiline\nC=3\n"
+
+
+# --- Безопасность поверхности панели: ответы, bind, CORS, доступные имена ---
+
+# Так выглядят реальные ошибки ADB/Appium/Playwright: абсолютный путь профиля и URL сессионного токена.
+LEAKY_ERROR = (
+    "профиль не открыт: " + os.sep.join(("C:", "Users", "ssrjk", ".heart3", "browser_profile"))
+    + " ; сессия http://127.0.0.1:4723/session/8f2a?token=abc123"
+)
+LEAK_FRAGMENTS = ("browser_profile", "8f2a", "abc123", "127.0.0.1", "Users", ".heart3")
+
+
+def _assert_no_internals(body: str) -> None:
+    for fragment in LEAK_FRAGMENTS:
+        assert fragment not in body, f"в ответ панели утёк фрагмент {fragment!r}: {body}"
+
+
+def test_connection_failures_never_echo_paths_or_tokens(panel: Harness) -> None:
+    FakeDriver.raise_on_connect = True
+    FakeDriver.error_text = LEAKY_ERROR
+    res = panel.client.post("/api/v1/connection", json={"mode": "ui_vision", "platform": "tinder", "driver": "adb"})
+    assert res.status_code == 502
+    detail = res.json()["detail"]
+    assert "Не удалось подключить ui_vision/adb" in detail and "RuntimeError" in detail
+    _assert_no_internals(detail)
+
+    FakeDriver.raise_on_connect = False
+    FakeApiClient.raise_on_enter = True
+    FakeApiClient.error_text = LEAKY_ERROR
+    res = panel.client.post("/api/v1/connection", json={"mode": "api", "platform": "pure"})
+    assert res.status_code == 502
+    assert "RuntimeError" in res.json()["detail"]
+    _assert_no_internals(res.json()["detail"])
+
+
+def test_upstream_status_codes_survive_sanitizing(panel: Harness) -> None:
+    """Код ответа провайдера — единственное, что пользователь панели узнаёт из чужой ошибки."""
+    FakeApiClient.raise_on_enter = True
+    for message, code in (("401 от платформы", "401"), ("HTTP 429 Too Many Requests", "429"), ("503 backend down", "503")):
+        FakeApiClient.error_text = message
+        res = panel.client.post("/api/v1/connection", json={"mode": "api", "platform": "pure"})
+        assert res.status_code == 502 and code in res.json()["detail"], (message, res.json()["detail"])
+
+
+def test_safe_error_suffix_classifies_without_quoting_text() -> None:
+    assert safe_error_suffix(RuntimeError("401 от платформы")) == "RuntimeError, код 401"
+    assert safe_error_suffix(TimeoutError(LEAKY_ERROR)) == "TimeoutError"
+    assert safe_error_suffix(KeyError("draft-9")) == "KeyError"
+
+
+def test_panel_refuses_open_bind_without_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "web_api_token", None)
+    for host in ("127.0.0.1", "localhost", "::1", " ::ffff:127.0.0.1 "):
+        guard_public_bind(host)  # loopback — панель видна только самому хосту
+    with pytest.raises(RuntimeError) as err:
+        guard_public_bind("0.0.0.0")
+    assert "WEB_API_TOKEN" in str(err.value)
+    monkeypatch.setattr(settings, "web_api_token", SecretStr("panel-token"))
+    guard_public_bind("0.0.0.0")
+
+
+def test_cors_preflight_only_answers_listed_origins(panel: Harness) -> None:
+    preflight = {"Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "x-api-token"}
+    allowed = panel.client.options("/api/v1/status", headers={**preflight, "Origin": "http://127.0.0.1:8080"})
+    assert allowed.status_code == 200
+    assert allowed.headers.get("access-control-allow-origin") == "http://127.0.0.1:8080"
+    foreign = panel.client.options("/api/v1/status", headers={**preflight, "Origin": "https://evil.example.com"})
+    assert "access-control-allow-origin" not in foreign.headers, "панель раздала CORS чужому origin"
+    assert "*" not in foreign.headers.get("access-control-allow-origin", "")
+
+
+def test_cors_origins_setting_is_trimmed_and_wildcard_free(monkeypatch: pytest.MonkeyPatch) -> None:
+    from web.api import cors_origins
+
+    monkeypatch.setattr(settings, "web_cors_origins", " https://a.example , ,https://b.example,")
+    assert cors_origins() == ["https://a.example", "https://b.example"]
+    monkeypatch.setattr(settings, "web_cors_origins", "http://127.0.0.1:8080,http://localhost:8080")
+    assert "*" not in cors_origins()
+
+
+def test_matches_and_api_profile_routes_are_answerable(panel: Harness) -> None:
+    from core.base_client import CandidateProfile
+    from database.models import SwipeDecision
+
+    matched = CandidateProfile(platform="twinby", user_id="m-1", name="Соня", age=24, bio="кофе", compatibility_score=88, photo_urls=["u"])
+    passed = CandidateProfile(platform="twinby", user_id="p-1", name="Лера", age=25, bio="кино", compatibility_score=40, photo_urls=["u"])
+    asyncio.run(panel.db.save_swipe(matched, SwipeDecision.LIKE, "мэтч подтверждён", 91.0, is_match=True))
+    asyncio.run(panel.db.save_swipe(passed, SwipeDecision.PASS, "мимо", 40.0, is_match=False))
+
+    body = panel.client.get("/api/v1/matches", params={"limit": 5}).json()
+    assert [row["target_user_id"] for row in body] == ["m-1"], "в /matches попали не-мэтчи"
+    assert body[0]["name"] == "Соня" and body[0]["platform"] == "twinby"
+
+    profiles = panel.client.get("/api/v1/api-profiles").json()
+    assert isinstance(profiles["verified_har_profiles"], list)
+
+
+def test_dashboard_labels_quote_real_buttons_and_have_accessible_names() -> None:
+    root = Path(__file__).resolve().parent.parent
+    dash = (root / "web/static/dashboard.html").read_text(encoding="utf-8")
+    assert "«Применить ко всем» синхронизирует" in dash, "подсказка ссылается на кнопку, которой нет"
+
+    labelled = set(re.findall(r'<label[^>]*\bfor="([^"]+)"', dash))
+    offenders: list[str] = []
+    for tag in re.finditer(r"<(?:input|select|textarea)\b[^>]*>", dash):
+        attrs = tag.group(0)
+        control_id = re.search(r'\bid="([^"]+)"', attrs)
+        if control_id is None or 'type="hidden"' in attrs:
+            continue
+        if control_id.group(1) in labelled or "aria-label" in attrs or "title=" in attrs:
+            continue
+        if "<label" in dash[: tag.start()].rsplit("</label>", 1)[-1]:
+            continue  # обёрнутый label тоже даёт доступное имя
+        offenders.append(control_id.group(1))
+    assert offenders == [], f"управления панели без доступного имени: {offenders}"

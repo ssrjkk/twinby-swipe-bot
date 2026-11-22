@@ -6,7 +6,7 @@ from aiogram import Bot
 
 from ai.bandits import PromptThompsonBandit
 from ai.chat_agent import AutonomousChatAgent
-from bot.telegram import create_dispatcher, send_dry_run_preview, send_match_notification
+from bot.telegram import create_dispatcher, register_bot_commands, send_dry_run_preview, send_match_notification
 from config import configure_utf8_console, settings
 from core.backup_service import DatabaseBackupService
 from core.chat_worker import ChatWorker
@@ -19,7 +19,7 @@ from core.visual_chat_worker import VisualChatAssistant
 from core.worker import SwipeWorker
 from database.repository import DatabaseManager
 from filters.engine import ProfileFilterEngine
-from web.api import create_web_app
+from web.api import create_web_app, guard_public_bind
 
 # Before basicConfig: the StreamHandler binds sys.stderr at construction, so the console has to be
 # switched to UTF-8 first for the emoji in log lines to survive a cp1251 Windows console.
@@ -33,6 +33,9 @@ logger = logging.getLogger("HEART3")
 
 
 async def main() -> None:
+    # До первого побочного эффекта (БД, устройство, Telegram): панель, открытая в чужую сеть без токена,
+    # отдаёт чужие анкеты раньше, чем успевает что-то сделать.
+    guard_public_bind(settings.web_host)
     db = DatabaseManager()
     await db.init_db()
     filter_engine = ProfileFilterEngine()
@@ -167,6 +170,8 @@ async def main() -> None:
                 visual_chat=visual_chat,
             )
             await bot.delete_webhook(drop_pending_updates=True)
+            menu = await register_bot_commands(bot)
+            logger.info("Меню команд Telegram: %s (ru/en + default).", menu)
             try:
                 await dp.start_polling(bot)
             finally:
