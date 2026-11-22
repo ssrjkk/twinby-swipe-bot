@@ -127,6 +127,7 @@
       transition: all 0.2s;
     }
     .gh-link:hover { background: var(--rose); color: #fff; }
+    @media (max-width: 640px) { header { flex-wrap: wrap; gap: 12px 18px; justify-content: center; } nav { flex-wrap: wrap; justify-content: center; gap: 10px 18px; } nav a { white-space: nowrap; } }
 
     .hero {
       text-align: center;
@@ -510,6 +511,15 @@
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('mode-display').innerHTML = modeTexts[key];
+    }
+
+    // На GitHub Pages панель не раздаётся: её поднимает локальный FastAPI (`heart3 run`).
+    if (location.hostname.endsWith('github.io')) {
+      const panelLink = document.querySelector('a.btn-primary[href="/dashboard"]');
+      if (panelLink) {
+        panelLink.href = 'https://github.com/ssrjkk/twinby-swipe-bot#быстрый-старт';
+        panelLink.textContent = 'Запустить локально ↗';
+      }
     }
   </script>
 </body>

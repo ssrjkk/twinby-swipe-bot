@@ -339,6 +339,28 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
         self.assertIn("btn.textContent = busyText", body)
         self.assertIn("btn.disabled = false", body, "кнопка не возвращается в активное состояние после ответа")
 
+    def test_19_landing_header_wraps_before_it_overflows(self) -> None:
+        """На 390px шапка обязана переноситься: без этого документ шире вьюпорта на 46px."""
+        static_idx = (ROOT / "web/static/index.html").read_text(encoding="utf-8")
+        for name, src in (("index.html", LANDING), ("web/static/index.html", static_idx)):
+            media = re.search(r"@media \(max-width: 640px\) \{(.*?)\}\s*\n", src, flags=re.DOTALL)
+            self.assertIsNotNone(media, f"{name}: нет мобильной правки шапки")
+            block = re.sub(r"\s+", " ", media.group(1))
+            self.assertIn("header { flex-wrap: wrap", block, f"{name}: header не переносится на мобильном")
+            self.assertIn("nav a { white-space: nowrap", block, f"{name}: пункты меню рвутся по словам")
+            self.assertNotIn("overflow-x: hidden", block, f"{name}: переполнение замазано, а не исправлено")
+
+    def test_20_panel_button_never_leads_to_a_404(self) -> None:
+        """На GitHub Pages панель не раздаётся, поэтому кнопка ведёт в «Быстрый старт», а локально — в /dashboard."""
+        self.assertIn('href="/dashboard"', LANDING, "разметка обязана оставаться рабочей под FastAPI")
+        self.assertIn("location.hostname.endsWith('github.io')", LANDING)
+        readme_anchor = "https://github.com/ssrjkk/twinby-swipe-bot#"
+        self.assertIn(readme_anchor, LANDING, "нет запасной ссылки для GitHub Pages")
+        self.assertIn("Запустить локально", LANDING, "подпись на Pages должна объяснять, что дальше")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        slug = LANDING.split(readme_anchor, 1)[1].split("'")[0]
+        self.assertIn(f"## {slug.replace('-', ' ').capitalize()}", readme, f"якорь #{slug} ведёт в несуществующий раздел README")
+
 
 if __name__ == "__main__":
     unittest.main()
