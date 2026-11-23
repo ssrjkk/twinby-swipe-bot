@@ -120,3 +120,9 @@ python scripts/sync_to_repo.py --target ./twinby-swipe-bot --clone --commit --pu
 ```
 
 **Важно:** синк удаляет в цели репозитория всё, чего нет в архиве релиза. Так из репозитория исчезли `LICENSE`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `.github/dependabot.yml` и `.github/workflows/codeql.yml` — их пришлось возвращать отдельным коммитом. Перед боевым прогоном оставьте страховочную ветку (`backup-pre-v39`) и после синка сверяйте `git status`.
+
+## Документация
+
+- [Integration guide](AGENT_INTEGRATION_GUIDE.md)
+- [Security](SECURITY.md)
+- [Website](https://ssrjkk.github.io/twinby-swipe-bot/)
