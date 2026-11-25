@@ -7,21 +7,23 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23B42318' d='M16 28C8.5 22.7 3 18.2 3 12.9 3 9 6 6.2 9.6 6.2c2.2 0 4.3 1.1 5.4 3 1.1-1.9 3.2-3 5.4-3C24 6.2 27 9 27 12.9c0 5.3-5.5 9.8-13 15.1z'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400..700&family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #F6F2EC;
-      --surface: #FFFFFF;
-      --text: #171412;
-      --muted: #6F675F;
-      --rose: #B42318;
-      --rose-soft: #F1D9D4;
-      --rose-border: rgba(23, 20, 18, 0.14);
+      --bg: #fffbfc;
+      --surface: rgba(255, 255, 255, 0.78);
+      --text: #1c1015;
+      --muted: #6e5660;
+      --rose: #e11d48;
+      --rose-soft: #ffe4e6;
+      --rose-border: rgba(225, 29, 72, 0.16);
+      --mono: 'JetBrains Mono', monospace;
     }
 
+    html { background: var(--bg); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -29,7 +31,7 @@
       position: relative;
     }
 
-
+    /* Оригинальные розовые пузыри (плавающие сферы + глянцевые розовые пузырьки на фоне) */
     .blobs {
       position: fixed;
       inset: 0;
@@ -37,21 +39,59 @@
       z-index: -1;
       overflow: hidden;
     }
-    .bubble {
+    .blob {
       position: absolute;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, rgba(241, 217, 212, 0.85), rgba(180, 35, 24, 0.12) 68%, transparent 100%);
-      filter: blur(42px);
-      animation: floatBubble 18s ease-in-out infinite alternate;
+      animation: floatOrb 15s ease-in-out infinite alternate;
     }
-    .bubble-1 { width: 460px; height: 460px; top: -120px; left: -80px; }
-    .bubble-2 { width: 520px; height: 520px; top: 18%; right: -160px; animation-delay: -6s; }
-    .bubble-3 { width: 400px; height: 400px; bottom: -100px; left: 12%; animation-delay: -11s; }
-    @keyframes floatBubble {
+    /* Мягкие розовые облака-пузыри */
+    .blob-1 {
+      width: 480px; height: 480px;
+      top: -110px; left: -90px;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 182, 193, 0.9), rgba(244, 63, 94, 0.28) 65%, transparent 100%);
+      filter: blur(45px);
+    }
+    .blob-2 {
+      width: 540px; height: 540px;
+      top: 16%; right: -140px;
+      background: radial-gradient(circle at 40% 40%, rgba(251, 207, 232, 0.95), rgba(225, 29, 72, 0.22) 68%, transparent 100%);
+      filter: blur(50px);
+      animation-delay: -5s;
+    }
+    .blob-3 {
+      width: 420px; height: 420px;
+      bottom: -90px; left: 15%;
+      background: radial-gradient(circle at 30% 30%, rgba(254, 205, 211, 0.9), rgba(244, 63, 94, 0.25) 70%, transparent 100%);
+      filter: blur(45px);
+      animation-delay: -9s;
+    }
+    /* Выраженные полупрозрачные розовые пузыри с бликом */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 192, 203, 0.55) 28%, rgba(244, 63, 94, 0.22) 72%, rgba(225, 29, 72, 0.08) 100%);
+      box-shadow: inset -8px -8px 20px rgba(225, 29, 72, 0.14), inset 6px 6px 14px rgba(255, 255, 255, 0.85), 0 12px 30px rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      animation: riseBubble 18s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 130px; height: 130px; top: 14%; left: 11%; animation-duration: 13s; }
+    .orb-2 { width: 84px; height: 84px; top: 28%; right: 14%; animation-duration: 16s; animation-delay: -3s; }
+    .orb-3 { width: 165px; height: 165px; top: 58%; right: 7%; animation-duration: 20s; animation-delay: -7s; }
+    .orb-4 { width: 64px; height: 64px; top: 46%; left: 6%; animation-duration: 12s; animation-delay: -2s; }
+    .orb-5 { width: 110px; height: 110px; bottom: 12%; left: 32%; animation-duration: 17s; animation-delay: -6s; }
+
+    @keyframes floatOrb {
       0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(26px, -30px) scale(1.04); }
+      100% { transform: translate(32px, -38px) scale(1.07); }
     }
-    @media (prefers-reduced-motion: reduce) { .bubble { animation: none; } }
+    @keyframes riseBubble {
+      0% { transform: translateY(0px) translateX(0px) scale(1); }
+      50% { transform: translateY(-28px) translateX(14px) scale(1.04); }
+      100% { transform: translateY(18px) translateX(-12px) scale(0.97); }
+    }
+
+    @media (prefers-reduced-motion: reduce) { .blob, .orb { animation: none; } }
+
     .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
 
     header {
@@ -87,7 +127,7 @@
       color: var(--rose);
       background: var(--rose-soft);
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 999px;
       border: 1px solid var(--rose-border);
       transition: all 0.2s;
     }
@@ -95,10 +135,10 @@
     @media (max-width: 640px) { header { flex-wrap: wrap; gap: 12px 18px; justify-content: center; } nav { flex-wrap: wrap; justify-content: center; gap: 10px 18px; } nav a { white-space: nowrap; } }
 
     .hero {
-      text-align: left;
+      text-align: center;
       padding: 80px 0 48px;
-      max-width: 1040px;
-      margin: 0;
+      max-width: 760px;
+      margin: 0 auto;
     }
     .tag {
       display: inline-block;
@@ -109,7 +149,7 @@
       color: var(--rose);
       background: var(--rose-soft);
       padding: 6px 14px;
-      border-radius: 6px;
+      border-radius: 999px;
       border: 1px solid var(--rose-border);
       margin-bottom: 20px;
     }
@@ -121,27 +161,31 @@
       margin-bottom: 20px;
     }
     h1 em {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Instrument Serif', Georgia, serif;
       font-style: italic;
       font-weight: 400;
       color: var(--rose);
       font-size: 1.14em;
+    }
+    @media (max-width: 380px) {
+      h1 { font-size: clamp(2.2rem, 11vw, 2.6rem); }
+      h1 em { font-size: 1.08em; }
     }
     .hero p {
       font-size: 1.08rem;
       color: var(--muted);
       margin-bottom: 32px;
     }
-    .actions { display: flex; gap: 14px; justify-content: flex-start; flex-wrap: wrap; }
+    .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
     .btn-primary {
       background: var(--rose);
       color: #fff;
       text-decoration: none;
       padding: 13px 28px;
-      border-radius: 6px;
+      border-radius: 999px;
       font-weight: 600;
       font-size: 0.95rem;
-      box-shadow: none;
+      box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35);
       transition: transform 0.15s;
     }
     .btn-primary:hover { transform: translateY(-2px); }
@@ -150,12 +194,12 @@
       color: var(--text);
       text-decoration: none;
       padding: 13px 28px;
-      border-radius: 6px;
+      border-radius: 999px;
       font-weight: 600;
       font-size: 0.95rem;
       border: 1px solid var(--rose-border);
+      backdrop-filter: blur(12px);
     }
-
 
     .trace {
       display: grid;
@@ -170,6 +214,7 @@
     }
     .trace b { color: var(--rose); margin-right: 8px; }
     @media (max-width: 640px) { .trace { grid-template-columns: 1fr 1fr; } }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -178,10 +223,11 @@
     }
     .stat-card {
       background: var(--surface);
+      backdrop-filter: blur(14px);
       border: 1px solid var(--rose-border);
-      border-radius: 8px;
+      border-radius: 22px;
       padding: 22px;
-      text-align: left;
+      text-align: center;
     }
     .stat-card b { display: block; font-size: 1.9rem; color: var(--rose); line-height: 1.1; margin-bottom: 6px; }
     .stat-card span { font-size: 0.85rem; color: var(--muted); }
@@ -205,8 +251,9 @@
     }
     .card {
       background: var(--surface);
+      backdrop-filter: blur(14px);
       border: 1px solid var(--rose-border);
-      border-radius: 8px;
+      border-radius: 24px;
       padding: 26px;
     }
     .step-badge {
@@ -227,8 +274,9 @@
     /* Pure & No-Score Mode Selector */
     .mode-box {
       background: var(--surface);
+      backdrop-filter: blur(16px);
       border: 1px solid var(--rose-border);
-      border-radius: 10px;
+      border-radius: 26px;
       padding: 28px;
     }
     .mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -236,7 +284,7 @@
       border: 1px solid var(--rose-border);
       background: #fff;
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 999px;
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--muted);
@@ -246,7 +294,7 @@
     .mode-content {
       background: #fff;
       border: 1px solid var(--rose-border);
-      border-radius: 8px;
+      border-radius: 18px;
       padding: 22px;
       font-size: 0.92rem;
     }
@@ -262,36 +310,38 @@
     /* Full Table of Russian + Global Dating Apps */
     .table-card {
       background: var(--surface);
+      backdrop-filter: blur(16px);
       border: 1px solid var(--rose-border);
-      border-radius: 8px;
+      border-radius: 24px;
       overflow-x: auto;
     }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.86rem; }
     th, td { padding: 13px 16px; border-bottom: 1px solid var(--rose-border); vertical-align: top; }
-    th { background: #F1D9D4; font-weight: 600; }
+    th { background: rgba(255, 228, 230, 0.55); font-weight: 600; }
     tr:last-child td { border-bottom: none; }
     .drv {
       display: inline-block;
       padding: 3px 9px;
-      border-radius: 6px;
+      border-radius: 999px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.73rem;
       font-weight: 600;
     }
     .drv-api { background: #dcfce7; color: #166534; }
     .drv-hybrid { background: #fef3c7; color: #92400e; }
-    .drv-ui { background: #F1D9D4; color: #7A271A; }
+    .drv-ui { background: #ffe4e6; color: #9f1239; }
 
     .cta-banner {
       background: var(--surface);
+      backdrop-filter: blur(16px);
       border: 1px solid var(--rose-border);
-      border-radius: 10px;
+      border-radius: 26px;
       padding: 40px 28px;
-      text-align: left;
+      text-align: center;
       margin-top: 32px;
     }
     .cta-banner p {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Instrument Serif', Georgia, serif;
       font-style: italic;
       font-size: 1.9rem;
       margin-bottom: 18px;
@@ -313,9 +363,14 @@
 </head>
 <body>
   <div class="blobs" aria-hidden="true">
-    <div class="bubble bubble-1"></div>
-    <div class="bubble bubble-2"></div>
-    <div class="bubble bubble-3"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="orb orb-5"></div>
   </div>
 
 

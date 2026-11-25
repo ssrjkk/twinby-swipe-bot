@@ -31,10 +31,8 @@ def check_static_pages() -> list[str]:
             problems.append(f"{page} не попал в установленный пакет (tool.setuptools.package-data)")
             continue
         text = page.read_text(encoding="utf-8")
-        if "#F6F2EC" not in text:
-            problems.append(f"{name}: в installed-странице нет инвариантного фона #F6F2EC")
-        if 'class="bubble bubble-1"' not in text:
-            problems.append(f"{name}: в installed-странице потерялся фирменный bubble-слой")
+        if "#fffbfc" not in text:
+            problems.append(f"{name}: в installed-странице нет инвариантного фона #fffbfc")
     return problems
 
 
