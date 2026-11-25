@@ -4,24 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>&lt;3 — AI Matchmaking Agent</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23e11d48' d='M16 28C8.5 22.7 3 18.2 3 12.9 3 9 6 6.2 9.6 6.2c2.2 0 4.3 1.1 5.4 3 1.1-1.9 3.2-3 5.4-3C24 6.2 27 9 27 12.9c0 5.3-5.5 9.8-13 15.1z'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23B42318' d='M16 28C8.5 22.7 3 18.2 3 12.9 3 9 6 6.2 9.6 6.2c2.2 0 4.3 1.1 5.4 3 1.1-1.9 3.2-3 5.4-3C24 6.2 27 9 27 12.9c0 5.3-5.5 9.8-13 15.1z'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400..700&family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #fffbfc;
-      --surface: rgba(255, 255, 255, 0.78);
-      --text: #1c1015;
-      --muted: #6e5660;
-      --rose: #e11d48;
-      --rose-soft: #ffe4e6;
-      --rose-border: rgba(225, 29, 72, 0.16);
+      --bg: #F6F2EC;
+      --surface: #FFFFFF;
+      --text: #171412;
+      --muted: #6F675F;
+      --rose: #B42318;
+      --rose-soft: #F1D9D4;
+      --rose-border: rgba(23, 20, 18, 0.14);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -29,7 +29,7 @@
       position: relative;
     }
 
-    /* Оригинальные розовые пузыри (плавающие сферы + глянцевые розовые пузырьки на фоне) */
+
     .blobs {
       position: fixed;
       inset: 0;
@@ -37,57 +37,21 @@
       z-index: -1;
       overflow: hidden;
     }
-    .blob {
+    .bubble {
       position: absolute;
       border-radius: 50%;
-      animation: floatOrb 15s ease-in-out infinite alternate;
+      background: radial-gradient(circle at 35% 35%, rgba(241, 217, 212, 0.85), rgba(180, 35, 24, 0.12) 68%, transparent 100%);
+      filter: blur(42px);
+      animation: floatBubble 18s ease-in-out infinite alternate;
     }
-    /* Мягкие розовые облака-пузыри */
-    .blob-1 {
-      width: 480px; height: 480px;
-      top: -110px; left: -90px;
-      background: radial-gradient(circle at 35% 35%, rgba(255, 182, 193, 0.9), rgba(244, 63, 94, 0.28) 65%, transparent 100%);
-      filter: blur(45px);
-    }
-    .blob-2 {
-      width: 540px; height: 540px;
-      top: 16%; right: -140px;
-      background: radial-gradient(circle at 40% 40%, rgba(251, 207, 232, 0.95), rgba(225, 29, 72, 0.22) 68%, transparent 100%);
-      filter: blur(50px);
-      animation-delay: -5s;
-    }
-    .blob-3 {
-      width: 420px; height: 420px;
-      bottom: -90px; left: 15%;
-      background: radial-gradient(circle at 30% 30%, rgba(254, 205, 211, 0.9), rgba(244, 63, 94, 0.25) 70%, transparent 100%);
-      filter: blur(45px);
-      animation-delay: -9s;
-    }
-    /* Выраженные полупрозрачные розовые пузыри с бликом */
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 192, 203, 0.55) 28%, rgba(244, 63, 94, 0.22) 72%, rgba(225, 29, 72, 0.08) 100%);
-      box-shadow: inset -8px -8px 20px rgba(225, 29, 72, 0.14), inset 6px 6px 14px rgba(255, 255, 255, 0.85), 0 12px 30px rgba(244, 63, 94, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      animation: riseBubble 18s ease-in-out infinite alternate;
-    }
-    .orb-1 { width: 130px; height: 130px; top: 14%; left: 11%; animation-duration: 13s; }
-    .orb-2 { width: 84px; height: 84px; top: 28%; right: 14%; animation-duration: 16s; animation-delay: -3s; }
-    .orb-3 { width: 165px; height: 165px; top: 58%; right: 7%; animation-duration: 20s; animation-delay: -7s; }
-    .orb-4 { width: 64px; height: 64px; top: 46%; left: 6%; animation-duration: 12s; animation-delay: -2s; }
-    .orb-5 { width: 110px; height: 110px; bottom: 12%; left: 32%; animation-duration: 17s; animation-delay: -6s; }
-
-    @keyframes floatOrb {
+    .bubble-1 { width: 460px; height: 460px; top: -120px; left: -80px; }
+    .bubble-2 { width: 520px; height: 520px; top: 18%; right: -160px; animation-delay: -6s; }
+    .bubble-3 { width: 400px; height: 400px; bottom: -100px; left: 12%; animation-delay: -11s; }
+    @keyframes floatBubble {
       0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(32px, -38px) scale(1.07); }
+      100% { transform: translate(26px, -30px) scale(1.04); }
     }
-    @keyframes riseBubble {
-      0% { transform: translateY(0px) translateX(0px) scale(1); }
-      50% { transform: translateY(-28px) translateX(14px) scale(1.04); }
-      100% { transform: translateY(18px) translateX(-12px) scale(0.97); }
-    }
-
+    @media (prefers-reduced-motion: reduce) { .bubble { animation: none; } }
     .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
 
     header {
@@ -123,7 +87,7 @@
       color: var(--rose);
       background: var(--rose-soft);
       padding: 8px 16px;
-      border-radius: 999px;
+      border-radius: 6px;
       border: 1px solid var(--rose-border);
       transition: all 0.2s;
     }
@@ -131,10 +95,10 @@
     @media (max-width: 640px) { header { flex-wrap: wrap; gap: 12px 18px; justify-content: center; } nav { flex-wrap: wrap; justify-content: center; gap: 10px 18px; } nav a { white-space: nowrap; } }
 
     .hero {
-      text-align: center;
+      text-align: left;
       padding: 80px 0 48px;
-      max-width: 760px;
-      margin: 0 auto;
+      max-width: 1040px;
+      margin: 0;
     }
     .tag {
       display: inline-block;
@@ -145,7 +109,7 @@
       color: var(--rose);
       background: var(--rose-soft);
       padding: 6px 14px;
-      border-radius: 999px;
+      border-radius: 6px;
       border: 1px solid var(--rose-border);
       margin-bottom: 20px;
     }
@@ -157,7 +121,7 @@
       margin-bottom: 20px;
     }
     h1 em {
-      font-family: 'Instrument Serif', Georgia, serif;
+      font-family: 'Cormorant Garamond', Georgia, serif;
       font-style: italic;
       font-weight: 400;
       color: var(--rose);
@@ -168,16 +132,16 @@
       color: var(--muted);
       margin-bottom: 32px;
     }
-    .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .actions { display: flex; gap: 14px; justify-content: flex-start; flex-wrap: wrap; }
     .btn-primary {
       background: var(--rose);
       color: #fff;
       text-decoration: none;
       padding: 13px 28px;
-      border-radius: 999px;
+      border-radius: 6px;
       font-weight: 600;
       font-size: 0.95rem;
-      box-shadow: 0 12px 26px -6px rgba(225, 29, 72, 0.35);
+      box-shadow: none;
       transition: transform 0.15s;
     }
     .btn-primary:hover { transform: translateY(-2px); }
@@ -186,13 +150,26 @@
       color: var(--text);
       text-decoration: none;
       padding: 13px 28px;
-      border-radius: 999px;
+      border-radius: 6px;
       font-weight: 600;
       font-size: 0.95rem;
       border: 1px solid var(--rose-border);
-      backdrop-filter: blur(12px);
     }
 
+
+    .trace {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 36px;
+      border-block: 1px solid var(--rose-border);
+    }
+    .trace span {
+      padding: 14px 0;
+      font: 500 0.78rem/1.4 var(--mono);
+      color: var(--muted);
+    }
+    .trace b { color: var(--rose); margin-right: 8px; }
+    @media (max-width: 640px) { .trace { grid-template-columns: 1fr 1fr; } }
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -201,11 +178,10 @@
     }
     .stat-card {
       background: var(--surface);
-      backdrop-filter: blur(14px);
       border: 1px solid var(--rose-border);
-      border-radius: 22px;
+      border-radius: 8px;
       padding: 22px;
-      text-align: center;
+      text-align: left;
     }
     .stat-card b { display: block; font-size: 1.9rem; color: var(--rose); line-height: 1.1; margin-bottom: 6px; }
     .stat-card span { font-size: 0.85rem; color: var(--muted); }
@@ -229,9 +205,8 @@
     }
     .card {
       background: var(--surface);
-      backdrop-filter: blur(14px);
       border: 1px solid var(--rose-border);
-      border-radius: 24px;
+      border-radius: 8px;
       padding: 26px;
     }
     .step-badge {
@@ -252,9 +227,8 @@
     /* Pure & No-Score Mode Selector */
     .mode-box {
       background: var(--surface);
-      backdrop-filter: blur(16px);
       border: 1px solid var(--rose-border);
-      border-radius: 26px;
+      border-radius: 10px;
       padding: 28px;
     }
     .mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -262,7 +236,7 @@
       border: 1px solid var(--rose-border);
       background: #fff;
       padding: 8px 16px;
-      border-radius: 999px;
+      border-radius: 6px;
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--muted);
@@ -272,7 +246,7 @@
     .mode-content {
       background: #fff;
       border: 1px solid var(--rose-border);
-      border-radius: 18px;
+      border-radius: 8px;
       padding: 22px;
       font-size: 0.92rem;
     }
@@ -288,38 +262,36 @@
     /* Full Table of Russian + Global Dating Apps */
     .table-card {
       background: var(--surface);
-      backdrop-filter: blur(16px);
       border: 1px solid var(--rose-border);
-      border-radius: 24px;
+      border-radius: 8px;
       overflow-x: auto;
     }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.86rem; }
     th, td { padding: 13px 16px; border-bottom: 1px solid var(--rose-border); vertical-align: top; }
-    th { background: rgba(255, 228, 230, 0.55); font-weight: 600; }
+    th { background: #F1D9D4; font-weight: 600; }
     tr:last-child td { border-bottom: none; }
     .drv {
       display: inline-block;
       padding: 3px 9px;
-      border-radius: 999px;
+      border-radius: 6px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.73rem;
       font-weight: 600;
     }
     .drv-api { background: #dcfce7; color: #166534; }
     .drv-hybrid { background: #fef3c7; color: #92400e; }
-    .drv-ui { background: #ffe4e6; color: #9f1239; }
+    .drv-ui { background: #F1D9D4; color: #7A271A; }
 
     .cta-banner {
       background: var(--surface);
-      backdrop-filter: blur(16px);
       border: 1px solid var(--rose-border);
-      border-radius: 26px;
+      border-radius: 10px;
       padding: 40px 28px;
-      text-align: center;
+      text-align: left;
       margin-top: 32px;
     }
     .cta-banner p {
-      font-family: 'Instrument Serif', Georgia, serif;
+      font-family: 'Cormorant Garamond', Georgia, serif;
       font-style: italic;
       font-size: 1.9rem;
       margin-bottom: 18px;
@@ -340,21 +312,17 @@
   </style>
 </head>
 <body>
-  <!-- Плавающие розовые пузыри -->
-  <div class="blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-    <div class="orb orb-4"></div>
-    <div class="orb orb-5"></div>
+  <div class="blobs" aria-hidden="true">
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
   </div>
 
+
+  <!-- Плавающие розовые пузыри -->
   <div class="container">
     <header>
-      <a href="#" class="logo"><i>💌</i> &lt;3</a>
+      <a href="#" class="logo"><i>&lt;3</i></a>
       <nav>
         <a href="#how">как работает</a>
         <a href="#pure">как ищет в Pure</a>
@@ -371,6 +339,12 @@
       <div class="actions">
         <a href="/dashboard" class="btn-primary">Открыть Control Panel</a>
         <a href="#platforms" class="btn-secondary">Все 28 платформ</a>
+      </div>
+      <div class="trace" aria-label="Логика решения агента">
+        <span><b>01</b> Face gate</span>
+        <span><b>02</b> Vibe score</span>
+        <span><b>03</b> Confidence</span>
+        <span><b>04</b> Action</span>
       </div>
     </div>
 
@@ -440,23 +414,23 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>🇷🇺 РФ</td><td><strong>Twinby</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td><code>curl_cffi</code> TLS-спуфинг iOS + нативный % психологической совместимости.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>VK Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Авторизация через <code>vk_sign</code> мини-приложения + AI Vibe Score.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>Mamba (Мамба)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST + WebSocket; антиспам-фильтр ссылок и лимиты на симпатии.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>Tabor (Табор)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Мобильные токен-сессии, поиск по городам РФ + InsightFace.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>LovePlanet</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST API ленты и сообщений + LLM-фильтр ботов.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>Фотострана</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>API раздела «Встречи» + Playwright при срабатывании капчи.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>Beboo / Kismia</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Эмуляция мобильного веб-клиента через <code>curl_cffi</code> с RU-прокси.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>ДругВокруг</strong></td><td><span class="drv drv-hybrid">UI-Vision Ready</span></td><td>Собственный сокет-протокол; свайпы и анкеты через гибридный драйвер.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>Теамо / RusDate</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Психологическое тестирование — есть встроенный процент совместимости.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>ОК Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Интеграция через API мини-приложений Одноклассников + AI-скоринг.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>LinkYou / SkyLove / JuliaDates</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Нишевые сервисы (по профессии/интересам); LLM учитывает контекст профиля.</td></tr>
-            <tr><td>🇷🇺 РФ</td><td><strong>Vox (голосовой)</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>Анонимный голосовой формат без фото на старте -> только Appium UI.</td></tr>
-            <tr><td>🌍 Мир</td><td><strong>Pure</strong></td><td><span class="drv drv-hybrid">UI-Vision · API Exp</span></td><td>Нет % и часто нет лица -> Synthetic Vibe Score (LLM + VLM) + быстрый чат.</td></tr>
-            <tr><td>🇺🇸🇪🇺 Мир</td><td><strong>Tinder / Badoo</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>Cloudflare / X-Pingback обходятся через <code>curl_cffi</code> + sticky гео-прокси.</td></tr>
-            <tr><td>🇺🇸🇪🇺 США/ЕС</td><td><strong>Bumble / Hinge / Happn</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>App Attest / Play Integrity / Akamai -> безопасный свайп по дуге Безье в Appium.</td></tr>
-            <tr><td>🇺🇸🇪🇺 США/ЕС</td><td><strong>OkCupid / Feeld / CMB / Grindr</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>В OkCupid есть нативный %; в Feeld и CMB используется AI Vibe Score.</td></tr>
-            <tr><td>🇨🇳🇯🇵🇰🇷 Азия</td><td><strong>Tantan / Pairs / Wippy</strong></td><td><span class="drv drv-ui">UI-Vision + Proxy</span></td><td>Резидентские IP Японии/Кореи/Китая + авто-ведение диалога на языке региона.</td></tr>
+            <tr><td>RU</td><td><strong>Twinby</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td><code>curl_cffi</code> TLS-спуфинг iOS + нативный % психологической совместимости.</td></tr>
+            <tr><td>RU</td><td><strong>VK Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Авторизация через <code>vk_sign</code> мини-приложения + AI Vibe Score.</td></tr>
+            <tr><td>RU</td><td><strong>Mamba (Мамба)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST + WebSocket; антиспам-фильтр ссылок и лимиты на симпатии.</td></tr>
+            <tr><td>RU</td><td><strong>Tabor (Табор)</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Мобильные токен-сессии, поиск по городам РФ + InsightFace.</td></tr>
+            <tr><td>RU</td><td><strong>LovePlanet</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>REST API ленты и сообщений + LLM-фильтр ботов.</td></tr>
+            <tr><td>RU</td><td><strong>Фотострана</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>API раздела «Встречи» + Playwright при срабатывании капчи.</td></tr>
+            <tr><td>RU</td><td><strong>Beboo / Kismia</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Эмуляция мобильного веб-клиента через <code>curl_cffi</code> с RU-прокси.</td></tr>
+            <tr><td>RU</td><td><strong>ДругВокруг</strong></td><td><span class="drv drv-hybrid">UI-Vision Ready</span></td><td>Собственный сокет-протокол; свайпы и анкеты через гибридный драйвер.</td></tr>
+            <tr><td>RU</td><td><strong>Теамо / RusDate</strong></td><td><span class="drv drv-api">UI-Vision · API Exp</span></td><td>Психологическое тестирование — есть встроенный процент совместимости.</td></tr>
+            <tr><td>RU</td><td><strong>ОК Знакомства</strong></td><td><span class="drv drv-api">Web-Vision · API Exp</span></td><td>Интеграция через API мини-приложений Одноклассников + AI-скоринг.</td></tr>
+            <tr><td>RU</td><td><strong>LinkYou / SkyLove / JuliaDates</strong></td><td><span class="drv drv-hybrid">Web-Vision Ready</span></td><td>Нишевые сервисы (по профессии/интересам); LLM учитывает контекст профиля.</td></tr>
+            <tr><td>RU</td><td><strong>Vox (голосовой)</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>Анонимный голосовой формат без фото на старте -> только Appium UI.</td></tr>
+            <tr><td>World</td><td><strong>Pure</strong></td><td><span class="drv drv-hybrid">UI-Vision · API Exp</span></td><td>Нет % и часто нет лица -> Synthetic Vibe Score (LLM + VLM) + быстрый чат.</td></tr>
+            <tr><td>US / EU</td><td><strong>Tinder / Badoo</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>Cloudflare / X-Pingback обходятся через <code>curl_cffi</code> + sticky гео-прокси.</td></tr>
+            <tr><td>US / EU</td><td><strong>Bumble / Hinge / Happn</strong></td><td><span class="drv drv-ui">UI-Vision (Appium)</span></td><td>App Attest / Play Integrity / Akamai -> безопасный свайп по дуге Безье в Appium.</td></tr>
+            <tr><td>US / EU</td><td><strong>OkCupid / Feeld / CMB / Grindr</strong></td><td><span class="drv drv-hybrid">UI/Web-Vision</span></td><td>В OkCupid есть нативный %; в Feeld и CMB используется AI Vibe Score.</td></tr>
+            <tr><td>Asia</td><td><strong>Tantan / Pairs / Wippy</strong></td><td><span class="drv drv-ui">UI-Vision + Proxy</span></td><td>Резидентские IP Японии/Кореи/Китая + авто-ведение диалога на языке региона.</td></tr>
           </tbody>
         </table>
       </div>
@@ -468,15 +442,15 @@
       <p class="sec-sub">Бэкенд переключается переменной окружения — цикл свайпов, InsightFace и LangGraph работают без изменений.</p>
       <div class="grid-3">
         <div class="card">
-          <h3>🧠 LangGraph + Bandits</h3>
+          <h3>LangGraph + Bandits</h3>
           <p>Profiler, Strategist и Humanizer разбивают ответ на живые короткие сообщения без длинных тире, а Thompson Sampling отбирает лучшие промпты.</p>
         </div>
         <div class="card">
-          <h3>👁️ InsightFace + VLM</h3>
+          <h3>InsightFace + VLM</h3>
           <p>Сверка лиц на всех снимках анкеты (защита от фейков) + извлечение деталей с фото для персонализированного первого сообщения.</p>
         </div>
         <div class="card">
-          <h3>📅 Google Calendar</h3>
+          <h3>Google Calendar</h3>
           <p>Свободные слоты и бронь свидания: командой <code>/book</code> в Telegram, через <code>/api/v1/calendar/*</code> или кнопкой в панели. Встреча создаётся в основном календаре с заведением, таймзоной и напоминанием.</p>
         </div>
       </div>

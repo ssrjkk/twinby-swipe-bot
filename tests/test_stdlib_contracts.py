@@ -50,9 +50,9 @@ class TestRepositoryContracts(unittest.TestCase):
 
         self.assertEqual(root_idx, static_idx, "index.html and web/static/index.html diverged!")
         for page_name, html_text in [("index.html", root_idx), ("dashboard.html", dash)]:
-            self.assertIn("#fffbfc", html_text, f"Light theme #fffbfc missing in {page_name}")
-            self.assertIn(".orb", html_text, f"Floating pink bubbles (.orb) missing in {page_name}")
-            self.assertIn("#e11d48", html_text, f"Rose accent missing in {page_name}")
+            self.assertIn("#F6F2EC", html_text, f"Warm paper theme missing in {page_name}")
+            self.assertIn('class="bubble bubble-1"', html_text, f"Signature bubble layer missing in {page_name}")
+            self.assertIn("#B42318", html_text, f"Editorial rose accent missing in {page_name}")
 
     def test_04_dashboard_routes_and_security_escaping(self) -> None:
         api_src = (ROOT / "web/api.py").read_text(encoding="utf-8")

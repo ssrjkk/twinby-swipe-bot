@@ -150,56 +150,44 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
                 dash_vars[token],
                 f"{token} drifted apart: landing {landing_vars[token]!r} vs dashboard {dash_vars[token]!r}",
             )
-        self.assertEqual(dash_vars["--bg"], "#fffbfc", "Light theme must stay #fffbfc")
-        self.assertEqual(dash_vars["--rose"], "#e11d48")
+        self.assertEqual(dash_vars["--bg"], "#F6F2EC", "Light theme must stay warm paper")
+        self.assertEqual(dash_vars["--rose"], "#B42318")
 
-    def test_02_both_pages_carry_three_blobs_and_five_glossy_orbs(self) -> None:
+    def test_02_both_pages_keep_the_three_bubble_signature(self) -> None:
         for name, src in (("index.html", LANDING), ("dashboard.html", DASH)):
-            self.assertEqual(len(re.findall(r'<div class="blob blob-\d"', src)), 3, f"blob count in {name}")
-            self.assertEqual(len(re.findall(r'<div class="orb orb-\d"', src)), 5, f"orb count in {name}")
-            self.assertEqual(len(re.findall(r"(?m)^\s*\.blob-\d\s*\{", src)), 3, f"blob rules in {name}")
-            self.assertEqual(len(re.findall(r"(?m)^\s*\.orb-\d\s*\{", src)), 5, f"orb rules in {name}")
-            self.assertEqual(
-                sorted(set(re.findall(r"@keyframes (\w+)", src))),
-                ["floatOrb", "riseBubble"],
-                f"animation set changed in {name}",
-            )
-            self.assertIn('class="blobs"', src, f"bubble layer missing in {name}")
+            self.assertEqual(len(re.findall(r'<div class="bubble bubble-\d"', src)), 3, f"bubble count in {name}")
+            self.assertNotIn('class="orb', src, f"glossy AI orbs returned in {name}")
+            self.assertNotIn("riseBubble", src, f"glossy bubble animation returned in {name}")
+            self.assertNotIn("backdrop-filter", src, f"glassmorphism returned in {name}")
+            self.assertIn("prefers-reduced-motion", src, f"reduced-motion guard missing in {name}")
+        self.assertEqual(keyframes_body(LANDING, "floatBubble"), keyframes_body(DASH, "floatBubble"))
 
-    def test_03_bubble_and_blob_animations_are_identical(self) -> None:
-        for kf in ("floatOrb", "riseBubble"):
-            self.assertEqual(
-                keyframes_body(LANDING, kf),
-                keyframes_body(DASH, kf),
-                f"@keyframes {kf} diverged between landing and dashboard",
-            )
-            self.assertIn("0%", keyframes_body(DASH, kf))
-
-    def test_04_typography_stack_is_shared_and_serif_italic_is_actually_used(self) -> None:
+    def test_03_typography_is_shared_and_serif_italic_is_actually_used(self) -> None:
         landing_link = re.search(r"fonts\.googleapis\.com/css2\?([^\"]+)", LANDING)
         dash_link = re.search(r"fonts\.googleapis\.com/css2\?([^\"]+)", DASH)
         self.assertIsNotNone(landing_link)
         self.assertIsNotNone(dash_link)
         self.assertEqual(landing_link.group(1), dash_link.group(1), "Google Fonts payloads differ")
         for name, src in (("index.html", LANDING), ("dashboard.html", DASH)):
-            for family in ("Instrument Serif", "Plus Jakarta Sans", "JetBrains Mono"):
+            for family in ("Cormorant Garamond", "Golos Text", "JetBrains Mono"):
                 self.assertIn(family, src, f"{family} not used in {name}")
-            self.assertIn("'Instrument Serif', Georgia, serif", src, f"serif italic accent unused in {name}")
+            self.assertIn("'Cormorant Garamond', Georgia, serif", src, f"serif italic accent unused in {name}")
             self.assertIn("font-style: italic", src, f"italic accent style missing in {name}")
         self.assertIn("<em>Control Panel</em>", DASH, "serif italic accent missing in the panel header")
 
-    def test_05_glass_card_recipe_is_copied_verbatim(self) -> None:
+    def test_05_flat_card_recipe_is_copied_verbatim(self) -> None:
         landing_card, dash_card = declarations(rule_body(LANDING, ".card")), declarations(rule_body(DASH, ".card"))
-        for prop in ("background", "backdrop-filter", "border", "border-radius", "padding"):
+        for prop in ("background", "border", "border-radius", "padding"):
             self.assertIn(prop, landing_card)
             self.assertEqual(
                 landing_card[prop],
                 dash_card.get(prop),
                 f"dashboard .card `{prop}` is {dash_card.get(prop)!r}, landing has {landing_card[prop]!r}",
             )
-        self.assertEqual(landing_card["border-radius"], "24px")
+        self.assertNotIn("backdrop-filter", landing_card)
+        self.assertEqual(landing_card["border-radius"], "8px")
 
-    def test_06_primary_button_is_the_landing_rose_pill(self) -> None:
+    def test_06_primary_button_is_a_flat_editorial_rectangle(self) -> None:
         landing_btn = declarations(rule_body(LANDING, ".btn-primary"))
         dash_btn = declarations(rule_body(DASH, "button"))
         for prop in ("background", "color", "border-radius", "box-shadow", "font-weight"):
@@ -208,7 +196,8 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
                 dash_btn.get(prop),
                 f"dashboard button `{prop}` is {dash_btn.get(prop)!r}, landing .btn-primary has {landing_btn[prop]!r}",
             )
-        self.assertEqual(landing_btn["box-shadow"], "0 12px 26px -6px rgba(225, 29, 72, 0.35)")
+        self.assertEqual(landing_btn["box-shadow"], "none")
+        self.assertEqual(landing_btn["border-radius"], "6px")
         self.assertIn("transform: translateY(-2px)", rule_body(DASH, "button:hover"))
         self.assertIn("transform: translateY(-2px)", rule_body(LANDING, ".btn-primary:hover"))
 
@@ -227,21 +216,22 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
             (ROOT / "web/static/index.html").read_bytes(),
             "index.html and web/static/index.html must stay byte-identical",
         )
-        self.assertIn("#fffbfc", LANDING)
-        self.assertIn("#e11d48", LANDING)
+        self.assertIn("#F6F2EC", LANDING)
+        self.assertIn("#B42318", LANDING)
 
-    def test_09_dashboard_ui_text_is_free_of_pictograms(self) -> None:
-        """Панель — Serious UI: никаких эмодзи и пиктограмм в кнопках, заголовках и статусах, только типографика."""
+    def test_09_landing_and_dashboard_are_free_of_pictograms(self) -> None:
+        """Serious UI: никаких эмодзи и пиктограмм в кнопках, заголовках и статусах, только типографика."""
         pictographic = ((0x1F000, 0x1FAFF), (0x1F1E6, 0x1F1FF), (0x2100, 0x2BFF), (0xFE0F, 0xFE0F))
         allowed = set("✓✗·—→←↗★«»…№’")
-        found = sorted(
-            {
-                ch
-                for ch in DASH
-                if any(lo <= ord(ch) <= hi for lo, hi in pictographic) and ch not in allowed
-            }
-        )
-        self.assertEqual(found, [], f"в интерфейсе панели появились пиктограммы: {found}")
+        for name, src in (("index.html", LANDING), ("dashboard.html", DASH)):
+            found = sorted(
+                {
+                    ch
+                    for ch in src
+                    if any(lo <= ord(ch) <= hi for lo, hi in pictographic) and ch not in allowed
+                }
+            )
+            self.assertEqual(found, [], f"в интерфейсе {name} появились пиктограммы: {found}")
         self.assertIn("WS: LIVE", DASH, "живой статус-бейдж WebSocket пропал из панели")
 
     def test_10_structural_rules_are_landing_verbatim(self) -> None:
@@ -270,7 +260,7 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
         pane, mode_content = declarations(rule_body(DASH, ".pane")), declarations(rule_body(LANDING, ".mode-content"))
         for prop in ("background", "border", "border-radius"):
             self.assertEqual(pane[prop], mode_content[prop], f"вложенная белая подложка разошлась с `.mode-content` в {prop}")
-        self.assertEqual(pane["border-radius"], "18px")
+        self.assertEqual(pane["border-radius"], "8px")
         self.assertEqual(
             declarations(rule_body(DASH, "details.adv code")),
             declarations(rule_body(LANDING, ".mode-content code")),
@@ -279,7 +269,7 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
         self.assertEqual(
             declarations(rule_body(LANDING, ".btn-primary")),
             declarations(rule_body(DASH, ".btn-primary")),
-            ".btn-primary панели обязан быть розовой pill-кнопкой лендинга целиком",
+            ".btn-primary панели обязан совпадать с плоской кнопкой лендинга целиком",
         )
         self.assertIn("box-shadow: none", rule_body(DASH, "button.btn-secondary"))
         # На карточку — одна розовая кнопка: вторичные действия обязаны быть классом btn-secondary.
@@ -299,12 +289,12 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
         self.assertNotIn('style="', body, "в разметке панели снова полезли инлайн-атрибуты style=")
         self.assertNotIn(" style=", body)
         fields = declarations(rule_body(DASH, "input, select, textarea"))
-        self.assertEqual(fields["border-radius"], "14px")
+        self.assertEqual(fields["border-radius"], "8px")
         self.assertEqual(fields["background"], "#fff")
         focus = declarations(rule_body(DASH, "input:focus-visible, select:focus-visible, textarea:focus-visible"))
         self.assertEqual(focus["outline"], "none")
         self.assertEqual(focus["border-color"], "var(--rose)")
-        self.assertEqual(focus["box-shadow"], "0 0 0 3px rgba(225, 29, 72, 0.14)")
+        self.assertEqual(focus["box-shadow"], "0 0 0 3px rgba(180, 35, 24, 0.14)")
         self.assertIn("cursor: progress", rule_body(DASH, "button:disabled"))
         self.assertIn('class="drv drv-hybrid"', body, "статусные чипы панели должны жить в стиле лендингового .drv")
         for chip in ("wsBadge", "modeBadge", "stateBadge", "dryBadge"):
