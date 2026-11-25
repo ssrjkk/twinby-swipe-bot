@@ -448,6 +448,13 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
             self.assertIn("@media (max-width: 380px)", src, f"{name}: narrow hero breakpoint missing")
             self.assertIn("h1 { font-size: clamp(2.2rem, 11vw, 2.6rem); }", src, f"{name}: narrow hero type can overflow")
 
+    def test_22_bubbles_render_above_the_page_background(self) -> None:
+        for name, src in (("index.html", LANDING), ("dashboard.html", DASH)):
+            self.assertEqual(declarations(rule_body(src, ".blobs"))["z-index"], "0", f"{name}: bubbles are hidden below the canvas")
+            container = declarations(rule_body(src, ".container"))
+            self.assertEqual(container["position"], "relative", f"{name}: content stacking context missing")
+            self.assertEqual(container["z-index"], "1", f"{name}: content must stay above bubbles")
+
 
 if __name__ == "__main__":
     unittest.main()
