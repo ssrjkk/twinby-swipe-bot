@@ -36,7 +36,7 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: -1;
+      z-index: 0;
       overflow: hidden;
     }
     .blob {
@@ -92,7 +92,7 @@
 
     @media (prefers-reduced-motion: reduce) { .blob, .orb { animation: none; } }
 
-    .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+    .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
 
     header {
       display: flex;
