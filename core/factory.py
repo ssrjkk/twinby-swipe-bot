@@ -12,7 +12,6 @@ from core.base_client import BaseDatingClient, CandidateProfile
 from core.client import TwinbyStealthClient
 from core.metrics import API_ERRORS_TOTAL
 from core.proxy.manager import GeoProxyManager, Region
-from core.safe_names import safe_filename
 
 try:
     from curl_cffi.requests import AsyncSession as CurlAsyncSession
@@ -124,11 +123,18 @@ class GenericRestDatingClient(BaseDatingClient):
         return resp.json()
 
 
+def _load_api_profiles(profiles_dir: str) -> list[tuple[Path, DeclarativeAPIProfile]]:
+    profiles: list[tuple[Path, DeclarativeAPIProfile]] = []
+    for path in Path(profiles_dir).glob("*.json"):
+        try:
+            profiles.append((path, DeclarativeAPIProfile.model_validate(json.loads(path.read_text(encoding="utf-8")))))
+        except (OSError, json.JSONDecodeError, ValueError):
+            continue
+    return profiles
+
+
 def list_verified_api_profiles(profiles_dir: str = "./data/api_profiles") -> list[str]:
-    p = Path(profiles_dir)
-    if not p.exists():
-        return []
-    return sorted(f.stem for f in p.glob("*.json"))
+    return sorted({profile.platform for _, profile in _load_api_profiles(profiles_dir)})
 
 
 def create_dating_client(
@@ -148,18 +154,16 @@ def create_dating_client(
     if not spec:
         raise ValueError(f"Платформа '{platform}' отсутствует в GLOBAL_DATING_REGISTRY")
 
-    # 1. Приоритет — подтверждённый HAR-профиль `./data/api_profiles/<platform>.json`
-    profile_name = safe_filename(spec.id)
-    har_profile = Path(profiles_dir) / f"{profile_name}.json"
-    if har_profile.exists():
-        logger.info("[Factory] Загружен реальный HAR-профиль API: %s", har_profile)
-        data = json.loads(har_profile.read_text(encoding="utf-8"))
-        return DeclarativeRestDatingClient(
-            DeclarativeAPIProfile.model_validate(data),
-            token=token,
-            refresh_token=credentials.get("refresh_token", ""),
-            proxy_url=proxy_url,
-        )
+    # 1. Приоритет — подтверждённый HAR-профиль; имя файла не зависит от платформы.
+    for har_profile, profile in _load_api_profiles(profiles_dir):
+        if profile.platform == spec.id:
+            logger.info("[Factory] Загружен реальный HAR-профиль API: %s", har_profile)
+            return DeclarativeRestDatingClient(
+                profile,
+                token=token,
+                refresh_token=credentials.get("refresh_token", ""),
+                proxy_url=proxy_url,
+            )
 
     if plat == "twinby":
         return TwinbyStealthClient(

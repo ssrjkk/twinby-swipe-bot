@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -154,6 +155,12 @@ def export_api_profile_from_har(
 
     out_dir = API_PROFILES_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / os.path.basename(f"{platform.strip()}.json").casefold()
+    for existing in out_dir.glob("*.json"):
+        try:
+            if json.loads(existing.read_text(encoding="utf-8")).get("platform") == platform_name:
+                existing.unlink()
+        except (OSError, json.JSONDecodeError):
+            continue
+    out_file = out_dir / f"{uuid.uuid4().hex}.json"
     out_file.write_text(profile.model_dump_json(indent=2), encoding="utf-8")
     return out_file
