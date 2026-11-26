@@ -1,9 +1,11 @@
+import asyncio
 import os
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from ai import calendar_tool
 from config import upsert_env_values, write_private_text
 from core.adapters import declarative_client
 from core.adapters.declarative_client import DeclarativeRestDatingClient
@@ -43,6 +45,15 @@ class TestFilenameConfinement(unittest.TestCase):
             with patch.object(har_importer, "API_PROFILES_DIR", Path(tmp) / "out"):
                 with self.assertRaises(ValueError):
                     export_api_profile_from_har(str(har), platform="../escape")
+
+
+class TestCalendarErrorDisclosure(unittest.TestCase):
+    def test_calendar_failures_return_generic_messages(self) -> None:
+        with patch.dict(os.environ, {"GOOGLE_ACCESS_TOKEN": "test"}), patch.object(
+            calendar_tool, "_get_calendar_service", side_effect=RuntimeError("secret /internal/path")
+        ):
+            self.assertNotIn("secret", asyncio.run(calendar_tool.list_busy_slots()))
+            self.assertNotIn("secret", asyncio.run(calendar_tool.book_dating_event("2026-11-26T10:00:00+03:00", "Cafe", "Test")))
 
 
 class TestPrivateEnvWrites(unittest.TestCase):

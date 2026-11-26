@@ -53,10 +53,8 @@ async def list_busy_slots(days_ahead: int = 3) -> str:
         ]
         return "Занятые слоты:\n" + "\n".join(lines)
     except Exception as exc:
-        # Текст возвращается только владельцу (админ-telegram и авторизованная панель), поэтому
-        # подробности Google остаются в сообщении, а traceback дополнительно уходит в лог.
         logger.exception("Google Calendar: список занятости не получен")
-        return f"Ошибка чтения календаря: {exc}"
+        return "Не удалось прочитать календарь. Проверьте настройки Google Calendar."
 
 
 async def book_dating_event(slot_iso_string: str, venue_name: str, girl_name: str) -> str:
@@ -68,7 +66,7 @@ async def book_dating_event(slot_iso_string: str, venue_name: str, girl_name: st
         start_time = datetime.fromisoformat(slot_iso_string)
         end_time = start_time + timedelta(hours=1, minutes=30)
         event = {
-            "summary": f"☕ Свидание: {girl_name}",
+            "summary": f"Свидание: {girl_name}",
             "description": f"Встреча в заведении: {venue_name}. Создано <3.",
             "start": {"dateTime": start_time.isoformat(), "timeZone": "Europe/Moscow"},
             "end": {"dateTime": end_time.isoformat(), "timeZone": "Europe/Moscow"},
@@ -78,7 +76,7 @@ async def book_dating_event(slot_iso_string: str, venue_name: str, girl_name: st
         return f"Забронировано! Ссылка: {created.get('htmlLink')}"
     except Exception as exc:
         logger.exception("Google Calendar: бронь не создана")
-        return f"Ошибка календаря: {exc}"
+        return "Не удалось создать встречу. Проверьте настройки Google Calendar."
 
 
 @tool
