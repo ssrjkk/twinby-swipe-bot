@@ -1,7 +1,5 @@
 # <3 — AI Matchmaking Agent
 
-[![CI](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ssrjkk/twinby-swipe-bot/actions/workflows/ci.yml)
-
 Локальный мультиплатформенный ассистент для дейтинга с визуальным анализом анкет и чатов (VLM-граундинг кнопок), настраиваемым скорингом, 3-узловым чат-агентом (`Profiler → Strategist → Humanizer`), Thompson Sampling бандитами, Web Control Panel (`/dashboard`), Google Calendar и Telegram-ботом.
 
 Лендинг проекта: **https://ssrjkk.github.io/twinby-swipe-bot/**  
