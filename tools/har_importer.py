@@ -154,6 +154,6 @@ def export_api_profile_from_har(
 
     out_dir = API_PROFILES_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / os.path.basename(f"{platform_name}.json")
+    out_file = out_dir / os.path.basename(f"{platform.strip()}.json").casefold()
     out_file.write_text(profile.model_dump_json(indent=2), encoding="utf-8")
     return out_file
