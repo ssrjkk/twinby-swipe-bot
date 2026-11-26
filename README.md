@@ -13,6 +13,10 @@ Telegram bot. The full Russian documentation is in [README.ru.md](README.ru.md).
 
 ![Heart3](docs/screenshots/landing.jpg)
 
+## Быстрый старт
+
+Полная инструкция: [README.ru.md](README.ru.md).
+
 ## Operating modes
 
 - `ui_vision` — Android ADB or Android/iOS Appium; screenshots are analyzed by a VLM.
