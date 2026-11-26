@@ -15,6 +15,7 @@ class TestFilenameConfinement(unittest.TestCase):
     def test_safe_filename_accepts_only_plain_names(self) -> None:
         self.assertEqual(safe_filename("RealApp"), "realapp")
         self.assertEqual(safe_filename("real-app_2"), "real-app_2")
+        self.assertEqual(safe_filename("realapp.json"), "realapp.json")
 
     def test_safe_filename_rejects_paths_and_traversal(self) -> None:
         for candidate in ("../secret.json", "/tmp/secret.json", "nested/profile.json", "..\\secret.json"):
