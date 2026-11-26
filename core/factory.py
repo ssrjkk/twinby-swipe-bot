@@ -11,6 +11,7 @@ from core.base_client import BaseDatingClient, CandidateProfile
 from core.client import TwinbyStealthClient
 from core.metrics import API_ERRORS_TOTAL
 from core.proxy.manager import GeoProxyManager, Region
+from core.safe_paths import resolve_within
 
 try:
     from curl_cffi.requests import AsyncSession as CurlAsyncSession
@@ -144,7 +145,7 @@ def create_dating_client(
     token = credentials.get("token", "")
 
     # 1. Приоритет — подтверждённый HAR-профиль `./data/api_profiles/<platform>.json`
-    har_profile = Path(profiles_dir) / f"{plat}.json"
+    har_profile = resolve_within(profiles_dir, f"{plat}.json")
     if har_profile.exists():
         logger.info("[Factory] Загружен реальный HAR-профиль API: %s", har_profile)
         return DeclarativeRestDatingClient.from_profile_file(
@@ -152,6 +153,7 @@ def create_dating_client(
             token=token,
             refresh_token=credentials.get("refresh_token", ""),
             proxy_url=proxy_url,
+            profiles_dir=profiles_dir,
         )
 
     if not spec:

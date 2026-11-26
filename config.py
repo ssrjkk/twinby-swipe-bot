@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 from typing import Literal
@@ -16,6 +17,15 @@ def configure_utf8_console() -> None:
                 pass
 
 
+def write_private_text(path: str | Path, text: str) -> Path:
+    target = Path(path)
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+    os.chmod(target, 0o600)
+    return target
+
+
 def upsert_env_values(values: dict[str, str], path: str | Path = ".env") -> Path:
     """Point-update `KEY=VALUE` lines in .env, leaving every other line (and its order) alone.
 
@@ -30,8 +40,7 @@ def upsert_env_values(values: dict[str, str], path: str | Path = ".env") -> Path
         if key in pending and not line.lstrip().startswith("#"):
             lines[idx] = f"{key}={_one_line(pending.pop(key))}"
     lines.extend(f"{key}={_one_line(val)}" for key, val in pending.items())
-    env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return env_path
+    return write_private_text(env_path, "\n".join(lines) + "\n")
 
 
 def _one_line(value: str) -> str:

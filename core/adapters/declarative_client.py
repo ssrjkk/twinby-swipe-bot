@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from core.base_client import BaseDatingClient, CandidateProfile
 from core.metrics import API_ERRORS_TOTAL
+from core.safe_paths import resolve_within
 
 try:
     from curl_cffi.requests import AsyncSession as CurlAsyncSession
@@ -104,8 +105,9 @@ class DeclarativeRestDatingClient(BaseDatingClient):
         token: str = "",
         refresh_token: str = "",
         proxy_url: str | None = None,
+        profiles_dir: str | Path = "./data/api_profiles",
     ) -> "DeclarativeRestDatingClient":
-        data = json.loads(Path(profile_path).read_text(encoding="utf-8"))
+        data = json.loads(resolve_within(profiles_dir, profile_path).read_text(encoding="utf-8"))
         return cls(
             DeclarativeAPIProfile.model_validate(data),
             token=token,

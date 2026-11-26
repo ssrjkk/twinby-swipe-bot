@@ -671,11 +671,25 @@ def create_web_app(
 
     @app.get("/api/v1/calendar/slots", dependencies=auth)
     async def calendar_slots(days_ahead: int = 3) -> dict[str, Any]:
-        return {"slots": await list_busy_slots(days_ahead=days_ahead)}
+        try:
+            return {"slots": await list_busy_slots(days_ahead=days_ahead)}
+        except Exception as exc:
+            logger.warning("Не удалось получить слоты календаря", exc_info=True)
+            raise HTTPException(
+                status_code=502,
+                detail=f"Ошибка календаря: {safe_error_suffix(exc)}",
+            ) from exc
 
     @app.post("/api/v1/calendar/book", dependencies=auth)
     async def calendar_book(payload: BookCalendarRequest) -> dict[str, Any]:
-        res = await book_dating_event(payload.slot_iso_string, payload.venue_name, payload.girl_name)
-        return {"result": res}
+        try:
+            res = await book_dating_event(payload.slot_iso_string, payload.venue_name, payload.girl_name)
+            return {"result": res}
+        except Exception as exc:
+            logger.warning("Не удалось забронировать слот календаря", exc_info=True)
+            raise HTTPException(
+                status_code=502,
+                detail=f"Ошибка календаря: {safe_error_suffix(exc)}",
+            ) from exc
 
     return app

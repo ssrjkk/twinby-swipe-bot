@@ -1,12 +1,14 @@
 import argparse
 import asyncio
 import json
+import os
+import shutil
 import sys
 from pathlib import Path
 
 from ai.chat_agent import AutonomousChatAgent
 from ai.universal_llm import PROVIDER_PRESETS, UniversalAIGateway
-from config import configure_utf8_console, settings
+from config import configure_utf8_console, settings, write_private_text
 from core.adapters_registry import GLOBAL_DATING_REGISTRY, resolve_platform_defaults
 from core.factory import list_verified_api_profiles
 from core.ui_driver import MobileUIDriverFallback
@@ -80,9 +82,11 @@ def _cmd_setup() -> int:
     ]
     env_path = Path(".env")
     if env_path.exists():
-        env_path.with_name(".env.bak").write_text(env_path.read_text(encoding="utf-8"), encoding="utf-8")
+        backup = env_path.with_name(".env.bak")
+        shutil.copyfile(env_path, backup)
+        os.chmod(backup, 0o600)
         print("ℹ️  Предыдущий .env сохранён в .env.bak")
-    env_path.write_text("\n".join(env_lines) + "\n", encoding="utf-8")
+    write_private_text(env_path, "\n".join(env_lines) + "\n")
     print("✅ Файл .env создан (DRY_RUN=true для безопасного первого запуска). Проверьте командой: heart3 doctor")
     return 0
 
