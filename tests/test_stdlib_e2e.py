@@ -31,6 +31,7 @@ from filters.engine import FilterConfig, ProfileFilterEngine
 from filters.face_checker import FaceConsistencyChecker, cosine_similarity, evaluate_embeddings
 from filters.synthetic_scorer import SyntheticCompatibilityScorer
 from filters.vision_card_parser import VisionProfileParser
+from tools import har_importer
 from tools.har_importer import export_api_profile_from_har, inspect_har
 
 try:  # pytest видит tests пакетом, а `unittest discover -s tests` — плоской папкой
@@ -221,7 +222,8 @@ class TestHeart3Comprehensive(unittest.TestCase):
                 }), encoding="utf-8")
                 rep = inspect_har(str(har_f), host_filter="127.0.0.1")
                 self.assertEqual(rep["total_json_endpoints"], 2)
-                prof_file = export_api_profile_from_har(str(har_f), platform="demo", host_filter="127.0.0.1", output_dir=str(td_p))
+                with patch.object(har_importer, "API_PROFILES_DIR", Path(td_p)):
+                    prof_file = export_api_profile_from_har(str(har_f), platform="demo", host_filter="127.0.0.1")
                 # Inject refresh endpoint into declarative profile
                 pdata = json.loads(prof_file.read_text(encoding="utf-8"))
                 pdata["refresh"] = {"method": "POST", "path": "/api/refresh"}

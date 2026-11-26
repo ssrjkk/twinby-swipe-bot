@@ -6,6 +6,8 @@ from urllib.parse import urlparse
 from core.adapters.declarative_client import DeclarativeAPIProfile, EndpointSpec
 from core.safe_names import safe_filename
 
+API_PROFILES_DIR = Path("./data/api_profiles")
+
 
 def _guess_role(method: str, path: str) -> str:
     p = path.lower()
@@ -106,7 +108,6 @@ def export_api_profile_from_har(
     har_path: str,
     platform: str,
     host_filter: str = "",
-    output_dir: str = "./data/api_profiles",
 ) -> Path:
     """Превращает реальный .har дамп в готовый декларативный профиль `./data/api_profiles/<platform>.json`,
     который сразу подхватывается `create_dating_client()` в режиме MODE=api.
@@ -147,7 +148,7 @@ def export_api_profile_from_har(
         messages_send=EndpointSpec(method=msg_send["method"], path=msg_send["path"], body_template={"text": "{text}"}) if msg_send else None,
     )
 
-    out_dir = Path(output_dir)
+    out_dir = API_PROFILES_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / f"{platform_name}.json"
     out_file.write_text(profile.model_dump_json(indent=2), encoding="utf-8")

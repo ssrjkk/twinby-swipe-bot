@@ -8,6 +8,7 @@ from config import upsert_env_values, write_private_text
 from core.adapters import declarative_client
 from core.adapters.declarative_client import DeclarativeRestDatingClient
 from core.safe_names import safe_filename
+from tools import har_importer
 from tools.har_importer import export_api_profile_from_har
 
 
@@ -39,8 +40,9 @@ class TestFilenameConfinement(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             har = Path(tmp) / "capture.har"
             har.write_text('{"log":{"entries":[]}}', encoding="utf-8")
-            with self.assertRaises(ValueError):
-                export_api_profile_from_har(str(har), platform="../escape", output_dir=str(Path(tmp) / "out"))
+            with patch.object(har_importer, "API_PROFILES_DIR", Path(tmp) / "out"):
+                with self.assertRaises(ValueError):
+                    export_api_profile_from_har(str(har), platform="../escape")
 
 
 class TestPrivateEnvWrites(unittest.TestCase):

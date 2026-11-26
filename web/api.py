@@ -678,7 +678,7 @@ def create_web_app(
             raise HTTPException(
                 status_code=502,
                 detail="Не удалось получить слоты календаря",
-            ) from exc
+            )
 
     @app.post("/api/v1/calendar/book", dependencies=auth)
     async def calendar_book(payload: BookCalendarRequest) -> dict[str, Any]:
@@ -690,6 +690,6 @@ def create_web_app(
             raise HTTPException(
                 status_code=502,
                 detail="Не удалось забронировать слот календаря",
-            ) from exc
+            )
 
     return app
