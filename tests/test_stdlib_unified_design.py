@@ -455,6 +455,24 @@ class TestUnifiedDesignLanguage(unittest.TestCase):
             self.assertEqual(container["position"], "relative", f"{name}: content stacking context missing")
             self.assertEqual(container["z-index"], "1", f"{name}: content must stay above bubbles")
 
+    def test_23_rose_ink_on_soft_surface_meets_aa(self) -> None:
+        def luminance(value: str) -> float:
+            value = value.lstrip("#")
+            channels = [int(value[index:index + 2], 16) / 255 for index in (0, 2, 4)]
+            linear = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
+            return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722
+
+        for name, src in (("index.html", LANDING), ("dashboard.html", DASH)):
+            tokens = css_vars(src)
+            ink, soft = luminance(tokens["--rose-ink"]), luminance(tokens["--rose-soft"])
+            ratio = (max(ink, soft) + 0.05) / (min(ink, soft) + 0.05)
+            self.assertGreaterEqual(ratio, 4.5, f"{name}: rose ink contrast is {ratio:.2f}:1")
+            selectors = [".gh-link", ".tag", ".mode-content code"]
+            if name == "index.html":
+                selectors.append(".step-badge")
+            for selector in selectors:
+                self.assertEqual(declarations(rule_body(src, selector))["color"], "var(--rose-ink)", f"{name}: {selector} lost accessible ink")
+
 
 if __name__ == "__main__":
     unittest.main()
