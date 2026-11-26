@@ -3,10 +3,12 @@ import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from PIL import Image
 
+from core.adapters import declarative_client
 from core.adapters.declarative_client import DeclarativeRestDatingClient
 from core.image_utils import denormalize_point, is_blank_or_secure_screen, prepare_image_for_vlm
 from tools.har_importer import export_api_profile_from_har
@@ -151,14 +153,15 @@ async def test_real_http_loopback_har_export_to_declarative_client(tmp_path: Pat
         )
         assert profile_file.exists()
 
-        async with DeclarativeRestDatingClient.from_profile_file(profile_file, token="live_secret_token") as client:
-            profiles = await client.get_recommendations(limit=5)
-            assert len(profiles) == 1
-            assert profiles[0].name == "Полина"
-            assert profiles[0].compatibility_score == 92
+        with patch.object(declarative_client, "API_PROFILES_DIR", profile_file.parent):
+            async with DeclarativeRestDatingClient.from_profile_file(profile_file.name, token="live_secret_token") as client:
+                profiles = await client.get_recommendations(limit=5)
+                assert len(profiles) == 1
+                assert profiles[0].name == "Полина"
+                assert profiles[0].compatibility_score == 92
 
-            swipe_res = await client.swipe("u_777", is_like=True)
-            assert swipe_res["is_match"] is True
+                swipe_res = await client.swipe("u_777", is_like=True)
+                assert swipe_res["is_match"] is True
 
         assert "Bearer live_secret_token" in received_auth
     finally:

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from core.base_client import BaseDatingClient, CandidateProfile
 from core.metrics import API_ERRORS_TOTAL
-from core.safe_paths import resolve_within
+from core.safe_names import safe_filename
 
 try:
     from curl_cffi.requests import AsyncSession as CurlAsyncSession
@@ -17,6 +17,7 @@ except ImportError:
     CurlAsyncSession = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
+API_PROFILES_DIR = Path("./data/api_profiles")
 
 
 def extract_dot_path(obj: Any, path: str, default: Any = None) -> Any:
@@ -105,9 +106,9 @@ class DeclarativeRestDatingClient(BaseDatingClient):
         token: str = "",
         refresh_token: str = "",
         proxy_url: str | None = None,
-        profiles_dir: str | Path = "./data/api_profiles",
     ) -> "DeclarativeRestDatingClient":
-        data = json.loads(resolve_within(profiles_dir, profile_path).read_text(encoding="utf-8"))
+        profile_name = safe_filename(profile_path)
+        data = json.loads((API_PROFILES_DIR / profile_name).read_text(encoding="utf-8"))
         return cls(
             DeclarativeAPIProfile.model_validate(data),
             token=token,

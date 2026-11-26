@@ -1,11 +1,10 @@
 import json
-import re
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 from core.adapters.declarative_client import DeclarativeAPIProfile, EndpointSpec
-from core.safe_paths import resolve_within
+from core.safe_names import safe_filename
 
 
 def _guess_role(method: str, path: str) -> str:
@@ -112,9 +111,7 @@ def export_api_profile_from_har(
     """Превращает реальный .har дамп в готовый декларативный профиль `./data/api_profiles/<platform>.json`,
     который сразу подхватывается `create_dating_client()` в режиме MODE=api.
     """
-    platform_name = platform.strip().lower()
-    if not re.fullmatch(r"[a-z0-9_-]+", platform_name):
-        raise ValueError("Некорректное имя платформы")
+    platform_name = safe_filename(platform.strip())
     report = inspect_har(har_path, host_filter=host_filter or platform_name)
     by_role = report["by_role"]
     all_eps = report["endpoints"]
@@ -152,6 +149,6 @@ def export_api_profile_from_har(
 
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = resolve_within(out_dir, f"{platform_name}.json")
+    out_file = out_dir / f"{platform_name}.json"
     out_file.write_text(profile.model_dump_json(indent=2), encoding="utf-8")
     return out_file

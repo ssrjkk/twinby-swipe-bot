@@ -677,7 +677,7 @@ def create_web_app(
             logger.warning("Не удалось получить слоты календаря", exc_info=True)
             raise HTTPException(
                 status_code=502,
-                detail=f"Ошибка календаря: {safe_error_suffix(exc)}",
+                detail="Не удалось получить слоты календаря",
             ) from exc
 
     @app.post("/api/v1/calendar/book", dependencies=auth)
@@ -689,7 +689,7 @@ def create_web_app(
             logger.warning("Не удалось забронировать слот календаря", exc_info=True)
             raise HTTPException(
                 status_code=502,
-                detail=f"Ошибка календаря: {safe_error_suffix(exc)}",
+                detail="Не удалось забронировать слот календаря",
             ) from exc
 
     return app

@@ -2,37 +2,37 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from config import upsert_env_values, write_private_text
+from core.adapters import declarative_client
 from core.adapters.declarative_client import DeclarativeRestDatingClient
-from core.safe_paths import resolve_within
+from core.safe_names import safe_filename
 from tools.har_importer import export_api_profile_from_har
 
 
-class TestPathConfinement(unittest.TestCase):
-    def test_relative_and_absolute_paths_inside_base_are_allowed(self) -> None:
+class TestFilenameConfinement(unittest.TestCase):
+    def test_safe_filename_accepts_only_plain_names(self) -> None:
+        self.assertEqual(safe_filename("RealApp"), "realapp")
+        self.assertEqual(safe_filename("real-app_2"), "real-app_2")
+
+    def test_safe_filename_rejects_paths_and_traversal(self) -> None:
+        for candidate in ("../secret.json", "/tmp/secret.json", "nested/profile.json", "..\\secret.json"):
+            with self.assertRaises(ValueError):
+                safe_filename(candidate)
+
+    def test_profile_loader_uses_the_fixed_profiles_directory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp)
-            self.assertEqual(resolve_within(base, "profile.json"), base / "profile.json")
-            inside = base / "nested" / "profile.json"
-            self.assertEqual(resolve_within(base, inside), inside)
-
-    def test_traversal_and_absolute_outside_paths_are_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            base = Path(tmp) / "profiles"
-            base.mkdir()
-            for candidate in ("../secret.json", Path(tmp) / "secret.json"):
-                with self.assertRaises(ValueError):
-                    resolve_within(base, candidate)
-
-    def test_profile_loader_rejects_outside_file(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            base = Path(tmp) / "profiles"
-            base.mkdir()
-            outside = Path(tmp) / "outside.json"
+            outside = base / "outside.json"
             outside.write_text("{}", encoding="utf-8")
-            with self.assertRaises(ValueError):
-                DeclarativeRestDatingClient.from_profile_file(outside, profiles_dir=base)
+            with patch.object(declarative_client, "API_PROFILES_DIR", base):
+                with self.assertRaises(ValueError):
+                    DeclarativeRestDatingClient.from_profile_file(str(outside))
+                inside = base / "realapp.json"
+                inside.write_text("{}", encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    DeclarativeRestDatingClient.from_profile_file("realapp.json")
 
     def test_har_export_rejects_platform_path_traversal(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -60,7 +60,8 @@ class TestPrivateEnvWrites(unittest.TestCase):
             upsert_env_values({"LLM_API_KEY": "first\nsecond"}, path)
             text = path.read_text(encoding="utf-8")
             self.assertIn("LLM_API_KEY=firstsecond", text)
-            self.assertNotIn("second\n", text)
+            self.assertNotIn("\nsecond", text)
+            self.assertEqual(text.splitlines()[-1], "LLM_API_KEY=firstsecond")
             if os.name != "nt":
                 self.assertEqual(path.stat().st_mode & 0o777, 0o600)
 
