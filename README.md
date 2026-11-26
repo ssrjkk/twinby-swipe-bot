@@ -6,7 +6,12 @@ Local multi-platform dating assistant with screen and browser vision, configurab
 scoring, a three-node chat agent, Thompson Sampling bandits, Google Calendar and a
 Telegram bot. The full Russian documentation is in [README.ru.md](README.ru.md).
 
-**Site:** https://ssrjkk.github.io/twinby-swipe-bot/
+**Site:** https://ssrjkk.github.io/twinby-swipe-bot/  
+**Source:** https://github.com/ssrjkk/twinby-swipe-bot
+
+## Screenshot
+
+![Heart3](docs/screenshots/landing.jpg)
 
 ## Operating modes
 
