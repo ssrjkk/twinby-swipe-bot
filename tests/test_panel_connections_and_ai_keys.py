@@ -355,7 +355,7 @@ def test_har_import_writes_declarative_profile(panel: Harness, tmp_path: Path, m
     assert body["apply"] == {"mode": "api", "platform": "mamba", "driver": "rest_api"}
     assert body["har_profiles"] == ["mamba"]
     profile_file = Path(body["profile_path"])
-    assert profile_file.name == "mamba.json"
+    assert re.fullmatch(r"[0-9a-f]{32}\.json", profile_file.name)
     assert profile_file.parent.as_posix().endswith("data/api_profiles")
     profile = json.loads(profile_file.read_text(encoding="utf-8"))
     assert profile["platform"] == "mamba" and profile["base_url"] == "https://api.mamba.ru"
