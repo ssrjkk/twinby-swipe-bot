@@ -11,6 +11,7 @@ from PIL import Image
 from core.adapters import declarative_client
 from core.adapters.declarative_client import DeclarativeRestDatingClient
 from core.image_utils import denormalize_point, is_blank_or_secure_screen, prepare_image_for_vlm
+from tools import har_importer
 from tools.har_importer import export_api_profile_from_har
 
 
@@ -145,12 +146,12 @@ async def test_real_http_loopback_har_export_to_declarative_client(tmp_path: Pat
             encoding="utf-8",
         )
 
-        profile_file = export_api_profile_from_har(
-            str(har_path),
-            platform="realapp",
-            host_filter="127.0.0.1",
-            output_dir=str(tmp_path / "api_profiles"),
-        )
+        with patch.object(har_importer, "API_PROFILES_DIR", tmp_path / "api_profiles"):
+            profile_file = export_api_profile_from_har(
+                str(har_path),
+                platform="realapp",
+                host_filter="127.0.0.1",
+            )
         assert profile_file.exists()
 
         with patch.object(declarative_client, "API_PROFILES_DIR", profile_file.parent):
