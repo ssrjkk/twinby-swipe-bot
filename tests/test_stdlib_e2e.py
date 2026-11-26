@@ -8,13 +8,14 @@ import unittest
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from PIL import Image
 
 from ai.bandits import PromptThompsonBandit
 from ai.chat_agent import AutonomousChatAgent
 from ai.universal_llm import UniversalAIGateway, extract_json_object
+from core.adapters import declarative_client
 from core.adapters.declarative_client import DeclarativeRestDatingClient, extract_dot_path
 from core.adapters.pure_and_cis import PureClient, TaborClient
 from core.adapters_registry import AutomationDriverType, GLOBAL_DATING_REGISTRY, resolve_platform_defaults
@@ -226,13 +227,14 @@ class TestHeart3Comprehensive(unittest.TestCase):
                 pdata["refresh"] = {"method": "POST", "path": "/api/refresh"}
                 prof_file.write_text(json.dumps(pdata), encoding="utf-8")
 
-                async with DeclarativeRestDatingClient.from_profile_file(prof_file, token="expired_tok", refresh_token="ref_123") as cl:
-                    cands = await cl.get_recommendations(limit=5)
-                    self.assertTrue(state["refreshed"])
-                    self.assertEqual(len(cands), 1)
-                    self.assertEqual(cands[0].name, "Соня")
-                    sw = await cl.swipe("u1", is_like=True)
-                    self.assertTrue(sw["is_match"])
+                with patch.object(declarative_client, "API_PROFILES_DIR", prof_file.parent):
+                    async with DeclarativeRestDatingClient.from_profile_file(prof_file.name, token="expired_tok", refresh_token="ref_123") as cl:
+                        cands = await cl.get_recommendations(limit=5)
+                        self.assertTrue(state["refreshed"])
+                        self.assertEqual(len(cands), 1)
+                        self.assertEqual(cands[0].name, "Соня")
+                        sw = await cl.swipe("u1", is_like=True)
+                        self.assertTrue(sw["is_match"])
 
                 # 2. Pure synthetic scorer over live TCP
                 gw = UniversalAIGateway(provider="openai", base_url=f"{origin}/v1", api_key="sk-live", model="gpt-4o-mini")
